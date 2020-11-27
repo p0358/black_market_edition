@@ -1,0 +1,232 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>16.0</VCProjectVersion>
+    <Keyword>Win32Proj</Keyword>
+    <ProjectGuid>{93d0009e-2d12-4004-b541-625c2833fdac}</ProjectGuid>
+    <RootNamespace>bmedll</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v142</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v142</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <LinkIncremental>true</LinkIncremental>
+    <AllProjectIncludesArePublic>false</AllProjectIncludesArePublic>
+    <CustomBuildAfterTargets>BuildLink</CustomBuildAfterTargets>
+    <TargetName>bme</TargetName>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <LinkIncremental>false</LinkIncremental>
+    <AllProjectIncludesArePublic>false</AllProjectIncludesArePublic>
+    <RunCodeAnalysis>true</RunCodeAnalysis>
+    <CustomBuildBeforeTargets>
+    </CustomBuildBeforeTargets>
+    <TargetName>bme</TargetName>
+    <CustomBuildAfterTargets>GeneratedFilesOutputGroup</CustomBuildAfterTargets>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>_DEBUG;SPDLOG_DEBUG_ON;SPDLOG_TRACE_ON;CURL_STATICLIB;BMEDLL_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
+      <AdditionalIncludeDirectories>..\thirdparty\;..\thirdparty\protobuf\src;..\thirdparty\imgui;..\thirdparty\rapidjson\include;..\thirdparty\curl-7.73.0\builds\libcurl-vc-x64-release-static-ipv6-sspi-schannel\include</AdditionalIncludeDirectories>
+      <ForcedIncludeFiles>pch.h;%(ForcedIncludeFiles)</ForcedIncludeFiles>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
+      <DisableSpecificWarnings>4996</DisableSpecificWarnings>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableUAC>false</EnableUAC>
+      <AdditionalLibraryDirectories>..\thirdparty\MinHook;..\thirdparty\curl-7.73.0\builds\libcurl-vc-x64-release-static-ipv6-sspi-schannel\lib;..\thirdparty\discord_game_sdk\lib\x86_64</AdditionalLibraryDirectories>
+      <AdditionalDependencies>discord_game_sdk.dll.lib;libMinHook-x64-v141-md.lib;libcurl_a.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;ws2_32.lib;wldap32.lib;Normaliz.lib;Crypt32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+    <CustomBuildStep>
+      <Command>cmd /C "copy $(SolutionDir)\x64\Debug\bme.dll $(SolutionDir)\x64\Debug\bme.asi"</Command>
+      <Outputs>$(SolutionDir)\x64\Debug\bme.asi;%(Outputs)</Outputs>
+    </CustomBuildStep>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>NDEBUG;CURL_STATICLIB;BMEDLL_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
+      <AdditionalIncludeDirectories>..\thirdparty\;..\thirdparty\protobuf\src;..\thirdparty\imgui;..\thirdparty\rapidjson\include;..\thirdparty\breakpad;..\thirdparty\curl-7.73.0\builds\libcurl-vc-x64-release-static-ipv6-sspi-schannel\include</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <DisableSpecificWarnings>4996</DisableSpecificWarnings>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <ForcedIncludeFiles>pch.h;%(ForcedIncludeFiles)</ForcedIncludeFiles>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableUAC>false</EnableUAC>
+      <AdditionalDependencies>discord_game_sdk.dll.lib;libMinHook-x64-v141-md.lib;libcurl_a.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;ws2_32.lib;wldap32.lib;Normaliz.lib;Crypt32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\thirdparty\MinHook;..\thirdparty\curl-7.73.0\builds\libcurl-vc-x64-release-static-ipv6-sspi-schannel\lib;..\thirdparty\discord_game_sdk\lib\x86_64</AdditionalLibraryDirectories>
+    </Link>
+    <CustomBuildStep>
+      <Command>cmd /C "copy $(SolutionDir)\x64\Debug\bme.dll $(SolutionDir)\x64\Debug\bme.asi"</Command>
+      <Outputs>$(SolutionDir)\x64\Debug\bme.asi;%(Outputs)</Outputs>
+    </CustomBuildStep>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClInclude Include="..\thirdparty\rapidjson\include\rapidjson\allocators.h" />
+    <ClInclude Include="..\thirdparty\rapidjson\include\rapidjson\cursorstreamwrapper.h" />
+    <ClInclude Include="..\thirdparty\rapidjson\include\rapidjson\document.h" />
+    <ClInclude Include="..\thirdparty\rapidjson\include\rapidjson\encodedstream.h" />
+    <ClInclude Include="..\thirdparty\rapidjson\include\rapidjson\encodings.h" />
+    <ClInclude Include="..\thirdparty\rapidjson\include\rapidjson\error\en.h" />
+    <ClInclude Include="..\thirdparty\rapidjson\include\rapidjson\error\error.h" />
+    <ClInclude Include="..\thirdparty\rapidjson\include\rapidjson\filereadstream.h" />
+    <ClInclude Include="..\thirdparty\rapidjson\include\rapidjson\filewritestream.h" />
+    <ClInclude Include="..\thirdparty\rapidjson\include\rapidjson\fwd.h" />
+    <ClInclude Include="..\thirdparty\rapidjson\include\rapidjson\internal\biginteger.h" />
+    <ClInclude Include="..\thirdparty\rapidjson\include\rapidjson\internal\diyfp.h" />
+    <ClInclude Include="..\thirdparty\rapidjson\include\rapidjson\internal\dtoa.h" />
+    <ClInclude Include="..\thirdparty\rapidjson\include\rapidjson\internal\ieee754.h" />
+    <ClInclude Include="..\thirdparty\rapidjson\include\rapidjson\internal\itoa.h" />
+    <ClInclude Include="..\thirdparty\rapidjson\include\rapidjson\internal\meta.h" />
+    <ClInclude Include="..\thirdparty\rapidjson\include\rapidjson\internal\pow10.h" />
+    <ClInclude Include="..\thirdparty\rapidjson\include\rapidjson\internal\regex.h" />
+    <ClInclude Include="..\thirdparty\rapidjson\include\rapidjson\internal\stack.h" />
+    <ClInclude Include="..\thirdparty\rapidjson\include\rapidjson\internal\strfunc.h" />
+    <ClInclude Include="..\thirdparty\rapidjson\include\rapidjson\internal\strtod.h" />
+    <ClInclude Include="..\thirdparty\rapidjson\include\rapidjson\internal\swap.h" />
+    <ClInclude Include="..\thirdparty\rapidjson\include\rapidjson\istreamwrapper.h" />
+    <ClInclude Include="..\thirdparty\rapidjson\include\rapidjson\memorybuffer.h" />
+    <ClInclude Include="..\thirdparty\rapidjson\include\rapidjson\memorystream.h" />
+    <ClInclude Include="..\thirdparty\rapidjson\include\rapidjson\msinttypes\inttypes.h" />
+    <ClInclude Include="..\thirdparty\rapidjson\include\rapidjson\msinttypes\stdint.h" />
+    <ClInclude Include="..\thirdparty\rapidjson\include\rapidjson\ostreamwrapper.h" />
+    <ClInclude Include="..\thirdparty\rapidjson\include\rapidjson\pointer.h" />
+    <ClInclude Include="..\thirdparty\rapidjson\include\rapidjson\prettywriter.h" />
+    <ClInclude Include="..\thirdparty\rapidjson\include\rapidjson\rapidjson.h" />
+    <ClInclude Include="..\thirdparty\rapidjson\include\rapidjson\reader.h" />
+    <ClInclude Include="..\thirdparty\rapidjson\include\rapidjson\schema.h" />
+    <ClInclude Include="..\thirdparty\rapidjson\include\rapidjson\stream.h" />
+    <ClInclude Include="..\thirdparty\rapidjson\include\rapidjson\stringbuffer.h" />
+    <ClInclude Include="..\thirdparty\rapidjson\include\rapidjson\writer.h" />
+    <ClInclude Include="..\thirdparty\xorstr.hpp" />
+    <ClInclude Include="Chat.h" />
+    <ClInclude Include="ConCommandManager.h" />
+    <ClInclude Include="Console.h" />
+    <ClInclude Include="ConVar.h" />
+    <ClInclude Include="CrashReporting.h" />
+    <ClInclude Include="DelayedFunc.h" />
+    <ClInclude Include="Discord.h" />
+    <ClInclude Include="discord\achievement_manager.h" />
+    <ClInclude Include="discord\activity_manager.h" />
+    <ClInclude Include="discord\application_manager.h" />
+    <ClInclude Include="discord\core.h" />
+    <ClInclude Include="discord\discord.h" />
+    <ClInclude Include="discord\event.h" />
+    <ClInclude Include="discord\ffi.h" />
+    <ClInclude Include="discord\image_manager.h" />
+    <ClInclude Include="discord\lobby_manager.h" />
+    <ClInclude Include="discord\network_manager.h" />
+    <ClInclude Include="discord\overlay_manager.h" />
+    <ClInclude Include="discord\relationship_manager.h" />
+    <ClInclude Include="discord\storage_manager.h" />
+    <ClInclude Include="discord\store_manager.h" />
+    <ClInclude Include="discord\types.h" />
+    <ClInclude Include="discord\user_manager.h" />
+    <ClInclude Include="discord\voice_manager.h" />
+    <ClInclude Include="FileSystemManager.h" />
+    <ClInclude Include="framework.h" />
+    <ClInclude Include="ICvar.h" />
+    <ClInclude Include="IFileSystem.h" />
+    <ClInclude Include="IVEngineClient.h" />
+    <ClInclude Include="ModuleScan.h" />
+    <ClInclude Include="Origin.h" />
+    <ClInclude Include="pch.h" />
+    <ClInclude Include="Presence.h" />
+    <ClInclude Include="SigScanning.h" />
+    <ClInclude Include="SourceConsole.h" />
+    <ClInclude Include="SourceInterface.h" />
+    <ClInclude Include="TTFSDK.h" />
+    <ClInclude Include="Util.h" />
+    <ClInclude Include="VTableHooking.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Chat.cpp" />
+    <ClCompile Include="ConCommandManager.cpp" />
+    <ClCompile Include="Console.cpp" />
+    <ClCompile Include="CrashReporting.cpp" />
+    <ClCompile Include="Discord.cpp" />
+    <ClCompile Include="discord\achievement_manager.cpp" />
+    <ClCompile Include="discord\activity_manager.cpp" />
+    <ClCompile Include="discord\application_manager.cpp" />
+    <ClCompile Include="discord\core.cpp" />
+    <ClCompile Include="discord\image_manager.cpp" />
+    <ClCompile Include="discord\lobby_manager.cpp" />
+    <ClCompile Include="discord\network_manager.cpp" />
+    <ClCompile Include="discord\overlay_manager.cpp" />
+    <ClCompile Include="discord\relationship_manager.cpp" />
+    <ClCompile Include="discord\storage_manager.cpp" />
+    <ClCompile Include="discord\store_manager.cpp" />
+    <ClCompile Include="discord\types.cpp" />
+    <ClCompile Include="discord\user_manager.cpp" />
+    <ClCompile Include="discord\voice_manager.cpp" />
+    <ClCompile Include="dllmain.cpp" />
+    <ClCompile Include="FileSystemManager.cpp" />
+    <ClCompile Include="ModuleScan.cpp" />
+    <ClCompile Include="pch.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
+      <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(ForcedIncludeFiles)</ForcedIncludeFiles>
+    </ClCompile>
+    <ClCompile Include="Presence.cpp" />
+    <ClCompile Include="SigScanning.cpp" />
+    <ClCompile Include="SourceConsole.cpp" />
+    <ClCompile Include="TTFSDK.cpp" />
+    <ClCompile Include="Util.cpp" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

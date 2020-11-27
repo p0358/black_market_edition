@@ -1,0 +1,26 @@
+Welcome to Black Market Edition's installer.
+
+It will unpack the required files into your Titanfall's installation folder.
+
+For those who would like to save some considerable amount of disk space on Titanfall installation space, read below.
+
+[  Remove unneeded audio files (-23.4 GB)  ]
+
+On the next page you will be able to optionally select some checkboxes in order to uninstall the audio files for different languages, all but English. You can tick them to free up a lot of space (since audio is uncompressed, and the game bundle includes them all).
+This will *not* break the localized titan voices from the black market!
+
+
+Make sure to not select a language that you are playing the game with.
+**You will not be able to launch the game in selected languages anymore!**
+
+
+Note that you can always restore these audio files if you need by using the "Repair game" button in Origin or Steam.
+
+[  Remove directory entries for unused languages (-109 MB)  ]
+
+If you want to squeeze a bit more of the space, you can remove files that define what files are located where in VPK archives for given languages. If you have deleted language files above, it would make sense to also remove these files for them, as they won't be usable anyways.
+Of course if you delete these files, you will not be able to launch the game in deleted languages.
+
+[  Optionally delete various other elements  ]
+
+Here you will be able to remove some misc files, like media video files. Your choice. The game will work without them normally.

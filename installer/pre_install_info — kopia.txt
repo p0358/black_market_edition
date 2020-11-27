@@ -1,0 +1,3 @@
+Welcome to Black Market Edition's dead simple installer.
+
+It will unpack the required files into your Titanfall's installation folder.
