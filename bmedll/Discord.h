@@ -21,6 +21,7 @@ public:
     std::unique_ptr<discord::Core> core;
 
     void OpenDiscordInvite(const CCommand& args);
+    void OpenDiscordFriendsInvite(const CCommand& args);
     void UpdateActivity(discord::Activity activity);
 
     DWORD WINAPI ThreadProc(LPVOID lpThreadParameter);

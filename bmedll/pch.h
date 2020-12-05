@@ -15,12 +15,15 @@
 #include <psapi.h>
 #include <stdio.h>
 #include <tchar.h>
+#include <bcrypt.h>
 
-//#ifdef _DEBUG
+#ifdef _DEBUG
 #define SPDLOG_ACTIVE_LEVEL SPDLOG_LEVEL_TRACE
-//#else
-//#define SPDLOG_ACTIVE_LEVEL SPDLOG_LEVEL_DEBUG
-//#endif
+#else
+#ifdef STAGING
+#define SPDLOG_ACTIVE_LEVEL SPDLOG_LEVEL_DEBUG
+#endif
+#endif
 
 #include <spdlog/spdlog.h>
 #include <spdlog/sinks/basic_file_sink.h>

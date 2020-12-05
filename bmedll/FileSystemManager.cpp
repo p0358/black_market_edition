@@ -159,14 +159,14 @@ void FileSystemManager::AddSearchPathHook(IFileSystem* fileSystem, const char* p
 
     // Add our search path to the head again to make sure we're first
 #ifdef READ_FROM_FILESYSTEM
-    //IFileSystem_AddSearchPath(fileSystem, m_compiledPath.string().c_str(), "GAME", PATH_ADD_TO_HEAD);
-    //IFileSystem_AddSearchPath(fileSystem, m_compiledPath.string().c_str(), "MAIN", PATH_ADD_TO_HEAD);
+    IFileSystem_AddSearchPath(fileSystem, m_compiledPath.string().c_str(), "GAME", PATH_ADD_TO_HEAD);
+    IFileSystem_AddSearchPath(fileSystem, m_compiledPath.string().c_str(), "MAIN", PATH_ADD_TO_HEAD);
 #else
     //IFileSystem_AddSearchPath(fileSystem, "maps/mp_bme.bsp", "GAME", PATH_ADD_TO_HEAD);
     //IFileSystem_AddSearchPath(fileSystem, "maps/mp_bme.bsp", "MAIN", PATH_ADD_TO_HEAD);
     m_blockingRemoveAllMapSearchPaths = true;
-    IFileSystem_AddSearchPath(fileSystem, (m_basePath / "bme_test/maps/mp_bme.bsp").string().c_str(), "GAME", PATH_ADD_TO_HEAD);
-    IFileSystem_AddSearchPath(fileSystem, (m_basePath / "bme_test/maps/mp_bme.bsp").string().c_str(), "MAIN", PATH_ADD_TO_HEAD);
+    IFileSystem_AddSearchPath(fileSystem, (m_basePath / "bme/bme.bsp").string().c_str(), "GAME", PATH_ADD_TO_HEAD);
+    IFileSystem_AddSearchPath(fileSystem, (m_basePath / "bme/bme.bsp").string().c_str(), "MAIN", PATH_ADD_TO_HEAD);
     m_blockingRemoveAllMapSearchPaths = false;
 #endif
 }
@@ -177,7 +177,7 @@ bool FileSystemManager::ReadFromCacheHook(IFileSystem* fileSystem, const char* p
 #ifdef READ_FROM_FILESYSTEM
     if (ShouldReplaceFile(path))
     {
-        SPDLOG_LOGGER_TRACE(m_logger, "IFileSystem::ReadFromCache: blocking cache response for {}", path);
+        //SPDLOG_LOGGER_TRACE(m_logger, "IFileSystem::ReadFromCache: blocking cache response for {}", path);
         return false;
     }
 #else
@@ -254,18 +254,17 @@ VPKData* FileSystemManager::MountVPKHook(IFileSystem* fileSystem, const char* vp
     // other map's VPK at the same time.
     // TODO: This might be better moved to a hook on the function that actually loads up the map?
 
-    //test
 #ifdef READ_FROM_FILESYSTEM
-    //IFileSystem_AddSearchPath(fileSystem, m_compiledPath.string().c_str(), "GAME", PATH_ADD_TO_HEAD);
-    //IFileSystem_AddSearchPath(fileSystem, m_compiledPath.string().c_str(), "MAIN", PATH_ADD_TO_HEAD);
+    IFileSystem_AddSearchPath(fileSystem, m_compiledPath.string().c_str(), "GAME", PATH_ADD_TO_HEAD);
+    IFileSystem_AddSearchPath(fileSystem, m_compiledPath.string().c_str(), "MAIN", PATH_ADD_TO_HEAD);
 #else
     static bool didAddAlready = false;
     if (!didAddAlready) {
         //IFileSystem_AddSearchPath(fileSystem, "maps/mp_bme.bsp", "GAME", PATH_ADD_TO_HEAD);
         //IFileSystem_AddSearchPath(fileSystem, "maps/mp_bme.bsp", "MAIN", PATH_ADD_TO_HEAD);
         m_blockingRemoveAllMapSearchPaths = true;
-        IFileSystem_AddSearchPath(fileSystem, (m_basePath / "bme_test/maps/mp_bme.bsp").string().c_str(), "GAME", PATH_ADD_TO_HEAD);
-        IFileSystem_AddSearchPath(fileSystem, (m_basePath / "bme_test/maps/mp_bme.bsp").string().c_str(), "MAIN", PATH_ADD_TO_HEAD);
+        IFileSystem_AddSearchPath(fileSystem, (m_basePath / "bme/bme.bsp").string().c_str(), "GAME", PATH_ADD_TO_HEAD);
+        IFileSystem_AddSearchPath(fileSystem, (m_basePath / "bme/bme.bsp").string().c_str(), "MAIN", PATH_ADD_TO_HEAD);
         m_blockingRemoveAllMapSearchPaths = false;
         didAddAlready = true;
     }

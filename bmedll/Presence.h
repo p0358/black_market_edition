@@ -61,6 +61,7 @@ public:
     bool isRoundBased;
     int roundNumber;
     int maxRounds;
+    bool isDiscordJoinable;
 
     static const char* getDisplayMapName(const char* map);
     static const char* getDisplayPlaylistName(const char* map);

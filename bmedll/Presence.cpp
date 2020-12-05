@@ -660,6 +660,7 @@ Presence::Presence(ConCommandManager& conCommandManager)
     gameEndTime2 = 0;
     gameStartTime = timestamp();
     gameState = 0;
+    isDiscordJoinable = false;
 
     conCommandManager.RegisterCommand("bme_update_rich_presence", WRAPPED_MEMBER(updateRichPresenceCCommand), "Update rich presence now", 0);
     conCommandManager.RegisterCommand("bme_npe_set_training_stage", WRAPPED_MEMBER(SetTrainingResumeChoice), "Set current training stage (for presence)", 0);
@@ -672,6 +673,7 @@ Presence::Presence(ConCommandManager& conCommandManager)
     conCommandManager.RegisterCommand("bme_update_is_switch_sides_based", WRAPPED_MEMBER(updateIsSwitchBasedCCommand), "for presence", 0);
     conCommandManager.RegisterCommand("bme_update_rounds_played", WRAPPED_MEMBER(updateRoundsPlayedCCommand), "for presence", 0);
     conCommandManager.RegisterCommand("bme_update_rounds_total", WRAPPED_MEMBER(updateRoundsTotalCCommand), "for presence", 0);
+    conCommandManager.RegisterConVar("bme_is_discord_joinable", "0", 0, "Is updated with whether current Discord activity is joinable (that is can we invite people here)");
 }
 
 void __fastcall Presence::Hook_updatePresence2(__int64 a1) {

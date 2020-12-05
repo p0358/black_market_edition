@@ -1,4 +1,4 @@
 #pragma once
 
-bool SetupBreakpad();
+bool SetupBreakpad(std::string BasePath);
 void UpdateSETranslator();

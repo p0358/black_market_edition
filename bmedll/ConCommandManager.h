@@ -2,6 +2,7 @@
 #include "pch.h"
 #include "SourceInterface.h"
 #include "ICvar.h"
+#include "ConVar.h"
 
 class ConCommand
 {
@@ -94,12 +95,14 @@ class ConCommandManager
 private:
     std::shared_ptr<spdlog::logger> m_logger;
     std::list<ConCommand> m_commands;
+    std::list<ConVar2> m_cvars;
     SourceInterface<ICvar> m_cvar;
 
 public:
     ConCommandManager() noexcept;
     ~ConCommandManager();
     void RegisterCommand(const char* name, void(*callback)(const CCommand&), const char* helpString, int flags);
+    void RegisterConVar(const char* name, const char* defaultValue, int flags, const char* helpString);
     void ExecuteCommand(const std::string& commandStr);
     void UnregisterCommand(ConCommand& command);
     void UnregisterAllCommands();

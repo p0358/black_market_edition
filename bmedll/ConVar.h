@@ -16,3 +16,9 @@ public:
 		return *(const char**)((size_t)this + 72);
 	}
 };
+
+class ConVar2
+{
+	//unsigned char               unknown[0x60];
+	unsigned char               unknown[0x90];
+};

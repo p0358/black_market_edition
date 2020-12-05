@@ -5,6 +5,7 @@
 #include "TTFSDK.h"
 #include "Presence.h"
 #include "Chat.h"
+#include "ConVar.h"
 
 DiscordWrapper& DiscordWrap()
 {
@@ -166,7 +167,8 @@ DiscordWrapper::DiscordWrapper(ConCommandManager& conCommandManager)
     SPDLOG_LOGGER_DEBUG(logger, _("Discord on before first RunCallbacks"));
     core->RunCallbacks();
 
-    conCommandManager.RegisterCommand("bme_discord_invite_open", WRAPPED_MEMBER(OpenDiscordInvite), "Open Discord invite to TF Remnant Fleet", 0);
+    conCommandManager.RegisterCommand("bme_discord_guild_invite_open", WRAPPED_MEMBER(OpenDiscordInvite), "Open Discord invite to TF Remnant Fleet", 0);
+    conCommandManager.RegisterCommand("bme_discord_friends_invite_open", WRAPPED_MEMBER(OpenDiscordFriendsInvite), "Open Discord invite friends dialog", 0);
 
     logger->info(_("Discord init end"));
     
@@ -188,13 +190,35 @@ void DiscordWrapper::OpenDiscordInvite(const CCommand& args)
     });
 }
 
+void DiscordWrapper::OpenDiscordFriendsInvite(const CCommand& args)
+{
+    if (!core) return;
+    core->OverlayManager().OpenActivityInvite(discord::ActivityActionType::Join, [](discord::Result result) {
+        std::stringstream ss;
+        ss << ((result == discord::Result::Ok) ? "Succeeded" : "Failed")
+            << " opening activity invite dialog!\n";
+        SPDLOG_LOGGER_DEBUG(spdlog::get("logger"), "[discord] {}", ss.str().c_str());
+    });
+}
+
 void DiscordWrapper::UpdateActivity(discord::Activity activity) {
     if (!core) return;
-    core->ActivityManager().UpdateActivity(activity, [](discord::Result result) {
+    core->ActivityManager().UpdateActivity(activity, [activity](discord::Result result) {
         std::stringstream ss;
         ss << ((result == discord::Result::Ok) ? "Succeeded" : "Failed")
             << " updating activity!";
         SPDLOG_LOGGER_DEBUG(spdlog::get("logger"), "[discord] {}", ss.str().c_str());
+
+        bool isDiscordJoinable = false;
+        if (result == discord::Result::Ok)
+        {
+            const char* joinSecret = activity.GetSecrets().GetJoin();
+            isDiscordJoinable = joinSecret && *joinSecret;
+        }
+        SDK().GetPresence().isDiscordJoinable = isDiscordJoinable;
+        ConVar* bme_is_discord_joinable = SDK().GetVstdlibCvar()->FindVar("bme_is_discord_joinable");
+        if (bme_is_discord_joinable)
+            bme_is_discord_joinable->SetValueString(isDiscordJoinable ? "1" : "0");
     });
 }
 

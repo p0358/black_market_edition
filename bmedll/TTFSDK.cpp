@@ -283,7 +283,17 @@ bool SetupSDK()
         //fs::path basePath(settings.BasePath);
         //fs::path basePath(".");
         fs::path basePath(GetThisPath());
-        SetupLogger((basePath / _("TTFSDK.log")).string(), true);
+        //SetupLogger((basePath / _("TTFSDK.log")).string(), true);
+#ifdef _DEBUG
+#define ENABLE_WINDOWS_CONSOLE true
+#else
+#ifdef STAGING
+#define ENABLE_WINDOWS_CONSOLE true
+#else
+#define ENABLE_WINDOWS_CONSOLE false
+#endif
+#endif
+        SetupLogger((basePath / _("bme") / _("bme.log")).string(), ENABLE_WINDOWS_CONSOLE);
     }
     catch (std::exception& ex)
     {
@@ -306,7 +316,7 @@ bool SetupSDK()
 
         Util::ThreadSuspender suspender;
 
-        bool breakpadSuccess = SetupBreakpad();
+        bool breakpadSuccess = SetupBreakpad(GetThisPath());
         if (breakpadSuccess)
         {
             spdlog::get(_("logger"))->info(_("Breakpad initialised"));

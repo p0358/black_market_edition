@@ -3,6 +3,8 @@
 
 #ifdef NDEBUG
 #include "client/windows/handler/exception_handler.h"
+#include "_version.h"
+#include "TTFSDK.h"
 
 google_breakpad::ExceptionHandler* g_breakpadHandler;
 LONG(*g_breakpadHandleException)(EXCEPTION_POINTERS* exinfo);
@@ -18,7 +20,99 @@ bool DumpCompleted(const wchar_t* dump_path,
 {
     if (succeeded)
     {
-        MessageBox(NULL, L"An error occurred and Titanfall needs to close. A crash dump has been written to the crash_dumps folder.", L"Error", MB_OK | MB_ICONERROR);
+
+        bool upload_ok = false;
+        CURLcode res;
+        {
+            std::wstringstream ss;
+            ss << dump_path << '\\' << minidump_id << ".dmp";
+            std::string filepath = Util::Narrow(ss.str());
+            //MessageBoxA(NULL, filepath.c_str(), "AAA", MB_OK | MB_ICONERROR);
+
+            CURL* curl;
+            //CURLcode res;
+
+            curl_mime* form = NULL;
+            curl_mimepart* field = NULL;
+            //struct curl_slist* headerlist = NULL;
+            //static const char buf[] = "Expect:";
+
+            //curl_global_init(CURL_GLOBAL_ALL);
+
+            curl = curl_easy_init();
+            if (curl) {
+                form = curl_mime_init(curl);
+
+                field = curl_mime_addpart(form);
+                curl_mime_name(field, "upload_file_minidump");
+                curl_mime_filedata(field, filepath.c_str());
+
+                {
+                    field = curl_mime_addpart(form);
+                    curl_mime_name(field, "sentry[release]");
+                    std::stringstream verss; verss << "bme-v" << BME_VERSION;
+                    curl_mime_data(field, verss.str().c_str(), CURL_ZERO_TERMINATED);
+                }
+
+                field = curl_mime_addpart(form);
+                curl_mime_name(field, "sentry[environment]"); // consider adding "dist", especially if you ever report dev reports
+#ifdef _DEBUG
+                curl_mime_data(field, "dev", CURL_ZERO_TERMINATED);
+#else
+#ifdef STAGING
+                curl_mime_data(field, "staging", CURL_ZERO_TERMINATED);
+#else
+                curl_mime_data(field, "production", CURL_ZERO_TERMINATED);
+#endif
+#endif
+
+                {
+                    TFOrigin* origin = SDK().origin;
+                    if (origin) {
+                        if (origin->uid)
+                        {
+                            field = curl_mime_addpart(form);
+                            curl_mime_name(field, "originid");
+                            std::stringstream ss; ss << origin->uid;
+                            curl_mime_data(field, ss.str().c_str(), CURL_ZERO_TERMINATED);
+                        }
+
+                        if (origin->playerName && *origin->playerName)
+                        {
+                            field = curl_mime_addpart(form);
+                            curl_mime_name(field, "originname");
+                            curl_mime_data(field, origin->playerName, CURL_ZERO_TERMINATED);
+                        }
+                    }
+                }
+
+                curl_easy_setopt(curl, CURLOPT_URL, "https://o487146.ingest.sentry.io/api/5545628/minidump/?sentry_key=45d18041edb24b1f8f25f144d121cff3");
+                curl_easy_setopt(curl, CURLOPT_MIMEPOST, form);
+
+                res = curl_easy_perform(curl);
+
+                //if (res != CURLE_OK)
+                //    fprintf(stderr, "curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
+                upload_ok = res == CURLE_OK;
+
+                curl_easy_cleanup(curl);
+                curl_mime_free(form);
+            }
+        }
+
+
+        if (upload_ok)
+        MessageBox(NULL, L"An error occurred and Titanfall needs to close. A crash dump has been written to the crash_dumps folder and uploaded.", L"Error", MB_OK | MB_ICONERROR);
+        else
+        {
+            //MessageBox(NULL, L"An error occurred and Titanfall needs to close. A crash dump has been written to the crash_dumps folder.", L"Error", MB_OK | MB_ICONERROR);
+            std::wstring cws{ L"An error occurred and Titanfall needs to close. A crash dump has been written to the crash_dumps folder.\n\nUploading it failed with message:\n" };
+            cws += Util::Widen(curl_easy_strerror(res));
+            MessageBox(NULL, cws.c_str(), L"Error", MB_OK | MB_ICONERROR);
+        }
+        //std::string cs{ curl_easy_strerror(res) };
+        //std::wstring cws = Util::Widen(cs);
+        //MessageBox(NULL, cws.c_str(), L"Error", MB_OK | MB_ICONERROR);
     }
     else
     {
@@ -34,10 +128,10 @@ void TranslatorFunc(unsigned int, struct _EXCEPTION_POINTERS* exinfo)
     TerminateProcess(GetCurrentProcess(), 100);
 }
 
-bool SetupBreakpad()
+bool SetupBreakpad(std::string BasePath)
 {
-    //fs::path basePath(settings.BasePath);
-    fs::path basePath(".");
+    fs::path basePath(BasePath);
+    //fs::path basePath(".");
     fs::path crashDumpsPath(basePath / _("crash_dumps"));
     fs::create_directories(crashDumpsPath);
 
@@ -65,7 +159,7 @@ void UpdateSETranslator()
 
 #else
 
-bool SetupBreakpad()
+bool SetupBreakpad(std::string BasePath)
 {
     return false;
 }
