@@ -35,7 +35,10 @@ WindowsConsole::WindowsConsole()
 {
     if (!AllocConsole())
     {
-        throw std::exception("Failed to AllocConsole()"); // TODO: better exception
+        if (!AttachConsole(-1)) {
+            //throw std::exception("Failed to AllocConsole()"); // TODO: better exception
+            throw std::exception("Failed to allocate console or attach to an existing console"); // TODO: better exception
+        }
     }
 }
 

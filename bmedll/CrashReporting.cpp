@@ -18,7 +18,7 @@ bool DumpCompleted(const wchar_t* dump_path,
 {
     if (succeeded)
     {
-        MessageBox(NULL, L"An error occurred with and Titanfall needs to close. A crash dump has been written to the crash_dumps folder.", L"Error", MB_OK | MB_ICONERROR);
+        MessageBox(NULL, L"An error occurred and Titanfall needs to close. A crash dump has been written to the crash_dumps folder.", L"Error", MB_OK | MB_ICONERROR);
     }
     else
     {

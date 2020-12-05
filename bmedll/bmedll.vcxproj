@@ -97,7 +97,7 @@
       <AdditionalIncludeDirectories>..\thirdparty\;..\thirdparty\protobuf\src;..\thirdparty\imgui;..\thirdparty\rapidjson\include;..\thirdparty\breakpad;..\thirdparty\curl-7.73.0\builds\libcurl-vc-x64-release-static-ipv6-sspi-schannel\include</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <DisableSpecificWarnings>4996</DisableSpecificWarnings>
-      <LanguageStandard>stdcpp17</LanguageStandard>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
       <ForcedIncludeFiles>pch.h;%(ForcedIncludeFiles)</ForcedIncludeFiles>
     </ClCompile>
     <Link>
@@ -106,8 +106,8 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
-      <AdditionalDependencies>discord_game_sdk.dll.lib;libMinHook-x64-v141-md.lib;libcurl_a.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;ws2_32.lib;wldap32.lib;Normaliz.lib;Crypt32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>..\thirdparty\MinHook;..\thirdparty\curl-7.73.0\builds\libcurl-vc-x64-release-static-ipv6-sspi-schannel\lib;..\thirdparty\discord_game_sdk\lib\x86_64</AdditionalLibraryDirectories>
+      <AdditionalDependencies>common.lib;crash_generation_client.lib;exception_handler.lib;discord_game_sdk.dll.lib;libMinHook-x64-v141-md.lib;libcurl_a.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;ws2_32.lib;wldap32.lib;Normaliz.lib;Crypt32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\thirdparty\breakpad;..\thirdparty\MinHook;..\thirdparty\curl-7.73.0\builds\libcurl-vc-x64-release-static-ipv6-sspi-schannel\lib;..\thirdparty\discord_game_sdk\lib\x86_64</AdditionalLibraryDirectories>
     </Link>
     <CustomBuildStep>
       <Command>cmd /C "copy $(SolutionDir)\x64\Debug\bme.dll $(SolutionDir)\x64\Debug\bme.asi"</Command>
@@ -176,6 +176,7 @@
     <ClInclude Include="discord\types.h" />
     <ClInclude Include="discord\user_manager.h" />
     <ClInclude Include="discord\voice_manager.h" />
+    <ClInclude Include="FilesystemContents.h" />
     <ClInclude Include="FileSystemManager.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="ICvar.h" />
@@ -193,6 +194,7 @@
     <ClInclude Include="VTableHooking.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="AntiEventCrash.cpp" />
     <ClCompile Include="Chat.cpp" />
     <ClCompile Include="ConCommandManager.cpp" />
     <ClCompile Include="Console.cpp" />

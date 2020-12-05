@@ -13,9 +13,9 @@ void SigScanFuncRegistry::AddSigScanFunc(BaseSigScanFunc& func, const char* modu
 {
     m_registrations[m_numRegistrations++] = {
         &func,
-        moduleName,
-        signature,
-        mask
+        std::string(moduleName),
+        std::string(signature, strlen(mask)),
+        std::string(mask, strlen(mask))
     };
 }
 
@@ -34,7 +34,7 @@ void SigScanFuncRegistry::ResolveAll()
         // If no module handle available, resort to fancy loading callback stuff (TODO)
         if (moduleScanners.count(moduleName) == 0)
         {
-            logger->debug("No ModuleScan found for {}", moduleName);
+            SPDLOG_LOGGER_DEBUG(logger, "No ModuleScan found for {}", moduleName);
 
             // Create modulescan
             HMODULE m = GetModuleHandle(Util::Widen(moduleName).c_str());
@@ -42,12 +42,12 @@ void SigScanFuncRegistry::ResolveAll()
             {
                 throw std::runtime_error(fmt::format("Failed to get handle for {}", moduleName));
             }
-            logger->debug("Module {} already loaded, creating ModuleScan", moduleName);
+            SPDLOG_LOGGER_DEBUG(logger, "Module {} already loaded, creating ModuleScan", moduleName);
             moduleScanners.emplace(moduleName, m);
         }
 
         ModuleScan& moduleScan = moduleScanners.at(moduleName);
-        void* ptr = moduleScan.Scan(reg.signature, reg.mask);
+        void* ptr = moduleScan.Scan(reg.signature.c_str(), reg.mask.c_str());
         // Skip past any leading 0xCC bytes to get the real function pointer
         unsigned char* funcData = (unsigned char*)ptr;
         while (*funcData == 0xCC)
@@ -55,7 +55,8 @@ void SigScanFuncRegistry::ResolveAll()
             funcData++;
         }
         
-        logger->debug("Signature {} in {} found at {} (+{})", Util::DataToHex(reg.signature, strlen(reg.mask)), moduleName, (void*)funcData, (void*)(moduleScan.m_moduleBase - funcData));
+        //SPDLOG_LOGGER_DEBUG(logger, "Signature {} in {} found at {} (+{})", Util::DataToHex(reg.signature, strlen(reg.mask)), moduleName, (void*)funcData, (void*)(funcData - moduleScan.m_moduleBase));
+        SPDLOG_LOGGER_DEBUG(logger, "Signature {} in {} found at {} (+{})", Util::DataToHex(reg.signature.c_str(), reg.mask.length()), moduleName, (void*)funcData, (void*)(funcData - moduleScan.m_moduleBase));
         reg.func->SetFuncPtr(funcData);
     }
 }

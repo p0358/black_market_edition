@@ -20,6 +20,7 @@ private:
     std::vector<std::string> m_mapNames;
     std::string m_lastMapReadFrom;
     bool m_requestingOriginalFile;
+    bool m_blockingRemoveAllMapSearchPaths;
 
     void CacheMapVPKs();
     bool ShouldReplaceFile(const std::string& path);
@@ -31,6 +32,7 @@ public:
     void AddSearchPathHook(IFileSystem* fileSystem, const char* pPath, const char* pathID, SearchPathAdd_t addType);
     bool ReadFromCacheHook(IFileSystem* fileSystem, const char* path, void* result);
     FileHandle_t ReadFileFromVPKHook(VPKData* vpkInfo, __int32* b, const char* filename);
+    unsigned __int64 __fastcall RemoveAllMapSearchPathsHook(__int64 thisptr);
     VPKData* MountVPKHook(IFileSystem* fileSystem, const char* vpkPath);
     const std::vector<std::string>& GetMapNames();
     const std::string& GetLastMapReadFrom();

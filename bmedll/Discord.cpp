@@ -13,6 +13,13 @@ DiscordWrapper& DiscordWrap()
 
 #define WRAPPED_MEMBER(name) MemberWrapper<decltype(&DiscordWrapper::##name), &DiscordWrapper::##name, decltype(&DiscordWrap), &DiscordWrap>::Call
 
+const std::string GetThisExecutablePath()
+{
+    WCHAR result[MAX_PATH];
+    DWORD length = GetModuleFileNameW(NULL, result, MAX_PATH);
+    return Util::Narrow(result);
+}
+
 DiscordWrapper::DiscordWrapper(ConCommandManager& conCommandManager)
 {
     //DiscordState state{};
@@ -50,7 +57,6 @@ DiscordWrapper::DiscordWrapper(ConCommandManager& conCommandManager)
         //std::cout << "Current user updated: " << state.currentUser.GetUsername() << "#"
         //    << state.currentUser.GetDiscriminator() << "\n";
         spdlog::get("logger")->info("[discord] Current user updated: {}#{}", user.GetUsername(), user.GetDiscriminator());
-        spdlog::get("logger")->info("[discord] Current user updated.");
 
         /*state.core->UserManager().GetUser(130050050968518656,
             [](discord::Result result, discord::User const& user) {
@@ -65,7 +71,7 @@ DiscordWrapper::DiscordWrapper(ConCommandManager& conCommandManager)
     }); std::cout << "e";
 
     //core->ActivityManager().RegisterSteam(1454890);
-    core->ActivityManager().RegisterCommand("Titanfall.exe"); // TODO: check if that works just like this without path
+    core->ActivityManager().RegisterCommand(GetThisExecutablePath().c_str()); // TODO: check if that works
     std::cout << "f";
 
     /*discord::Activity activity{};
@@ -135,9 +141,9 @@ DiscordWrapper::DiscordWrapper(ConCommandManager& conCommandManager)
             const char* map = SDK().GetPresence().map;
             if (map && *map && std::strcmp(map, "mp_lobby") == 0)
             {
-                Chat::showChatLineEasy("\n[Discord] ", 0xFF7289DA);
+                Chat::showChatLineEasy(_("\n[Discord] "), 0xFF7289DA);
                 Chat::showChatLineEasy(user.GetUsername(), 0xFFDDDDDD);
-                Chat::showChatLineEasy(" asked to join your game. You can accept this request in Discord.", 0xFFFFFFFF);
+                Chat::showChatLineEasy(_(" asked to join your game. You can accept this request in Discord."), 0xFFFFFFFF);
             }
         }
     });
@@ -149,15 +155,15 @@ DiscordWrapper::DiscordWrapper(ConCommandManager& conCommandManager)
             const char* map = SDK().GetPresence().map;
             if (map && *map && std::strcmp(map, "mp_lobby") == 0)
             {
-                Chat::showChatLineEasy("\n[Discord] ", 0x7289DAFF);
+                Chat::showChatLineEasy(_("\n[Discord] "), 0x7289DAFF);
                 Chat::showChatLineEasy(user.GetUsername(), 0xDDDDDDFF);
-                Chat::showChatLineEasy(" invited you to join their game. You can accept this invite in Discord.", 0xFFFFFFFF);
+                Chat::showChatLineEasy(_(" invited you to join their game. You can accept this invite in Discord."), 0xFFFFFFFF);
             }
         }
     });
 
 
-    logger->debug(_("Discord on before first RunCallbacks"));
+    SPDLOG_LOGGER_DEBUG(logger, _("Discord on before first RunCallbacks"));
     core->RunCallbacks();
 
     conCommandManager.RegisterCommand("bme_discord_invite_open", WRAPPED_MEMBER(OpenDiscordInvite), "Open Discord invite to TF Remnant Fleet", 0);
@@ -173,20 +179,22 @@ DWORD WINAPI DiscordWrapper::ThreadProc(LPVOID lpThreadParameter)
 
 void DiscordWrapper::OpenDiscordInvite(const CCommand& args)
 {
+    if (!core) return;
     core->OverlayManager().OpenGuildInvite("se", [](discord::Result result) {
         std::stringstream ss;
         ss << ((result == discord::Result::Ok) ? "Succeeded" : "Failed")
             << " opening invite!\n";
-        spdlog::get("logger")->debug("[discord] {}", ss.str().c_str());
+        SPDLOG_LOGGER_DEBUG(spdlog::get("logger"), "[discord] {}", ss.str().c_str());
     });
 }
 
 void DiscordWrapper::UpdateActivity(discord::Activity activity) {
+    if (!core) return;
     core->ActivityManager().UpdateActivity(activity, [](discord::Result result) {
         std::stringstream ss;
         ss << ((result == discord::Result::Ok) ? "Succeeded" : "Failed")
             << " updating activity!";
-        spdlog::get("logger")->debug("[discord] {}", ss.str().c_str());
+        SPDLOG_LOGGER_DEBUG(spdlog::get("logger"), "[discord] {}", ss.str().c_str());
     });
 }
 

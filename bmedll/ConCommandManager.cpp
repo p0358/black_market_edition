@@ -47,5 +47,5 @@ void ConCommandManager::UnregisterAllCommands()
 
 ConCommandManager::~ConCommandManager()
 {
-    //UnregisterAllCommands();
+    UnregisterAllCommands();
 }

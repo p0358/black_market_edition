@@ -46,6 +46,8 @@ const char* Presence::getDisplayMapName(const char* map)
     else if (std::strcmp(map, "mp_angel_city") == 0) return "Angel City";
     else if (std::strcmp(map, "mp_backwater") == 0) return "Backwater";
     else if (std::strcmp(map, "mp_zone_18") == 0) return "Zone 18";
+    else if (std::strcmp(map, "mp_airbase") == 0) return "Airbase";
+    else if (std::strcmp(map, "mp_boneyard") == 0) return "Boneyard";
     //else return std::string(map).substr(3, strlen(map) - 3).c_str();
     else return map + 3;
 }
@@ -91,26 +93,19 @@ const char* Presence::getDisplayNameForTrainingResumeChoice(int choice)
     return nullptr;
 }
 
-/*int Presence::getDisplayNumberForTrainingResumeChoice(int choice)
+const char* Presence::getDisplayCampaignMissionNameForMapName(const char* map)
 {
-    switch (choice) {
-    case 0: return "Look, Run, and Jump";
-    case 1: return "Wallrunning";
-    case 2: return "Freeform Wallrun";
-    case 3: return "Double Jump";
-    case 4: return "Freeform Double Jump";
-    case 5: return "Cloak";
-    case 6: return "Basic Combat";
-    case 7: return "Firing Range";
-    case 8: return "Grenade Range";
-    case 9: return "Pilot Combat Scenario";
-    case 10: return "Titan Dash";
-    case 11: return "Titan Vortex Shield";
-    case 12: return "Titan AI Control";
-    case 13: return "Titan Combat Scenario";
-    }
-    return nullptr;
-}*/
+    if (std::strcmp(map, "mp_fracture") == 0) return "\"The Refueling Raid\"";
+    else if (std::strcmp(map, "mp_colony") == 0) return "\"The Colony\"";
+    else if (std::strcmp(map, "mp_relic") == 0) return "\"The Odyssey\"";
+    else if (std::strcmp(map, "mp_angel_city") == 0) return "\"Get Barker\"";
+    else if (std::strcmp(map, "mp_outpost_207") == 0) return "\"Assault on the Sentinel\"";
+    else if (std::strcmp(map, "mp_boneyard") == 0) return "\"Here Be Dragons\"";
+    else if (std::strcmp(map, "mp_airbase") == 0) return "\"The Three Towers\"";
+    else if (std::strcmp(map, "mp_o2") == 0) return "\"The Battle of Demeter\"";
+    else if (std::strcmp(map, "mp_corporate") == 0) return "\"Made Men\"";
+    else return nullptr;
+}
 
 void Presence::updateRichPresenceLoading(bool requestOriginUpdateImmediately) {
     strncpy(richPresenceBuffer, "Loading...", 1024);
@@ -230,7 +225,7 @@ void Presence::updateRichPresence(bool requestOriginUpdateImmediately)
             activity.GetParty().GetSize().SetCurrentSize(trainingStage);
         }
         else {
-            activity.SetState("Solo"); // TODO: Add pilot training stage here
+            activity.SetState("Solo");
             activity.GetParty().GetSize().SetMaxSize(1);
             activity.GetParty().GetSize().SetCurrentSize(1);
         }
@@ -245,7 +240,7 @@ void Presence::updateRichPresence(bool requestOriginUpdateImmediately)
         activity.SetState("Private lobby");
         activity.GetAssets().SetLargeImage("mp_lobby_widescreen");
         activity.GetAssets().SetLargeText("Lobby");
-        activity.GetParty().GetSize().SetMaxSize(6);
+        activity.GetParty().GetSize().SetMaxSize(max(playerCount, 6));
         activity.GetParty().GetSize().SetCurrentSize(playerCount);
         activity.GetParty().SetId(serverIPAndPortBufferInGame);
         if (playerCount < 6)
@@ -300,22 +295,14 @@ void Presence::updateRichPresence(bool requestOriginUpdateImmediately)
                 case WaitingForPlayers: activity.SetState("Waiting for players"); break;
                 //case Prematch: activity.SetState("Prematch"); break;
                 case SuddenDeath: activity.SetState("Sudden Death"); break;
-                case SwitchingSides: activity.SetState("Switching Sides"); break;
+                case SwitchingSides: activity.SetState("Switching sides"); break;
                 case Epilogue: activity.SetState("Epilogue"); break;
                 case Postmatch: activity.SetState("Postmatch"); break;
                 default: {
-                    if (isSwitchSidesBased)
-                    {
-                        if (!switchedSides)
-                            activity.SetState("First half");
-                        else
-                            activity.SetState("Second half");
-
-                    }
-                    else if (isRoundBased && roundNumber > 0) {
+                    if (isRoundBased && roundNumber > 0) {
                         std::stringstream ssround;
                         ssround << "Round " << roundNumber;
-                        if (maxRounds && std::strcmp(gamemode_cvar->GetString(), "mfdp") == 0) ssround << "/" << maxRounds; // I think only MFDP has predictable amount of max rounds (besides FD)
+                        //if (maxRounds && std::strcmp(gamemode_cvar->GetString(), "mfdp") == 0) ssround << "/" << maxRounds; // I think only MFDP has predictable amount of max rounds (besides FD)
                         activity.SetState(ssround.str().c_str());
                     }
                     else if (std::strcmp(gamemode_cvar->GetString(), "coop") == 0 && roundNumber > 0) {
@@ -324,10 +311,22 @@ void Presence::updateRichPresence(bool requestOriginUpdateImmediately)
                         if (maxRounds) ssround << "/" << maxRounds;
                         activity.SetState(ssround.str().c_str());
                     }
+                    else if (isSwitchSidesBased)
+                    {
+                        if (!switchedSides)
+                            activity.SetState("First half");
+                        else
+                            activity.SetState("Second half");
+
+                    }
                     else activity.SetState("Playing"); // just playing
                 }
                 }
 
+            }
+            else if (std::strcmp(match_playlist, "campaign_carousel") == 0 && getDisplayCampaignMissionNameForMapName(map))
+            {
+                activity.SetState(getDisplayCampaignMissionNameForMapName(map));
             }
             else {
                 // display the precise gamemode, as it's different from playlist name
@@ -356,18 +355,20 @@ void Presence::updateRichPresence(bool requestOriginUpdateImmediately)
 
     }
 
-    if (gameEndTime != INT_MIN)
+    if (gameState != SwitchingSides)
     {
-        activity.GetTimestamps().SetEnd(gameEndTime);
+        if (gameEndTime != INT_MIN)
+        {
+            activity.GetTimestamps().SetEnd(gameEndTime);
+        }
+        else if (gameEndTime2 != INT_MIN)
+        {
+            activity.GetTimestamps().SetEnd(gameEndTime2);
+        }
+        else {
+            activity.GetTimestamps().SetStart(gameStartTime);
+        }
     }
-    else if (gameEndTime2 != INT_MIN)
-    {
-        activity.GetTimestamps().SetEnd(gameEndTime2);
-    }
-    else {
-        activity.GetTimestamps().SetStart(gameStartTime);
-    }
-
     
     strncpy(richPresenceBuffer, ss.str().c_str(), 1024);
     bool wasPresenceStringChanged = std::strcmp(richPresenceBuffer, richPresenceBuffer) != 0;
@@ -455,11 +456,11 @@ bool Presence::joinGameWithDiscordJoinSecret(char* str)
 
     if (ok) {
         std::stringstream cmd;
-        cmd << "connectwithinvite";
+        cmd << _("connectwithinvite");
         cmd << ' ' << '"' << serverIPAndPort << '"';
         cmd << ' ' << '"' << encryptionKeyBase64 << '"';
         cmd << ' ' << uid;
-        spdlog::get("logger")->info("Joining game of origin user ID: {}", uid);
+        m_logger->info(_("Joining game with Discord invite"));
         SDK().GetEngineClient()->ClientCmd_Unrestricted(cmd.str().c_str());
     }
 
@@ -468,8 +469,7 @@ bool Presence::joinGameWithDiscordJoinSecret(char* str)
 
 void Presence::updateRichPresenceCCommand(const CCommand& args)
 {
-    //SPDLOG_DEBUG(spdlog::get("logger"), "bme_update_rich_presence");
-    spdlog::get("logger")->debug("bme_update_rich_presence");
+    SPDLOG_LOGGER_DEBUG(m_logger, "bme_update_rich_presence");
     updateRichPresence(true);
 }
 
@@ -487,7 +487,7 @@ inline void Presence::wipeOriginJoinSecret() {
 
 void Presence::SetTrainingResumeChoice(const CCommand& args)
 {
-    spdlog::get("logger")->debug("bme_npe_set_training_resume_choice {}", args.ArgS());
+    SPDLOG_LOGGER_DEBUG(m_logger, "bme_npe_set_training_resume_choice {}", args.ArgS());
     if (args.ArgC() <= 1) return;
     trainingStage = atoi(args.Arg(1));
     updateRichPresence(false);
@@ -495,20 +495,20 @@ void Presence::SetTrainingResumeChoice(const CCommand& args)
 
 void Presence::updatePlayerCountCCommand(const CCommand& args)
 {
-    spdlog::get("logger")->debug("bme_update_player_count {}", args.ArgS());
+    SPDLOG_LOGGER_DEBUG(m_logger, "bme_update_player_count {}", args.ArgS());
     if (args.ArgC() <= 1) return;
     int old_playerCount = playerCount;
     playerCount = atoi(args.Arg(1));
     if (old_playerCount != playerCount)
     {
         updateRichPresence(false);
-        spdlog::get("logger")->debug("bme_update_player_count old:{} new:{}", old_playerCount, playerCount);
+        SPDLOG_LOGGER_DEBUG(m_logger, "bme_update_player_count old:{} new:{}", old_playerCount, playerCount);
     }
 }
 
 void Presence::updatePlayerCountGrabCCommand(const CCommand& args)
 {
-    spdlog::get("logger")->debug("bme_update_player_count_grab {}", args.ArgS());
+    SPDLOG_LOGGER_DEBUG(m_logger, "bme_update_player_count_grab {}", args.ArgS());
     if (args.ArgC() <= 1) return;
     int old_playerCount = playerCount;
 
@@ -527,13 +527,13 @@ void Presence::updatePlayerCountGrabCCommand(const CCommand& args)
     {
         playerCount = local_playerCount;
         updateRichPresence(false);
-        spdlog::get("logger")->debug("bme_update_player_count_grab old:{} new:{}", old_playerCount, playerCount);
+        SPDLOG_LOGGER_DEBUG(m_logger, "bme_update_player_count_grab old:{} new:{}", old_playerCount, playerCount);
     }
 }
 
 void Presence::updateGameEndTimeCCommand(const CCommand& args)
 {
-    spdlog::get("logger")->debug("bme_update_gameendtime {}", args.ArgS());
+    SPDLOG_LOGGER_DEBUG(m_logger, "bme_update_gameendtime {}", args.ArgS());
     if (args.ArgC() <= 1) return;
     int local_gameEndTime;
     if (std::strcmp(args.Arg(1), "null") == 0 || std::strcmp(map, "mp_npe") == 0) // we don't want end time for training
@@ -545,7 +545,7 @@ void Presence::updateGameEndTimeCCommand(const CCommand& args)
         local_gameEndTime += timestamp() + 1;
 
     if (local_gameEndTime != gameEndTime) {
-        spdlog::get("logger")->debug("Game end time updated");
+        SPDLOG_LOGGER_DEBUG(m_logger, "Game end time updated");
         gameEndTime = local_gameEndTime;
         updateRichPresence(false);
     }
@@ -553,30 +553,34 @@ void Presence::updateGameEndTimeCCommand(const CCommand& args)
 
 void Presence::updateGameEndTime2CCommand(const CCommand& args)
 {
-    spdlog::get("logger")->debug("bme_update_gameendtime2 {}", args.ArgS());
+    SPDLOG_LOGGER_DEBUG(m_logger, "bme_update_gameendtime2 {}", args.ArgS());
     if (args.ArgC() <= 1) return;
-    float local_gameEndTime2;
+    float local_gameEndTime2_float;
+    int local_gameEndTime2;
     if (std::strcmp(args.Arg(1), "null") == 0 || std::strcmp(map, "mp_npe") == 0) // we don't want end time for training
-        local_gameEndTime2 = -FLT_MAX;
+        local_gameEndTime2_float = -FLT_MAX;
     else
-        local_gameEndTime2 = std::stof(args.Arg(1));
+        local_gameEndTime2_float = std::stof(args.Arg(1));
 
-    if (local_gameEndTime2 != -FLT_MAX)
-        local_gameEndTime2 -= *serverClock;
+    if (local_gameEndTime2_float != -FLT_MAX)
+        local_gameEndTime2_float -= *serverClock;
+
+    if (local_gameEndTime2_float == -FLT_MAX)
+        local_gameEndTime2 = INT_MIN;
+    else
+        //local_gameEndTime2 = std::lround(std::ceilf(local_gameEndTime2_float)) + timestamp() + 1;
+        local_gameEndTime2 = std::lround(std::roundf(local_gameEndTime2_float)) + timestamp() + 1; // let's see if round will be more accurate
 
     if (local_gameEndTime2 != gameEndTime) {
-        spdlog::get("logger")->debug("Game end time updated");
-        if (local_gameEndTime2 == -FLT_MAX)
-            gameEndTime2 = INT_MIN;
-        else
-            gameEndTime2 = std::lround(std::ceilf(local_gameEndTime2)) + timestamp() + 1;
+        SPDLOG_LOGGER_DEBUG(m_logger, "Game end time updated");
+        gameEndTime2 = local_gameEndTime2;
         updateRichPresence(false);
     }
 }
 
 void Presence::updateGameStateCCommand(const CCommand& args)
 {
-    spdlog::get("logger")->debug("bme_update_game_state {}", args.ArgS());
+    SPDLOG_LOGGER_DEBUG(m_logger, "bme_update_game_state {}", args.ArgS());
     if (args.ArgC() <= 1) return;
     gameState = atoi(args.Arg(1));
     if (gameState == SwitchingSides)
@@ -586,21 +590,21 @@ void Presence::updateGameStateCCommand(const CCommand& args)
 
 void Presence::updateIsRoundBasedCCommand(const CCommand& args)
 {
-    spdlog::get("logger")->debug("bme_update_is_round_based {}", args.ArgS());
+    SPDLOG_LOGGER_DEBUG(m_logger, "bme_update_is_round_based {}", args.ArgS());
     if (args.ArgC() <= 1) return;
     isRoundBased = atoi(args.Arg(1)) ? true : false;
 }
 
 void Presence::updateIsSwitchBasedCCommand(const CCommand& args)
 {
-    spdlog::get("logger")->debug("bme_update_is_switch_sides_based {}", args.ArgS());
+    SPDLOG_LOGGER_DEBUG(m_logger, "bme_update_is_switch_sides_based {}", args.ArgS());
     if (args.ArgC() <= 1) return;
     isSwitchSidesBased = atoi(args.Arg(1)) ? true : false;
 }
 
 void Presence::updateRoundsPlayedCCommand(const CCommand& args)
 {
-    spdlog::get("logger")->debug("bme_update_rounds_played {}", args.ArgS());
+    SPDLOG_LOGGER_DEBUG(m_logger, "bme_update_rounds_played {}", args.ArgS());
     if (args.ArgC() <= 1) return;
     int old_roundNumber = roundNumber;
     roundNumber = atoi(args.Arg(1));
@@ -610,7 +614,7 @@ void Presence::updateRoundsPlayedCCommand(const CCommand& args)
 
 void Presence::updateRoundsTotalCCommand(const CCommand& args)
 {
-    spdlog::get("logger")->debug("bme_update_rounds_total {}", args.ArgS());
+    SPDLOG_LOGGER_DEBUG(m_logger, "bme_update_rounds_total {}", args.ArgS());
     if (args.ArgC() <= 1) return;
     maxRounds = atoi(args.Arg(1));
 }
@@ -621,6 +625,7 @@ HookedFuncStatic<__int64 __fastcall, __int64> _sub_180022CA0("engine.dll", 0x22C
 
 Presence::Presence(ConCommandManager& conCommandManager)
 {
+    m_logger = spdlog::get(_("logger"));
     //auto enginedllBaseAddress = *engineClient->ba;
     auto enginedllBaseAddress = Util::GetModuleBaseAddress(_("engine.dll"));
     auto clientdllBaseAddress = Util::GetModuleBaseAddress(_("client.dll"));
@@ -641,6 +646,7 @@ Presence::Presence(ConCommandManager& conCommandManager)
     maxplayers = (int*)(enginedllBaseAddress + 0x7972A4);
     isPrivateLobby = (bool*)(enginedllBaseAddress + 0x210FE3C);
     serverClock = (float*)(clientdllBaseAddress + 0xF83FBC); // client+0xF83FBC=first to be populated, engine.dll+796D48=fastest, least delayed
+    // TODO: check if engine.dll+7C0B0C is numPlayers by any chance
 
     updatePresence2LastInput = 0;
     _updatePresence2.Hook(WRAPPED_MEMBER(Hook_updatePresence2));

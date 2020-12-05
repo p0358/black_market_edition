@@ -9,6 +9,7 @@
 
 std::unique_ptr<Console> g_console;
 std::unique_ptr<TTFSDK> g_SDK;
+HMODULE hDLLModule;
 
 TTFSDK& SDK()
 {
@@ -20,11 +21,32 @@ TTFSDK& SDK()
 //HookedFunc<void, double, float> _Host_RunFrame("engine.dll", "\x48\x8B\xC4\x48\x89\x58\x00\xF3\x0F\x11\x48\x00\xF2\x0F\x11\x40\x00", "xxxxxx?xxxx?xxxx?");
 HookedFunc<void, double, float> _Host_RunFrame("engine.dll", "\x48\x8B\xC4\x48\x89\x58\x10\x48\x89\x68\x18\x48\x89\x70\x20\xF3\x0F\x11\x40\x08", "xxxxxxxxxxxxxxxxxxxx");
 //HookedFunc<void, double, float> _Host_RunFrame("engine.dll", "\x48\x8B\xC4\x48\x89\x58\x10\x48\x89\x68\x18\x48\x89\x70\x20\xF3\x0F\x11\x40\x08", "xxxxxx??????????xxx?");
+HookedFuncStatic<void> HostState_Shutdown("engine.dll", 0x14B810);
 
 void test(const CCommand& args)
 {
     SDK().GetEngineClient()->ClientCmd_Unrestricted("disconnect \"test\"");
 }
+
+const std::string GetThisPath()
+{
+    fs::path path;
+    WCHAR result[MAX_PATH];
+    DWORD length = GetModuleFileNameW(NULL, result, MAX_PATH);
+    path = Util::Narrow(result);
+    path._Remove_filename_and_separator();
+    return path.string();
+}
+
+//EXTERN_C IMAGE_DOS_HEADER __ImageBase;
+void HostState_Shutdown_Hook() {
+    //FreeLibraryAndExitThread(hDLLModule, 0);
+    //CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)FreeLibrary, &__ImageBase, 0, NULL);
+    FreeSDK();
+    HostState_Shutdown();
+}
+
+void AntiEventCrash_Setup();
 
 TTFSDK::TTFSDK() :
     //m_engineServer("engine.dll", "VEngineServer022"),
@@ -42,7 +64,8 @@ TTFSDK::TTFSDK() :
     }
 
     m_conCommandManager.reset(new ConCommandManager());
-    m_fsManager.reset(new FileSystemManager("C:\\Program Files (x86)\\Origin Games\\Titanfall", *m_conCommandManager));
+    //m_fsManager.reset(new FileSystemManager("C:\\Program Files (x86)\\Origin Games\\Titanfall", *m_conCommandManager));
+    m_fsManager.reset(new FileSystemManager(GetThisPath(), *m_conCommandManager));
     m_sourceConsole.reset(new SourceConsole(*m_conCommandManager, true ? spdlog::level::debug : spdlog::level::info));
 
     m_discord.reset(new DiscordWrapper(*m_conCommandManager));
@@ -53,14 +76,14 @@ TTFSDK::TTFSDK() :
     m_conCommandManager->RegisterCommand("testtt", test, "Tests", 0);
 
     { // patch the restriction "Can't send client command; not connected to a server" of ClientCommand in script
-        void* ptr = (void*)(Util::GetModuleBaseAddress("client.dll") + 0x2DB33B);
+        void* ptr = (void*)(Util::GetModuleBaseAddress(_("client.dll")) + 0x2DB33B);
         TempReadWrite rw(ptr);
         *((unsigned char*)ptr) = 0xEB;
     }
 
     { // FOV range patch
         {
-            void* ptr = (void*)(Util::GetModuleBaseAddress("engine.dll") + 0x6C6D34);
+            void* ptr = (void*)(Util::GetModuleBaseAddress(_("engine.dll")) + 0x6C6D34);
             TempReadWrite rw(ptr);
             *((float*)ptr) = 2.5; // will work only before cvar is registered
         }
@@ -70,8 +93,10 @@ TTFSDK::TTFSDK() :
         //*(float*)((DWORD64*)fov + 100) = 0.5; // min
     }
 
-    this->origin = (TFOrigin*)(Util::GetModuleBaseAddress("engine.dll") + 0x2ECB770);
+    this->origin = (TFOrigin*)(Util::GetModuleBaseAddress(_("engine.dll")) + 0x2ECB770);
 
+    AntiEventCrash_Setup();
+    HostState_Shutdown.Hook(HostState_Shutdown_Hook);
 }
 
 
@@ -256,7 +281,8 @@ bool SetupSDK()
     try
     {
         //fs::path basePath(settings.BasePath);
-        fs::path basePath(".");
+        //fs::path basePath(".");
+        fs::path basePath(GetThisPath());
         SetupLogger((basePath / _("TTFSDK.log")).string(), true);
     }
     catch (std::exception& ex)

@@ -1,6 +1,8 @@
 #include "pch.h"
 #include "Util.h"
 
+std::map<std::string, DWORD64> baseModuleAddressCache;
+
 namespace Util
 {
     // Taken from https://stackoverflow.com/a/18374698
@@ -128,7 +130,12 @@ namespace Util
     }
 
     DWORD64 GetModuleBaseAddress(const std::string& moduleName) {
-        return (DWORD64)GetModuleInfo(moduleName).lpBaseOfDll;
+        DWORD64 lpBaseOfDll = baseModuleAddressCache[moduleName];
+        if (!lpBaseOfDll) {
+            lpBaseOfDll = (DWORD64)GetModuleInfo(moduleName).lpBaseOfDll;
+            baseModuleAddressCache[moduleName] = lpBaseOfDll;
+        }
+        return lpBaseOfDll;
     }
 
     void* ResolveLibraryExport(const std::string& moduleName, const std::string& exportName)

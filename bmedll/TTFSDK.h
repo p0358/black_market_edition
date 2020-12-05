@@ -80,4 +80,7 @@ public:
 TTFSDK& SDK();
 bool SetupSDK();
 void FreeSDK();
+const std::string GetThisPath();
+void HostState_Shutdown_Hook();
 extern std::unique_ptr<Console> g_console;
+extern HMODULE hDLLModule;

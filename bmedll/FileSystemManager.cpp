@@ -4,6 +4,19 @@
 #include "SigScanning.h"
 #include "IFileSystem.h"
 #include "FileSystemManager.h"
+#include <set>
+
+#ifdef _DEBUG
+#define READ_FROM_FILESYSTEM
+#else
+#define READ_FROM_BSP
+#endif
+
+#ifdef READ_FROM_BSP
+#include "FilesystemContents.h"
+std::set<std::string> fileSystemContentsSet{ FILES_COMMA_SEPARATED };
+//std::set<std::string> fileSystemContentsBlockedFromCacheSet{};
+#endif
 
 namespace fs = std::filesystem;
 
@@ -18,6 +31,7 @@ HookedVTableFunc<decltype(&IFileSystem::VTable::AddSearchPath), &IFileSystem::VT
 HookedVTableFunc<decltype(&IFileSystem::VTable::ReadFromCache), &IFileSystem::VTable::ReadFromCache> IFileSystem_ReadFromCache;
 HookedVTableFunc<decltype(&IFileSystem::VTable::MountVPK), &IFileSystem::VTable::MountVPK> IFileSystem_MountVPK;
 HookedFunc<FileHandle_t, VPKData*, __int32*, const char*> ReadFileFromVPK("filesystem_stdio.dll", "\x48\x89\x5C\x24\x00\x57\x48\x81\xEC\x00\x00\x00\x00\x49\x8B\xC0\x48\x8B\xDA", "xxxx?xxxx????xxxxxx");
+HookedFuncStatic<unsigned __int64 __fastcall, __int64> RemoveAllMapSearchPaths("filesystem_stdio.dll", 0x16570); // this is vtable function
 
 std::regex FileSystemManager::s_mapFromVPKRegex("client_(.+)\\.bsp");
 
@@ -56,7 +70,7 @@ FileSystemManager::FileSystemManager(const std::string& basePath, ConCommandMana
         m_basePath = basePath;
     }
 
-    m_logger->info("Base SDK path: {}", m_basePath);
+    m_logger->info("Base path: {}", m_basePath);
     //m_compiledPath = m_basePath / "compiled_assets";
     m_compiledPath = m_basePath / "r1_modsrc";
     m_dumpPath = m_basePath / "assets_dump";
@@ -65,17 +79,27 @@ FileSystemManager::FileSystemManager(const std::string& basePath, ConCommandMana
     m_spawnlistsPath = m_basePath / "spawnlists";
 
     m_requestingOriginalFile = false;
+    m_blockingRemoveAllMapSearchPaths = false;
     //CacheMapVPKs();
     //EnsurePathsCreated();
 
     // Hook functions
     IFileSystem_AddSearchPath.Hook(m_engineFileSystem->m_vtable, WRAPPED_MEMBER(AddSearchPathHook));
+//#ifdef READ_FROM_FILESYSTEM
     IFileSystem_ReadFromCache.Hook(m_engineFileSystem->m_vtable, WRAPPED_MEMBER(ReadFromCacheHook));
+//#endif
     IFileSystem_MountVPK.Hook(m_engineFileSystem->m_vtable, WRAPPED_MEMBER(MountVPKHook));
     ReadFileFromVPK.Hook(WRAPPED_MEMBER(ReadFileFromVPKHook));
+    RemoveAllMapSearchPaths.Hook(WRAPPED_MEMBER(RemoveAllMapSearchPathsHook));
     conCommandManager.RegisterCommand("dump_scripts", WRAPPED_MEMBER(DumpAllScripts), "Dump all scripts to development folder", 0);
 
+#ifdef _DEBUG
     _sub_18019FB30.Hook(sub_18019FB30);
+#endif
+
+#ifdef READ_FROM_BSP
+    SPDLOG_LOGGER_DEBUG(m_logger, "Amount of files in fileSystemContentsSet: {}", fileSystemContentsSet.size());
+#endif
 }
 
 
@@ -134,18 +158,39 @@ void FileSystemManager::AddSearchPathHook(IFileSystem* fileSystem, const char* p
     IFileSystem_AddSearchPath(fileSystem, pPath, pathID, addType);
 
     // Add our search path to the head again to make sure we're first
-    IFileSystem_AddSearchPath(fileSystem, m_compiledPath.string().c_str(), "GAME", PATH_ADD_TO_HEAD);
-    IFileSystem_AddSearchPath(fileSystem, m_compiledPath.string().c_str(), "MAIN", PATH_ADD_TO_HEAD);
+#ifdef READ_FROM_FILESYSTEM
+    //IFileSystem_AddSearchPath(fileSystem, m_compiledPath.string().c_str(), "GAME", PATH_ADD_TO_HEAD);
+    //IFileSystem_AddSearchPath(fileSystem, m_compiledPath.string().c_str(), "MAIN", PATH_ADD_TO_HEAD);
+#else
+    //IFileSystem_AddSearchPath(fileSystem, "maps/mp_bme.bsp", "GAME", PATH_ADD_TO_HEAD);
+    //IFileSystem_AddSearchPath(fileSystem, "maps/mp_bme.bsp", "MAIN", PATH_ADD_TO_HEAD);
+    m_blockingRemoveAllMapSearchPaths = true;
+    IFileSystem_AddSearchPath(fileSystem, (m_basePath / "bme_test/maps/mp_bme.bsp").string().c_str(), "GAME", PATH_ADD_TO_HEAD);
+    IFileSystem_AddSearchPath(fileSystem, (m_basePath / "bme_test/maps/mp_bme.bsp").string().c_str(), "MAIN", PATH_ADD_TO_HEAD);
+    m_blockingRemoveAllMapSearchPaths = false;
+#endif
 }
 
 bool FileSystemManager::ReadFromCacheHook(IFileSystem* fileSystem, const char* path, void* result)
 {
     // If the path is one of our replacements, we will not allow the cache to respond
+#ifdef READ_FROM_FILESYSTEM
     if (ShouldReplaceFile(path))
     {
         SPDLOG_LOGGER_TRACE(m_logger, "IFileSystem::ReadFromCache: blocking cache response for {}", path);
         return false;
     }
+#else
+    //std::string pstr{ path };
+    //char* p = (char*)pstr.c_str();
+    //Util::FixSlashes((char*)p, '/');
+    if (ShouldReplaceFile(path) /*&& fileSystemContentsBlockedFromCacheSet.find(path) == fileSystemContentsBlockedFromCacheSet.end()*/)
+    {
+        //fileSystemContentsBlockedFromCacheSet.emplace(path); // unfortunately looks like we need to be blocking it every time
+        ///////SPDLOG_LOGGER_TRACE(m_logger, "IFileSystem::ReadFromCache: blocking cache response for {}", path);
+        return false;
+    }
+#endif
 
     bool res = IFileSystem_ReadFromCache(fileSystem, path, result);
     /////SPDLOG_LOGGER_TRACE(m_logger, "IFileSystem::ReadFromCache: path = {}, res = {}", path, res);
@@ -177,7 +222,7 @@ FileHandle_t FileSystemManager::ReadFileFromVPKHook(VPKData* vpkInfo, __int32* b
     // If the path is one of our replacements, we will not allow the read from the VPK to happen
     if (ShouldReplaceFile(filename))
     {
-        SPDLOG_LOGGER_TRACE(m_logger, "ReadFileFromVPK: blocking response for {} from {}", filename, vpkInfo->path);
+        //SPDLOG_LOGGER_DEBUG(m_logger, "ReadFileFromVPK: blocking response for {} from {}", filename, vpkInfo->path);
         //FileHandle_t result = ReadFileFromVPK(IFileSystem_MountVPK(m_engineFileSystem, "c:\\program files (x86)\\origin games\\titanfall\\vpk\\client_mp_bme.bsp.pak000"), b, filename);
         //return result;
         *b = -1;
@@ -204,18 +249,31 @@ FileHandle_t FileSystemManager::ReadFileFromVPKHook(VPKData* vpkInfo, __int32* b
 // TODO: If we have mounted other VPKs and we unload the DLL, should we unmount them?
 VPKData* FileSystemManager::MountVPKHook(IFileSystem* fileSystem, const char* vpkPath)
 {
-    //////SPDLOG_LOGGER_TRACE(m_logger, "IFileSystem::MountVPK: vpkPath = {}", vpkPath);
+    /////SPDLOG_LOGGER_TRACE(m_logger, "IFileSystem::MountVPK: vpkPath = {}", vpkPath);
     // When a level is loaded, the VPK for the map is mounted, so we'll mount every
     // other map's VPK at the same time.
     // TODO: This might be better moved to a hook on the function that actually loads up the map?
 
     //test
-    IFileSystem_AddSearchPath(fileSystem, m_compiledPath.string().c_str(), "GAME", PATH_ADD_TO_HEAD);
-    IFileSystem_AddSearchPath(fileSystem, m_compiledPath.string().c_str(), "MAIN", PATH_ADD_TO_HEAD);
+#ifdef READ_FROM_FILESYSTEM
+    //IFileSystem_AddSearchPath(fileSystem, m_compiledPath.string().c_str(), "GAME", PATH_ADD_TO_HEAD);
+    //IFileSystem_AddSearchPath(fileSystem, m_compiledPath.string().c_str(), "MAIN", PATH_ADD_TO_HEAD);
+#else
+    static bool didAddAlready = false;
+    if (!didAddAlready) {
+        //IFileSystem_AddSearchPath(fileSystem, "maps/mp_bme.bsp", "GAME", PATH_ADD_TO_HEAD);
+        //IFileSystem_AddSearchPath(fileSystem, "maps/mp_bme.bsp", "MAIN", PATH_ADD_TO_HEAD);
+        m_blockingRemoveAllMapSearchPaths = true;
+        IFileSystem_AddSearchPath(fileSystem, (m_basePath / "bme_test/maps/mp_bme.bsp").string().c_str(), "GAME", PATH_ADD_TO_HEAD);
+        IFileSystem_AddSearchPath(fileSystem, (m_basePath / "bme_test/maps/mp_bme.bsp").string().c_str(), "MAIN", PATH_ADD_TO_HEAD);
+        m_blockingRemoveAllMapSearchPaths = false;
+        didAddAlready = true;
+    }
+#endif
 
     VPKData* res = IFileSystem_MountVPK(fileSystem, vpkPath);
     
-    MountAllVPKs();
+    //MountAllVPKs();
     
     return res;
 }
@@ -235,14 +293,14 @@ void FileSystemManager::MountAllVPKs()
     //for (const auto& otherMapVPK : m_mapVPKs)
     //{
     //std::string otherMapVPK{"C:\\Program Files (x86)\\Origin Games\\Titanfall\\packedVPK"};
-    std::string otherMapVPK{"c:\\program files (x86)\\origin games\\titanfall\\packedvpk\\client_mp_bme.bsp.pak000"};
+    /*std::string otherMapVPK{"c:\\program files (x86)\\origin games\\titanfall\\packedvpk\\client_mp_bme.bsp.pak000"};
 
         /////SPDLOG_LOGGER_TRACE(m_logger, "Mounting VPK: {}", otherMapVPK);
         VPKData* injectedRes = IFileSystem_MountVPK(m_engineFileSystem, otherMapVPK.c_str());
         if (injectedRes == nullptr)
         {
             m_logger->error("Failed to mount VPK: {}", otherMapVPK);
-        }
+        }*/
     //}
 }
 
@@ -289,9 +347,17 @@ bool FileSystemManager::ShouldReplaceFile(const std::string& path)
         return false;
     }
 
+#ifdef READ_FROM_BSP
+    char* p = (char*)path.c_str();
+    Util::FixSlashes(p, '/');
+    if (fileSystemContentsSet.find(p) != fileSystemContentsSet.end())
+        return true;
+    return false;
+#else
     // TODO: See if this is worth optimising by keeping a map in memory of the available files
     std::ifstream f(m_compiledPath / path);
     return f.good();
+#endif
 }
 
 void FileSystemManager::DumpFile(FileHandle_t handle, const std::string& dir, const std::string& path)
@@ -356,6 +422,13 @@ void FileSystemManager::DumpAllScripts(const CCommand& args)
         DumpVPKScripts(vpk);
     }
     m_logger->info("Script dump complete!");
+}
+
+unsigned __int64 __fastcall FileSystemManager::RemoveAllMapSearchPathsHook(__int64 thisptr)
+{
+    if (m_blockingRemoveAllMapSearchPaths)
+        return 0;
+    return RemoveAllMapSearchPaths(thisptr);
 }
 
 const fs::path& FileSystemManager::GetBasePath()

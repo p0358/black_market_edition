@@ -26,6 +26,8 @@ struct ourInGameJoinData {
 
 class Presence
 {
+private:
+    std::shared_ptr<spdlog::logger> m_logger;
 public:
     const char* emptyString = "";
     char presenceBuffer[1024];
@@ -63,6 +65,7 @@ public:
     static const char* getDisplayMapName(const char* map);
     static const char* getDisplayPlaylistName(const char* map);
     const char* getDisplayNameForTrainingResumeChoice(int choice);
+    const char* getDisplayCampaignMissionNameForMapName(const char* map);
 
     void updateRichPresenceLoading(bool requestOriginUpdateImmediately);
     void updateRichPresenceLoadingWithMap(const char* map, bool requestOriginUpdateImmediately);

@@ -2,7 +2,7 @@
 #include "TTFSDK.h"
 #include "Chat.h"
 
-void Chat::showChatLineEasy(const char* str, int color)
+void Chat::showChatLineEasy(const char* str, unsigned int color)
 {
     typedef char(__fastcall* TESTFN) (__int64 a1, const char* a2, int a3, int a41);
     //sub_1806CBB40(__int64 a1, const char *a2, int a3, int a4)

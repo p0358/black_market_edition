@@ -14,9 +14,12 @@ private:
     struct RegistrationData
     {
         BaseSigScanFunc* func;
-        const char* moduleName;
+        /*const char* moduleName;
         const char* signature;
-        const char* mask;
+        const char* mask;*/
+        std::string moduleName;
+        std::string signature;
+        std::string mask;
     };
 
     static const int MAX_SIG_SCAN_REGISTRATIONS = 100;
@@ -104,7 +107,7 @@ public:
         }
 
         m_hooked = true;
-        logger->debug("Hooked function at {} - trampoline location: {}", (void*)m_hookedFunc, (void*)m_func);
+        SPDLOG_LOGGER_DEBUG(logger, "Hooked function at {} - trampoline location: {}", (void*)m_hookedFunc, (void*)m_func);
     }
 
     ~HookedFunc()
@@ -161,7 +164,7 @@ public:
         }
 
         m_hooked = true;
-        logger->debug("Hooked function at {} - trampoline location: {}", (void*)m_hookedFunc, (void*)m_origFunc);
+        SPDLOG_LOGGER_DEBUG(logger, "Hooked function at {} - trampoline location: {}", (void*)m_hookedFunc, (void*)m_origFunc);
     }
 
     ~HookedFuncStatic()
