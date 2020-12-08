@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "Black Market Edition"
-#define MyAppVersion "1"
+#define MyAppVersion "1b3"
 #define MyAppPublisher "p0358"
 #define MyAppURL "https://titanfall.top/"
 
@@ -18,7 +18,7 @@ AppPublisher={#MyAppPublisher}
 AppPublisherURL={#MyAppURL}
 AppSupportURL={#MyAppURL}
 AppUpdatesURL={#MyAppURL}   
-DefaultDirName=C:\Users\p0358\source\repos\bme\installer\test                                                                                   
+;DefaultDirName=C:\Users\p0358\source\repos\bme\installer\test                                                                                   
 ;DefaultDirName={reg:HKLM\SOFTWARE\WOW6432Node\Respawn\Titanfall, Install Dir}
 DefaultDirName={code:GetInstallationPath}
 DefaultGroupName={#MyAppName}
@@ -36,6 +36,9 @@ PrivilegesRequired=lowest
 DisableReadyPage=yes
 ShowLanguageDialog=no
 CreateUninstallRegKey=no
+DirExistsWarning=no
+EnableDirDoesntExistWarning=no
+CloseApplications=force
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
@@ -52,13 +55,26 @@ Name: "spanish"; MessagesFile: "compiler:Languages\Spanish.isl"
 ;[Icons]
 ;Name: "{group}\{cm:UninstallProgram,{#MyAppName}}"; Filename: "{uninstallexe}"
 
+[Dirs]
+Name: "{app}\bin\x64_retail"; Flags: uninsneveruninstall
+Name: "{app}\bme"
+
+[Files]
+Source: "source\winmm.dll"; DestDir: "{app}"; Flags: ignoreversion onlyifdoesntexist
+Source: "source\bin\x64_retail\winmm.dll"; DestDir: "{app}\bin\x64_retail"; Flags: ignoreversion onlyifdoesntexist
+Source: "source\bme\bme.asi"; DestDir: "{app}\bme"; Flags: ignoreversion
+Source: "source\bme\bme.bsp"; DestDir: "{app}\bme"; Flags: ignoreversion
+Source: "source\bme\bme.log"; DestDir: "{app}\bme"; Flags: ignoreversion onlyifdoesntexist
+Source: "source\bme\bme_channel.txt"; DestDir: "{app}\bme"; Flags: ignoreversion
+Source: "source\discord_game_sdk.dll"; DestDir: "{app}"; Flags: ignoreversion onlyifdoesntexist
+
 [Code]
 procedure CurPageChanged(CurPageID: Integer);
 begin
   if CurPageID = wpSelectDir then
     WizardForm.NextButton.Caption := SetupMessage(msgButtonInstall)
-  else
-    WizardForm.NextButton.Caption := SetupMessage(msgButtonNext);
+  //else
+  //  WizardForm.NextButton.Caption := SetupMessage(msgButtonNext);
 end;
 
 

@@ -56,15 +56,7 @@ bool DumpCompleted(const wchar_t* dump_path,
 
                 field = curl_mime_addpart(form);
                 curl_mime_name(field, "sentry[environment]"); // consider adding "dist", especially if you ever report dev reports
-#ifdef _DEBUG
-                curl_mime_data(field, "dev", CURL_ZERO_TERMINATED);
-#else
-#ifdef STAGING
-                curl_mime_data(field, "staging", CURL_ZERO_TERMINATED);
-#else
-                curl_mime_data(field, "production", CURL_ZERO_TERMINATED);
-#endif
-#endif
+                curl_mime_data(field, GetBMEChannel().c_str(), CURL_ZERO_TERMINATED);
 
                 {
                     TFOrigin* origin = SDK().origin;

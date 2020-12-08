@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "Console.h"
+#include "Util.h"
 
 Console::Console()
     : m_winConsole(), m_conOut("CONOUT$", "w", stdout), m_conIn("CONIN$", "r", stdin)
@@ -35,9 +36,17 @@ WindowsConsole::WindowsConsole()
 {
     if (!AllocConsole())
     {
-        if (!AttachConsole(-1)) {
+        if (!AttachConsole(GetCurrentProcessId())) {
+            if (GetLastError() == 5) // this error means the console is already attached
+                return;
             //throw std::exception("Failed to AllocConsole()"); // TODO: better exception
-            throw std::exception("Failed to allocate console or attach to an existing console"); // TODO: better exception
+            std::stringstream e;
+            e << "Failed to allocate console or attach to an existing console";
+            e << " (";
+            e << GetLastError();
+            e << "): ";
+            e << Util::GetLastErrorAsString();
+            throw std::exception(e.str().c_str()); // TODO: better exception
         }
     }
 }

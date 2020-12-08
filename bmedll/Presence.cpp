@@ -662,18 +662,18 @@ Presence::Presence(ConCommandManager& conCommandManager)
     gameState = 0;
     isDiscordJoinable = false;
 
-    conCommandManager.RegisterCommand("bme_update_rich_presence", WRAPPED_MEMBER(updateRichPresenceCCommand), "Update rich presence now", 0);
-    conCommandManager.RegisterCommand("bme_npe_set_training_stage", WRAPPED_MEMBER(SetTrainingResumeChoice), "Set current training stage (for presence)", 0);
-    conCommandManager.RegisterCommand("bme_update_player_count", WRAPPED_MEMBER(updatePlayerCountCCommand), "Set current player count (for presence)", 0);
-    conCommandManager.RegisterCommand("bme_update_player_count_grab", WRAPPED_MEMBER(updatePlayerCountGrabCCommand), "Update current player count (for presence)", 0);
-    conCommandManager.RegisterCommand("bme_update_gameendtime", WRAPPED_MEMBER(updateGameEndTimeCCommand), "Update game end time (in-game)", 0);
-    conCommandManager.RegisterCommand("bme_update_gameendtime2", WRAPPED_MEMBER(updateGameEndTime2CCommand), "Update game start time (lobby countdown), uses server time to calculate", 0);
-    conCommandManager.RegisterCommand("bme_update_game_state", WRAPPED_MEMBER(updateGameStateCCommand), "for presence", 0);
-    conCommandManager.RegisterCommand("bme_update_is_round_based", WRAPPED_MEMBER(updateIsRoundBasedCCommand), "for presence", 0);
-    conCommandManager.RegisterCommand("bme_update_is_switch_sides_based", WRAPPED_MEMBER(updateIsSwitchBasedCCommand), "for presence", 0);
-    conCommandManager.RegisterCommand("bme_update_rounds_played", WRAPPED_MEMBER(updateRoundsPlayedCCommand), "for presence", 0);
-    conCommandManager.RegisterCommand("bme_update_rounds_total", WRAPPED_MEMBER(updateRoundsTotalCCommand), "for presence", 0);
-    conCommandManager.RegisterConVar("bme_is_discord_joinable", "0", 0, "Is updated with whether current Discord activity is joinable (that is can we invite people here)");
+    conCommandManager.RegisterCommand("bme_update_rich_presence", WRAPPED_MEMBER(updateRichPresenceCCommand), "Update rich presence now", FCVAR_DONTRECORD);
+    conCommandManager.RegisterCommand("bme_npe_set_training_stage", WRAPPED_MEMBER(SetTrainingResumeChoice), "Set current training stage (for presence)", FCVAR_DONTRECORD);
+    conCommandManager.RegisterCommand("bme_update_player_count", WRAPPED_MEMBER(updatePlayerCountCCommand), "Set current player count (for presence)", FCVAR_DONTRECORD);
+    conCommandManager.RegisterCommand("bme_update_player_count_grab", WRAPPED_MEMBER(updatePlayerCountGrabCCommand), "Update current player count (for presence)", FCVAR_DONTRECORD);
+    conCommandManager.RegisterCommand("bme_update_gameendtime", WRAPPED_MEMBER(updateGameEndTimeCCommand), "Update game end time (in-game)", FCVAR_DONTRECORD);
+    conCommandManager.RegisterCommand("bme_update_gameendtime2", WRAPPED_MEMBER(updateGameEndTime2CCommand), "Update game start time (lobby countdown), uses server time to calculate", FCVAR_DONTRECORD);
+    conCommandManager.RegisterCommand("bme_update_game_state", WRAPPED_MEMBER(updateGameStateCCommand), "for presence", FCVAR_DONTRECORD);
+    conCommandManager.RegisterCommand("bme_update_is_round_based", WRAPPED_MEMBER(updateIsRoundBasedCCommand), "for presence", FCVAR_DONTRECORD);
+    conCommandManager.RegisterCommand("bme_update_is_switch_sides_based", WRAPPED_MEMBER(updateIsSwitchBasedCCommand), "for presence", FCVAR_DONTRECORD);
+    conCommandManager.RegisterCommand("bme_update_rounds_played", WRAPPED_MEMBER(updateRoundsPlayedCCommand), "for presence", FCVAR_DONTRECORD);
+    conCommandManager.RegisterCommand("bme_update_rounds_total", WRAPPED_MEMBER(updateRoundsTotalCCommand), "for presence", FCVAR_DONTRECORD);
+    conCommandManager.RegisterConVar("bme_is_discord_joinable", "0", FCVAR_DONTRECORD | FCVAR_SERVER_CANNOT_QUERY, "Is updated with whether current Discord activity is joinable (that is can we invite people here)");
 }
 
 void __fastcall Presence::Hook_updatePresence2(__int64 a1) {

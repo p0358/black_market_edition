@@ -66,6 +66,7 @@ public:
     //SourceInterface<IInputSystem>& GetInputSystem();
 
     void RunFrameHook(double absTime, float frameTime);
+    bool runFrameHookCalled;
 
     //void AddFrameTask(std::shared_ptr<IFrameTask> task);
     //void AddDelayedFunc(std::function<void()> func, int frames);
@@ -81,6 +82,7 @@ TTFSDK& SDK();
 bool SetupSDK();
 void FreeSDK();
 const std::string GetThisPath();
+const std::string GetBMEChannel();
 void HostState_Shutdown_Hook();
 extern std::unique_ptr<Console> g_console;
 extern HMODULE hDLLModule;

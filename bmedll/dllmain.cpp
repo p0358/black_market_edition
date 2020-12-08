@@ -9,6 +9,7 @@ HANDLE threadHandle;
 
 DWORD WINAPI OnAttach(LPVOID lpThreadParameter)
 {
+
     // Setup the SDK or unload the DLL if we can't
     if (!SetupSDK())
     {

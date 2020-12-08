@@ -13,6 +13,8 @@ class DiscordWrapper
 private:
     
 public:
+    bool isDiscordInitialized;
+    bool isDiscordReady;
     //discord::Core* core;
     //std::unique_ptr<discord::Core> core;
     //DiscordState state;

@@ -34,12 +34,13 @@ DiscordWrapper::DiscordWrapper(ConCommandManager& conCommandManager)
     auto result = discord::Core::Create(444356071880917002, DiscordCreateFlags_NoRequireDiscord, &core); std::cout << "b";
 
     this->core.reset(core);
+    conCommandManager.RegisterConVar("bme_is_discord_initialized", !core ? "0" : "1", FCVAR_DONTRECORD | FCVAR_SERVER_CANNOT_QUERY, "Is updated with whether Discord was successfully initialized");
     if (!core) {
-        std::cout << "Failed to instantiate discord core! (err " << static_cast<int>(result)
-            << ")\n";
-        std::exit(-1);
+        logger->warn("Failed to instantiate discord core! (err {})", static_cast<int>(result));
+        return;
     } std::cout << "c";
 
+    isDiscordInitialized = result == discord::Result::Ok;
 
     core->SetLogHook(
         discord::LogLevel::Debug, [](discord::LogLevel level, const char* message) {
@@ -50,6 +51,7 @@ DiscordWrapper::DiscordWrapper(ConCommandManager& conCommandManager)
 
     //core->UserManager().OnCurrentUserUpdate.Connect([&state]() {
     core->UserManager().OnCurrentUserUpdate.Connect([this]() {
+        this->isDiscordReady = true;
         discord::User user;
         this->core->UserManager().GetCurrentUser(&user);
         currentUser.reset(&user);
@@ -167,8 +169,8 @@ DiscordWrapper::DiscordWrapper(ConCommandManager& conCommandManager)
     SPDLOG_LOGGER_DEBUG(logger, _("Discord on before first RunCallbacks"));
     core->RunCallbacks();
 
-    conCommandManager.RegisterCommand("bme_discord_guild_invite_open", WRAPPED_MEMBER(OpenDiscordInvite), "Open Discord invite to TF Remnant Fleet", 0);
-    conCommandManager.RegisterCommand("bme_discord_friends_invite_open", WRAPPED_MEMBER(OpenDiscordFriendsInvite), "Open Discord invite friends dialog", 0);
+    conCommandManager.RegisterCommand("bme_discord_guild_invite_open", WRAPPED_MEMBER(OpenDiscordInvite), "Open Discord invite to TF Remnant Fleet", FCVAR_DONTRECORD);
+    conCommandManager.RegisterCommand("bme_discord_friends_invite_open", WRAPPED_MEMBER(OpenDiscordFriendsInvite), "Open Discord invite friends dialog", FCVAR_DONTRECORD);
 
     logger->info(_("Discord init end"));
     
@@ -182,7 +184,7 @@ DWORD WINAPI DiscordWrapper::ThreadProc(LPVOID lpThreadParameter)
 void DiscordWrapper::OpenDiscordInvite(const CCommand& args)
 {
     if (!core) return;
-    core->OverlayManager().OpenGuildInvite("se", [](discord::Result result) {
+    core->OverlayManager().OpenGuildInvite("Fw9bjMN", [](discord::Result result) {
         std::stringstream ss;
         ss << ((result == discord::Result::Ok) ? "Succeeded" : "Failed")
             << " opening invite!\n";

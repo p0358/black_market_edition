@@ -63,4 +63,5 @@ namespace Util
     std::string ReadFileToString(std::ifstream& f);
     std::vector<std::string> Split(const std::string& s, char delim);
     std::string RemoveChar(std::string str, char c);
+    std::string GetLastErrorAsString();
 }

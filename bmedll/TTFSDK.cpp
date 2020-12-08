@@ -6,6 +6,7 @@
 #include "CrashReporting.h"
 #include "Discord.h"
 #include "Presence.h"
+#include "_version.h"
 
 std::unique_ptr<Console> g_console;
 std::unique_ptr<TTFSDK> g_SDK;
@@ -38,8 +39,30 @@ const std::string GetThisPath()
     return path.string();
 }
 
+const std::string GetBMEChannel()
+{
+    static std::string chan;
+    if (!chan.empty()) return chan;
+    fs::path path(GetThisPath());
+    path = path / "bme" / "bme_channel.txt";
+    std::ifstream stream(path.string().c_str(), std::ios::binary);
+    if (stream.is_open())
+    {
+        std::ostringstream sstr;
+        sstr << stream.rdbuf();
+        chan = sstr.str();
+    }
+    else chan = std::string(BME_CHANNEL);
+    return chan;
+}
+
+extern bool pendingUpdateLaunch;
+extern void LaunchUpdater();
+
 //EXTERN_C IMAGE_DOS_HEADER __ImageBase;
 void HostState_Shutdown_Hook() {
+    if (pendingUpdateLaunch)
+        LaunchUpdater();
     //FreeLibraryAndExitThread(hDLLModule, 0);
     //CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)FreeLibrary, &__ImageBase, 0, NULL);
     FreeSDK();
@@ -54,6 +77,7 @@ TTFSDK::TTFSDK() :
     m_vstdlibCvar("vstdlib.dll", "VEngineCvar007")
     //m_inputSystem("inputsystem.dll", "InputSystemVersion001")
 {
+    runFrameHookCalled = false;
     m_logger = spdlog::get(_("logger"));
 
     SigScanFuncRegistry::GetInstance().ResolveAll();
@@ -73,7 +97,8 @@ TTFSDK::TTFSDK() :
 
     _Host_RunFrame.Hook(WRAPPED_MEMBER(RunFrameHook));
 
-    m_conCommandManager->RegisterCommand("testtt", test, "Tests", 0);
+    //m_conCommandManager->RegisterCommand("testtt", test, "Tests", 0);
+    m_conCommandManager->RegisterConVar("bme_version", BME_VERSION, FCVAR_UNLOGGED | FCVAR_DONTRECORD | FCVAR_SERVER_CANNOT_QUERY, "Current BME version");
 
     { // patch the restriction "Can't send client command; not connected to a server" of ClientCommand in script
         void* ptr = (void*)(Util::GetModuleBaseAddress(_("client.dll")) + 0x2DB33B);
@@ -94,6 +119,19 @@ TTFSDK::TTFSDK() :
     }
 
     this->origin = (TFOrigin*)(Util::GetModuleBaseAddress(_("engine.dll")) + 0x2ECB770);
+
+    {
+        std::string game_s3_url{ _("bme.titanfall.top/backend/game_s3.php/ver=") };
+        game_s3_url += BME_VERSION;
+        game_s3_url += _("/chan=");
+        game_s3_url += GetBMEChannel();
+        game_s3_url += "/";
+        std::string cmd{ _("staticfile_hostname ") };
+        cmd += game_s3_url;
+        //ConVar* staticfile_hostname = m_vstdlibCvar->FindVar("staticfile_hostname");
+        //staticfile_hostname->SetValueString(game_s3_url.c_str());
+        m_engineClient->ClientCmd_Unrestricted(cmd.c_str());
+    }
 
     AntiEventCrash_Setup();
     HostState_Shutdown.Hook(HostState_Shutdown_Hook);
@@ -157,19 +195,43 @@ void TTFSDK::RunFrameHook(double absTime, float frameTime)
     static bool called = false;
     if (!called)
     {
+        runFrameHookCalled = true;
         m_logger->info("RunFrame called for the first time");
         called = true;
         m_sourceConsole->InitialiseSource();
         //m_pakManager->PreloadAllPaks();
 
         {
+            std::string game_s3_url{ _("bme.titanfall.top/backend/game_s3.php/ver=") };
+            game_s3_url += BME_VERSION;
+            game_s3_url += _("/chan=");
+            game_s3_url += GetBMEChannel();
+            game_s3_url += "/";
+            std::string cmd{ _("staticfile_hostname ") };
+            cmd += game_s3_url;
+            //ConVar* staticfile_hostname = m_vstdlibCvar->FindVar("staticfile_hostname");
+            //staticfile_hostname->SetValueString(game_s3_url.c_str());
+            m_engineClient->ClientCmd_Unrestricted(cmd.c_str());
+            if (!pendingUpdateLaunch)
+                m_engineClient->ClientCmd_Unrestricted("getmotd");
+            else
+                m_engineClient->ClientCmd_Unrestricted("motd \"Black Market Edition update is pending! It will be installed after you exit your game.\"");
+        }
+
+        { // FOV range patch
+            ConVar* fov = (ConVar*)m_vstdlibCvar->FindVar("cl_fovScale");
+            *(float*)((DWORD64*)fov + 108) = 2.5; // max
+            //*(float*)((DWORD64*)fov + 100) = 0.5; // min
+        }
+
+        {
             discord::Activity activity{};
-            activity.SetDetails("Main Menu");
-            activity.SetState("Black Market Edition");
+            activity.SetDetails(_("Main Menu"));
+            activity.SetState(_("Black Market Edition"));
             activity.GetAssets().SetSmallImage("");
             activity.GetAssets().SetSmallText("");
-            activity.GetAssets().SetLargeImage("titanfall_101");
-            activity.GetAssets().SetLargeText("Titanfall");
+            activity.GetAssets().SetLargeImage(_("titanfall_101"));
+            activity.GetAssets().SetLargeText(_("Titanfall"));
             activity.SetType(discord::ActivityType::Playing);
             const auto p1 = std::chrono::system_clock::now();
             const auto p2 = std::chrono::duration_cast<std::chrono::seconds>(
@@ -275,6 +337,9 @@ void SetupLogger(const std::string& filename, bool enableWindowsConsole)
     spdlog::register_logger(logger);
 }
 
+extern void CheckForUpdates();
+extern bool updateInProcess;
+
 bool SetupSDK()
 {
     // Separate try catch because these are required for logging to work
@@ -294,13 +359,16 @@ bool SetupSDK()
 #endif
 #endif
         SetupLogger((basePath / _("bme") / _("bme.log")).string(), ENABLE_WINDOWS_CONSOLE);
+        spdlog::get(_("logger"))->info("Logger has been initialized.");
     }
     catch (std::exception& ex)
     {
-        std::string message = fmt::format("Failed to initialise Black Market Edition: {}", ex.what());
+        std::string message = fmt::format("Failed to initialise Black Market Edition logger: {}", ex.what());
         MessageBox(NULL, Util::Widen(message).c_str(), L"Error", MB_OK | MB_ICONERROR);
         return false;
     }
+
+    CheckForUpdates();
 
     try
     {
@@ -326,6 +394,12 @@ bool SetupSDK()
             spdlog::get(_("logger"))->info(_("Breakpad was not initialised"));
         }
 
+        if (updateInProcess)
+        {
+            spdlog::get(_("logger"))->info(_("Update in progress, SDK will NOT be initialized. The updater should close the game now."));
+            return true;
+        }
+
         g_SDK = std::make_unique<TTFSDK>();
 
         return true;
@@ -342,4 +416,6 @@ bool SetupSDK()
 void FreeSDK()
 {
     g_SDK.reset();
+    if (g_console)
+        g_console.reset();
 }

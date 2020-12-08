@@ -38,7 +38,7 @@ ShowLanguageDialog=no
 CreateUninstallRegKey=no
 DirExistsWarning=no
 EnableDirDoesntExistWarning=no
-CloseApplications=yes
+CloseApplications=force
 ; ^it will ask if not running silently; if running silently it will by default close them and restart later, could be that this makes the most sense...
 
 [Languages]
@@ -64,16 +64,16 @@ Name: "custom"; Description: "Installation"; Flags: iscustom
 Name: "mod"; Description: "Black Market Edition mod"; Types: custom; Flags: fixed
 Name: "audiodelete"; Description: "Optionally remove unneeded audio files (-23.4 GB)"; Flags: disablenouninstallwarning
 Name: "audiodelete\french"; Description: "French (-3.7 GB)"; Flags: disablenouninstallwarning
-; ExtraDiskSpaceRequired: 3975786377
+;;; ExtraDiskSpaceRequired: 3975786377
 Name: "audiodelete\german"; Description: "German (-3.95 GB)"; Flags: disablenouninstallwarning
 Name: "audiodelete\italian"; Description: "Italian (-3.73 GB)"; Flags: disablenouninstallwarning
 Name: "audiodelete\japanese"; Description: "Japanese (-3.91 GB)"; Flags: disablenouninstallwarning
-;Name: "audiodelete\korean"; Description: "Korean"; Flags: disablenouninstallwarning
-;Name: "audiodelete\polish"; Description: "Polish"; Flags: disablenouninstallwarning
-;Name: "audiodelete\portuguese"; Description: "Portuguese"; Flags: disablenouninstallwarning
+;;;Name: "audiodelete\korean"; Description: "Korean"; Flags: disablenouninstallwarning
+;;;Name: "audiodelete\polish"; Description: "Polish"; Flags: disablenouninstallwarning
+;;;Name: "audiodelete\portuguese"; Description: "Portuguese"; Flags: disablenouninstallwarning
 Name: "audiodelete\russian"; Description: "Russian (-4.33 GB)"; Flags: disablenouninstallwarning
 Name: "audiodelete\spanish"; Description: "Spanish (-3.84 GB)"; Flags: disablenouninstallwarning
-;Name: "audiodelete\tchinese"; Description: "Chinese"; Flags: disablenouninstallwarning
+;;;Name: "audiodelete\tchinese"; Description: "Chinese"; Flags: disablenouninstallwarning
 Name: "vpkdirdelete"; Description: "Optionally remove directory entries for unused languages (-109 MB)"; Flags: disablenouninstallwarning
 Name: "vpkdirdelete\french"; Description: "French (-10.7 MB)"; ExtraDiskSpaceRequired: 3975786377; Flags: disablenouninstallwarning
 Name: "vpkdirdelete\german"; Description: "German (-10.7 MB)"; Flags: disablenouninstallwarning

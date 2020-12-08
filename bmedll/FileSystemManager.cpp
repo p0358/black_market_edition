@@ -7,7 +7,8 @@
 #include <set>
 
 #ifdef _DEBUG
-#define READ_FROM_FILESYSTEM
+//#define READ_FROM_FILESYSTEM
+#define READ_FROM_VPK
 #else
 #define READ_FROM_BSP
 #endif
@@ -30,6 +31,7 @@ FileSystemManager& FSManager()
 HookedVTableFunc<decltype(&IFileSystem::VTable::AddSearchPath), &IFileSystem::VTable::AddSearchPath> IFileSystem_AddSearchPath;
 HookedVTableFunc<decltype(&IFileSystem::VTable::ReadFromCache), &IFileSystem::VTable::ReadFromCache> IFileSystem_ReadFromCache;
 HookedVTableFunc<decltype(&IFileSystem::VTable::MountVPK), &IFileSystem::VTable::MountVPK> IFileSystem_MountVPK;
+HookedVTableFunc<decltype(&IFileSystem::VTable::AddVPKFile), &IFileSystem::VTable::AddVPKFile> IFileSystem_AddVPKFile;
 HookedFunc<FileHandle_t, VPKData*, __int32*, const char*> ReadFileFromVPK("filesystem_stdio.dll", "\x48\x89\x5C\x24\x00\x57\x48\x81\xEC\x00\x00\x00\x00\x49\x8B\xC0\x48\x8B\xDA", "xxxx?xxxx????xxxxxx");
 HookedFuncStatic<unsigned __int64 __fastcall, __int64> RemoveAllMapSearchPaths("filesystem_stdio.dll", 0x16570); // this is vtable function
 
@@ -85,10 +87,11 @@ FileSystemManager::FileSystemManager(const std::string& basePath, ConCommandMana
 
     // Hook functions
     IFileSystem_AddSearchPath.Hook(m_engineFileSystem->m_vtable, WRAPPED_MEMBER(AddSearchPathHook));
-//#ifdef READ_FROM_FILESYSTEM
+#ifndef READ_FROM_VPK
     IFileSystem_ReadFromCache.Hook(m_engineFileSystem->m_vtable, WRAPPED_MEMBER(ReadFromCacheHook));
-//#endif
+#endif
     IFileSystem_MountVPK.Hook(m_engineFileSystem->m_vtable, WRAPPED_MEMBER(MountVPKHook));
+    IFileSystem_AddVPKFile.Hook(m_engineFileSystem->m_vtable, WRAPPED_MEMBER(AddVPKFileHook));
     ReadFileFromVPK.Hook(WRAPPED_MEMBER(ReadFileFromVPKHook));
     RemoveAllMapSearchPaths.Hook(WRAPPED_MEMBER(RemoveAllMapSearchPathsHook));
     conCommandManager.RegisterCommand("dump_scripts", WRAPPED_MEMBER(DumpAllScripts), "Dump all scripts to development folder", 0);
@@ -161,13 +164,51 @@ void FileSystemManager::AddSearchPathHook(IFileSystem* fileSystem, const char* p
 #ifdef READ_FROM_FILESYSTEM
     IFileSystem_AddSearchPath(fileSystem, m_compiledPath.string().c_str(), "GAME", PATH_ADD_TO_HEAD);
     IFileSystem_AddSearchPath(fileSystem, m_compiledPath.string().c_str(), "MAIN", PATH_ADD_TO_HEAD);
+    IFileSystem_AddSearchPath(fileSystem, m_compiledPath.string().c_str(), "MOD", PATH_ADD_TO_HEAD);
+    IFileSystem_AddSearchPath(fileSystem, m_compiledPath.string().c_str(), "MATERIALS", PATH_ADD_TO_HEAD);
+    IFileSystem_AddSearchPath(fileSystem, m_compiledPath.string().c_str(), "CONTENT", PATH_ADD_TO_HEAD);
+    IFileSystem_AddSearchPath(fileSystem, m_compiledPath.string().c_str(), "PLATFORM", PATH_ADD_TO_HEAD);
 #else
+#ifdef READ_FROM_BSP
     //IFileSystem_AddSearchPath(fileSystem, "maps/mp_bme.bsp", "GAME", PATH_ADD_TO_HEAD);
     //IFileSystem_AddSearchPath(fileSystem, "maps/mp_bme.bsp", "MAIN", PATH_ADD_TO_HEAD);
     m_blockingRemoveAllMapSearchPaths = true;
     IFileSystem_AddSearchPath(fileSystem, (m_basePath / "bme/bme.bsp").string().c_str(), "GAME", PATH_ADD_TO_HEAD);
     IFileSystem_AddSearchPath(fileSystem, (m_basePath / "bme/bme.bsp").string().c_str(), "MAIN", PATH_ADD_TO_HEAD);
     m_blockingRemoveAllMapSearchPaths = false;
+#else
+#ifdef READ_FROM_VPK
+    static bool didAddAlready = false;
+    if (!didAddAlready) {
+        //fileSystem->AddVPKFile((m_basePath / "packedVPK/pak000.vpk").string().c_str(), PATH_ADD_TO_HEAD);
+    }
+#endif
+#endif
+#endif
+}
+
+void FileSystemManager::AddVPKFileHook(IFileSystem* fileSystem, char const* pBasename, SearchPathAdd_t addType, __int64 a1, __int64 a2, __int64 a3)
+{
+    SPDLOG_LOGGER_TRACE(m_logger, "IFileSystem::AddVPKFile: {} {} {} {} {}", pBasename, addType, a1, a2, a3);
+    // IFileSystem::AddVPKFile: 16426288 vpk/client_mp_common.bsp.pak000
+    // IFileSystem::AddVPKFile: vpk/client_mp_common.bsp.pak000 12233712 140716965429248 1 140717081273089
+    // IFileSystem::AddVPKFile: vpk/client_mp_common.bsp.pak000 18524032 140716965429248 1 140717081273089
+    // IFileSystem::AddVPKFile: vpk/client_mp_fracture.bsp.pak000 18521936 140716965429248 1 140717081273089
+    // IFileSystem::AddVPKFile: vpk/client_mp_corporate.bsp.pak000 18521936 140716965429248 1 140717081273089
+
+    //IFileSystem_AddVPKFile(fileSystem, "packedVPK/pak000", PATH_ADD_TO_HEAD, 1, 1, 0);
+    //IFileSystem_AddVPKFile(fileSystem, "packedVPK/pak000", addType, a1, a2, a3);
+
+    IFileSystem_AddVPKFile(fileSystem, pBasename, addType, a1, a2, a3);
+#ifdef READ_FROM_VPK
+    //static bool didAddAlready = false;
+    //if (!didAddAlready) {
+        //fileSystem->AddVPKFile((m_basePath / "packedVPK/pak000.vpk").string().c_str(), PATH_ADD_TO_HEAD);
+        //IFileSystem_AddVPKFile(fileSystem, (m_basePath / "packedVPK/pak000.vpk").string().c_str(), PATH_ADD_TO_HEAD, 1, 1, 0);
+        //IFileSystem_AddVPKFile(fileSystem, "packedVPK/pak000", PATH_ADD_TO_HEAD, 1, 1, 0);
+        //IFileSystem_AddVPKFile(fileSystem, "packedVPK/pak000", addType, a1, a2, a3);
+        //IFileSystem_AddVPKFile(fileSystem, "packedVPK/pak000", (SearchPathAdd_t)18521936, a1, a2, a3);
+    //}
 #endif
 }
 
@@ -177,7 +218,7 @@ bool FileSystemManager::ReadFromCacheHook(IFileSystem* fileSystem, const char* p
 #ifdef READ_FROM_FILESYSTEM
     if (ShouldReplaceFile(path))
     {
-        //SPDLOG_LOGGER_TRACE(m_logger, "IFileSystem::ReadFromCache: blocking cache response for {}", path);
+        SPDLOG_LOGGER_TRACE(m_logger, "IFileSystem::ReadFromCache: blocking cache response for {}", path);
         return false;
     }
 #else
@@ -249,7 +290,7 @@ FileHandle_t FileSystemManager::ReadFileFromVPKHook(VPKData* vpkInfo, __int32* b
 // TODO: If we have mounted other VPKs and we unload the DLL, should we unmount them?
 VPKData* FileSystemManager::MountVPKHook(IFileSystem* fileSystem, const char* vpkPath)
 {
-    /////SPDLOG_LOGGER_TRACE(m_logger, "IFileSystem::MountVPK: vpkPath = {}", vpkPath);
+    //SPDLOG_LOGGER_TRACE(m_logger, "IFileSystem::MountVPK: vpkPath = {}", vpkPath);
     // When a level is loaded, the VPK for the map is mounted, so we'll mount every
     // other map's VPK at the same time.
     // TODO: This might be better moved to a hook on the function that actually loads up the map?
@@ -257,7 +298,12 @@ VPKData* FileSystemManager::MountVPKHook(IFileSystem* fileSystem, const char* vp
 #ifdef READ_FROM_FILESYSTEM
     IFileSystem_AddSearchPath(fileSystem, m_compiledPath.string().c_str(), "GAME", PATH_ADD_TO_HEAD);
     IFileSystem_AddSearchPath(fileSystem, m_compiledPath.string().c_str(), "MAIN", PATH_ADD_TO_HEAD);
+    /*IFileSystem_AddSearchPath(fileSystem, m_compiledPath.string().c_str(), "MOD", PATH_ADD_TO_HEAD);
+    IFileSystem_AddSearchPath(fileSystem, m_compiledPath.string().c_str(), "MATERIALS", PATH_ADD_TO_HEAD);
+    IFileSystem_AddSearchPath(fileSystem, m_compiledPath.string().c_str(), "CONTENT", PATH_ADD_TO_HEAD);
+    IFileSystem_AddSearchPath(fileSystem, m_compiledPath.string().c_str(), "PLATFORM", PATH_ADD_TO_HEAD);*/
 #else
+#ifdef READ_FROM_BSP
     static bool didAddAlready = false;
     if (!didAddAlready) {
         //IFileSystem_AddSearchPath(fileSystem, "maps/mp_bme.bsp", "GAME", PATH_ADD_TO_HEAD);
@@ -268,9 +314,19 @@ VPKData* FileSystemManager::MountVPKHook(IFileSystem* fileSystem, const char* vp
         m_blockingRemoveAllMapSearchPaths = false;
         didAddAlready = true;
     }
+#else
+#ifdef READ_FROM_VPK
+    static bool didAddAlready = false;
+    if (!didAddAlready) {
+        //fileSystem->AddVPKFile((m_basePath / "packedVPK/pak000.vpk").string().c_str(), PATH_ADD_TO_HEAD);
+    }
+#endif
+#endif
 #endif
 
     VPKData* res = IFileSystem_MountVPK(fileSystem, vpkPath);
+
+    //SPDLOG_LOGGER_TRACE(m_logger, "IFileSystem::MountVPK: vpkPath = {}, addr1 = {}, addr2 = {}, numEntries = {}, entry1 = ", res->path, (void*)res, (void*)&res, res->numEntries/*, res->entries->directory*/);
     
     //MountAllVPKs();
     
@@ -353,9 +409,15 @@ bool FileSystemManager::ShouldReplaceFile(const std::string& path)
         return true;
     return false;
 #else
+#ifdef READ_FROM_FILESYSTEM
     // TODO: See if this is worth optimising by keeping a map in memory of the available files
     std::ifstream f(m_compiledPath / path);
     return f.good();
+#else
+#ifdef READ_FROM_VPK
+    return false;
+#endif
+#endif
 #endif
 }
 

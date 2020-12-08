@@ -15,7 +15,7 @@ struct VPKFileEntry
 #pragma pack(push,1)
 struct VPKData
 {
-    //unsigned char unknown[5];
+    unsigned char unknown[5];
     char path[255];
     unsigned char unknown2[0x134];
     int32_t numEntries;
@@ -43,11 +43,21 @@ public:
     struct VTable
     {
         void* unknown[10];
-        void(*AddSearchPath) (IFileSystem* fileSystem, const char* pPath, const char* pathID, SearchPathAdd_t addType);
+        void(*AddSearchPath) (IFileSystem* fileSystem, const char* pPath, const char* pathID, SearchPathAdd_t addType); // +80
+        /*void(*RemoveSearchPath) (IFileSystem* fileSystem, const char* pPath, const char* pathID, SearchPathAdd_t addType); // +88 (11)
+        void* unknown2[4];
+        void(*GetSearchPath) (IFileSystem* fileSystem, const char* pathID, bool bGetPackFiles, char* pPath, int nMaxLen); // +128 (16)
+        void* unknown3[78];*/
+        //void* unknown2[83];
+
+
         void* unknown2[84];
-        bool(*ReadFromCache) (IFileSystem* fileSystem, const char* path, void* result);
-        void* unknown3[15];
-        VPKData* (*MountVPK) (IFileSystem* fileSystem, const char* vpkPath);
+        bool(*ReadFromCache) (IFileSystem* fileSystem, const char* path, void* result); // +760
+        void* unknown4[15];
+        VPKData* (*MountVPK) (IFileSystem* fileSystem, const char* vpkPath); // +888
+        void* unknown5[22];
+        //void* unknown6[1];
+        void (*AddVPKFile) (IFileSystem* fileSystem, char const* pBasename, SearchPathAdd_t addType, __int64 a1, __int64 a2, __int64 a3); // +1072
     };
 
     struct VTable2
@@ -62,4 +72,13 @@ public:
 
     VTable* m_vtable;
     VTable2* m_vtable2;
+
+    void AddVPKFile(const char* pPath, SearchPathAdd_t addType) // + 1072
+    {
+        typedef void(__thiscall* OriginalFn)(PVOID, const char*, SearchPathAdd_t);
+        return getvfunc<OriginalFn>(this, 134)(this, pPath, addType);
+    }
+
+    // +1080 = RemoveVPKFile
+    // +1088 = GetVPKFileNames
 };
