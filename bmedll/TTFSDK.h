@@ -6,10 +6,13 @@
 #include "ConCommandManager.h"
 #include "SourceConsole.h"
 #include "Console.h"
+#include "BMEGUI.h"
 #include "Discord.h"
 #include "Presence.h"
 #include "Origin.h"
 #include "FileSystemManager.h"
+#include "UIManager.h"
+#include "IInputSystem.h"
 
 class TTFSDK
 {
@@ -21,9 +24,10 @@ private:
     //std::unique_ptr<SquirrelManager> m_sqManager;
     //std::unique_ptr<PakManager> m_pakManager;
     //std::unique_ptr<ModManager> m_modManager;
-    //std::unique_ptr<UIManager> m_uiManager;
+    std::unique_ptr<UIManager> m_uiManager;
     std::unique_ptr<SourceConsole> m_sourceConsole;
 
+    std::unique_ptr<BMEGUI> m_bmegui;
     std::unique_ptr<DiscordWrapper> m_discord;
     std::unique_ptr<Presence> m_presence;
 
@@ -35,7 +39,7 @@ private:
     //SourceInterface<IVEngineServer> m_engineServer;
     SourceInterface<IVEngineClient> m_engineClient;
     SourceInterface<ICvar> m_vstdlibCvar;
-    //SourceInterface<IInputSystem> m_inputSystem;
+    SourceInterface<IInputSystem> m_inputSystem;
 
     //ID3D11Device** m_ppD3D11Device;
 
@@ -50,9 +54,10 @@ public:
     //SquirrelManager& GetSQManager();
     //PakManager& GetPakManager();
     //ModManager& GetModManager();
-    //UIManager& GetUIManager();
+    UIManager& GetUIManager();
     SourceConsole& GetSourceConsole();
 
+    BMEGUI& GetBMEGUI();
     DiscordWrapper& GetDiscord();
     Presence& GetPresence();
 
@@ -63,7 +68,7 @@ public:
     //SourceInterface<IVEngineServer>& GetEngineServer();
     SourceInterface<IVEngineClient>& GetEngineClient();
     SourceInterface<ICvar>& GetVstdlibCvar();
-    //SourceInterface<IInputSystem>& GetInputSystem();
+    SourceInterface<IInputSystem>& GetInputSystem();
 
     void RunFrameHook(double absTime, float frameTime);
     bool runFrameHookCalled;
@@ -86,3 +91,4 @@ const std::string GetBMEChannel();
 void HostState_Shutdown_Hook();
 extern std::unique_ptr<Console> g_console;
 extern HMODULE hDLLModule;
+extern bool isProcessTerminating;

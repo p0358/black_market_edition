@@ -478,11 +478,11 @@ inline void Presence::requestOriginPresenceUpdate() {
 }
 
 inline void Presence::wipeOriginRichPresenceString() {
-    memset(richPresenceString, 0, 256);
+    memset(richPresenceBufferInGame, 0, 256);
 }
 
 inline void Presence::wipeOriginJoinSecret() {
-    memset(joinSecret, 0, 256);
+    memset((void*)joinSecretInGame, 0, 256);
 }
 
 void Presence::SetTrainingResumeChoice(const CCommand& args)
@@ -635,14 +635,11 @@ Presence::Presence(ConCommandManager& conCommandManager)
     map = (const char*)(enginedllBaseAddress + 0x79719C); // alt, faster (from cl_showfps???)
     map_old = (const char*)(clientdllBaseAddress + 0x16BC7E0);
     joinSecretInGame = (const char*)(enginedllBaseAddress + 0x2ECF03E);
-    sessionIDBufferInGame = (char*)(enginedllBaseAddress + 0x2ECF03E); // congrats idiot, you added the same offset 2 times xD
     memset(richPresenceBuffer, 0, 1024);
     memset(presenceBuffer, 0, 1024);
     richPresenceBufferInGame = (char*)(enginedllBaseAddress + 0x2ECF13E);
     serverIPAndPortBufferInGame = (char*)(enginedllBaseAddress + 0x7B0437);
     isPresenceUpdatePending = (__int16*)(enginedllBaseAddress + 0x2ECF03C);
-    richPresenceString = (void*)(enginedllBaseAddress + 0x2ECF13E);
-    joinSecret = (void*)(enginedllBaseAddress + 0x2ECF03E); // sorry, thrice XD
     maxplayers = (int*)(enginedllBaseAddress + 0x7972A4);
     isPrivateLobby = (bool*)(enginedllBaseAddress + 0x210FE3C);
     serverClock = (float*)(clientdllBaseAddress + 0xF83FBC); // client+0xF83FBC=first to be populated, engine.dll+796D48=fastest, least delayed
@@ -674,6 +671,13 @@ Presence::Presence(ConCommandManager& conCommandManager)
     conCommandManager.RegisterCommand("bme_update_rounds_played", WRAPPED_MEMBER(updateRoundsPlayedCCommand), "for presence", FCVAR_DONTRECORD);
     conCommandManager.RegisterCommand("bme_update_rounds_total", WRAPPED_MEMBER(updateRoundsTotalCCommand), "for presence", FCVAR_DONTRECORD);
     conCommandManager.RegisterConVar("bme_is_discord_joinable", "0", FCVAR_DONTRECORD | FCVAR_SERVER_CANNOT_QUERY, "Is updated with whether current Discord activity is joinable (that is can we invite people here)");
+}
+
+Presence::~Presence()
+{
+    SPDLOG_LOGGER_DEBUG(spdlog::get(_("logger")), "Presence destructor");
+    _updatePresence2.Unhook();
+    _sub_180473500.Unhook();
 }
 
 void __fastcall Presence::Hook_updatePresence2(__int64 a1) {

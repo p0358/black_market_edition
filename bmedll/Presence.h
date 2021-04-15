@@ -35,7 +35,6 @@ public:
     char richPresenceBuffer[1024];
     char* richPresenceBufferInGame;
     char* serverIPAndPortBufferInGame;
-    char* sessionIDBufferInGame;
     char lastMap[32];
 
     const char* match_playlist;
@@ -74,8 +73,6 @@ public:
     void updateRichPresenceCCommand(const CCommand& args);
 
     __int16* isPresenceUpdatePending;
-    void* richPresenceString;
-    void* joinSecret;
     inline void requestOriginPresenceUpdate();
     inline void wipeOriginRichPresenceString();
     inline void wipeOriginJoinSecret();
@@ -99,4 +96,5 @@ public:
     __int64 __fastcall Hook_sub_180022CA0(__int64 a1);
 
     Presence(ConCommandManager& conCommandManager);
+    ~Presence();
 };

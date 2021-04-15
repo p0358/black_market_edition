@@ -49,6 +49,16 @@ public:
         m_hooked = true;
     }
 
+    void Unhook()
+    {
+        if (m_hooked)
+        {
+            TempReadWrite rw(m_vtable);
+            (m_vtable->*mf) = m_origFunc;
+            m_hooked = false;
+        }
+    }
+
     ~HookedVTableFunc()
     {
         if (m_hooked)

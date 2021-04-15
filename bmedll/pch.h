@@ -30,6 +30,21 @@
 #include <spdlog/sinks/wincolor_sink.h>
 #include <spdlog/fmt/bundled/printf.h>
 
+//#define D3D11_NO_HELPERS
+//#define CINTERFACE
+#define INITGUID
+#include <d3d11.h>
+#include <DXGI.h>
+#undef INITGUID
+//#undef CINTERFACE
+
+#include <d3dcompiler.h>
+
+// imgui
+#include <imgui/imgui.h>
+#include <imgui/backends/imgui_impl_dx11.h>
+#include <imgui/backends/imgui_impl_win32.h>
+
 #include <algorithm>
 #include <functional>
 #include <shared_mutex>

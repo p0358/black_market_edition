@@ -90,7 +90,17 @@ FileSystemManager::FileSystemManager(const std::string& basePath, ConCommandMana
 #ifndef READ_FROM_VPK
     IFileSystem_ReadFromCache.Hook(m_engineFileSystem->m_vtable, WRAPPED_MEMBER(ReadFromCacheHook));
 #endif
-    IFileSystem_MountVPK.Hook(m_engineFileSystem->m_vtable, WRAPPED_MEMBER(MountVPKHook));
+    //IFileSystem_MountVPK.Hook(m_engineFileSystem->m_vtable, WRAPPED_MEMBER(MountVPKHook));
+    using my_lambda_type = VPKData* (*)(IFileSystem*, const char*);
+    //my_lambda_type my_func = [this](void* a1, HWND a2, UINT a3, WPARAM a4, LPARAM a5) -> int {return 0;/*this->WindowProcHook(a1, a2, a3, a4, a5);*/ };
+    my_lambda_type a = [](IFileSystem* a1, const char* a2) -> VPKData* {
+        //if (&UIMan() == nullptr) return 0;
+        if (isProcessTerminating) return IFileSystem_MountVPK(a1, a2);
+        if (&FSManager() == nullptr) return IFileSystem_MountVPK(a1, a2);
+        return FSManager().MountVPKHook(a1, a2);
+    };
+    IFileSystem_MountVPK.Hook(m_engineFileSystem->m_vtable, a);
+
     IFileSystem_AddVPKFile.Hook(m_engineFileSystem->m_vtable, WRAPPED_MEMBER(AddVPKFileHook));
     ReadFileFromVPK.Hook(WRAPPED_MEMBER(ReadFileFromVPKHook));
     RemoveAllMapSearchPaths.Hook(WRAPPED_MEMBER(RemoveAllMapSearchPathsHook));
@@ -105,7 +115,17 @@ FileSystemManager::FileSystemManager(const std::string& basePath, ConCommandMana
 #endif
 }
 
-
+FileSystemManager::~FileSystemManager()
+{
+    SPDLOG_LOGGER_DEBUG(spdlog::get(_("logger")), "FileSystemManager destructor");
+    IFileSystem_AddSearchPath.Unhook();
+    IFileSystem_ReadFromCache.Unhook();
+    IFileSystem_MountVPK.Unhook();
+    IFileSystem_AddVPKFile.Unhook();
+    ReadFileFromVPK.Unhook();
+    RemoveAllMapSearchPaths.Unhook();
+    _sub_18019FB30.Unhook();
+}
 
 void FileSystemManager::CacheMapVPKs()
 {

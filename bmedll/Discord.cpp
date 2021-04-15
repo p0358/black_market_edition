@@ -52,14 +52,15 @@ DiscordWrapper::DiscordWrapper(ConCommandManager& conCommandManager)
     //core->UserManager().OnCurrentUserUpdate.Connect([&state]() {
     core->UserManager().OnCurrentUserUpdate.Connect([this]() {
         this->isDiscordReady = true;
-        discord::User user;
-        this->core->UserManager().GetCurrentUser(&user);
-        currentUser.reset(&user);
+        //static discord::User user;
+        //this->core->UserManager().GetCurrentUser(&user);
+        //currentUser.reset(&user);
+        this->core->UserManager().GetCurrentUser(&currentUser);
         //currentUser = std::make_shared<discord::User>(user);
 
         //std::cout << "Current user updated: " << state.currentUser.GetUsername() << "#"
         //    << state.currentUser.GetDiscriminator() << "\n";
-        spdlog::get("logger")->info("[discord] Current user updated: {}#{}", user.GetUsername(), user.GetDiscriminator());
+        spdlog::get("logger")->info("[discord] Current user updated: {}#{}", currentUser.GetUsername(), currentUser.GetDiscriminator());
 
         /*state.core->UserManager().GetUser(130050050968518656,
             [](discord::Result result, discord::User const& user) {
@@ -226,5 +227,7 @@ void DiscordWrapper::UpdateActivity(discord::Activity activity) {
 
 DiscordWrapper::~DiscordWrapper()
 {
-    
+    SPDLOG_LOGGER_DEBUG(spdlog::get(_("logger")), "DiscordWrapper destructor");
+    //currentUser.reset();
+    core.reset();
 }

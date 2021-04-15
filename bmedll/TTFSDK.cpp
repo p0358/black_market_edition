@@ -1,9 +1,11 @@
 #include "pch.h"
 #include "TTFSDK.h"
+#include "Updater.h"
 #include "Console.h"
 #include "SigScanning.h"
 #include "Util.h"
 #include "CrashReporting.h"
+#include "BMEGUI.h"
 #include "Discord.h"
 #include "Presence.h"
 #include "_version.h"
@@ -11,6 +13,7 @@
 std::unique_ptr<Console> g_console;
 std::unique_ptr<TTFSDK> g_SDK;
 HMODULE hDLLModule;
+bool isProcessTerminating = false;
 
 TTFSDK& SDK()
 {
@@ -26,7 +29,8 @@ HookedFuncStatic<void> HostState_Shutdown("engine.dll", 0x14B810);
 
 void test(const CCommand& args)
 {
-    SDK().GetEngineClient()->ClientCmd_Unrestricted("disconnect \"test\"");
+    //SDK().GetEngineClient()->ClientCmd_Unrestricted("disconnect \"test\"");
+    Updater::isUpdaterDownloadInProgress = true;
 }
 
 const std::string GetThisPath()
@@ -56,26 +60,38 @@ const std::string GetBMEChannel()
     return chan;
 }
 
-extern bool pendingUpdateLaunch;
-extern void LaunchUpdater();
+//extern bool pendingUpdateLaunch;
+//extern void LaunchUpdater();
 
 //EXTERN_C IMAGE_DOS_HEADER __ImageBase;
 void HostState_Shutdown_Hook() {
-    if (pendingUpdateLaunch)
-        LaunchUpdater();
+    SPDLOG_LOGGER_DEBUG(spdlog::get(_("logger")), "HostState_Shutdown_Hook");
+    //auto func = HostState_Shutdown.m_origFunc;
+    //auto func = HostState_Shutdown.m_hookedFunc;
+    isProcessTerminating = true;
+
+    extern HookedVTableFunc<decltype(&IFileSystem::VTable::MountVPK), &IFileSystem::VTable::MountVPK> IFileSystem_MountVPK;
+    IFileSystem_MountVPK.Unhook();
+
+    if (Updater::pendingUpdateLaunch)
+        Updater::LaunchUpdater();
     //FreeLibraryAndExitThread(hDLLModule, 0);
     //CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)FreeLibrary, &__ImageBase, 0, NULL);
     FreeSDK();
+    //HostState_Shutdown.Unhook();
+    //func();
     HostState_Shutdown();
+    MH_Uninitialize();
+    TerminateProcess(GetCurrentProcess(), 0);
 }
 
-void AntiEventCrash_Setup();
+extern void AntiEventCrash_Setup();
 
 TTFSDK::TTFSDK() :
     //m_engineServer("engine.dll", "VEngineServer022"),
     m_engineClient("engine.dll", "VEngineClient013"),
-    m_vstdlibCvar("vstdlib.dll", "VEngineCvar007")
-    //m_inputSystem("inputsystem.dll", "InputSystemVersion001")
+    m_vstdlibCvar("vstdlib.dll", "VEngineCvar007"),
+    m_inputSystem("inputsystem.dll", "InputSystemVersion001")
 {
     runFrameHookCalled = false;
     m_logger = spdlog::get(_("logger"));
@@ -90,14 +106,24 @@ TTFSDK::TTFSDK() :
     m_conCommandManager.reset(new ConCommandManager());
     //m_fsManager.reset(new FileSystemManager("C:\\Program Files (x86)\\Origin Games\\Titanfall", *m_conCommandManager));
     m_fsManager.reset(new FileSystemManager(GetThisPath(), *m_conCommandManager));
+    //m_uiManager.reset(new UIManager(*m_conCommandManager, *m_fsManager));
     m_sourceConsole.reset(new SourceConsole(*m_conCommandManager, true ? spdlog::level::debug : spdlog::level::info));
 
+    //m_bmegui.reset(new BMEGUI(*m_conCommandManager, *m_uiManager, *m_fsManager));
     m_discord.reset(new DiscordWrapper(*m_conCommandManager));
     m_presence.reset(new Presence(*m_conCommandManager));
 
+    /*{
+        Updater::updaterNowDownloaded = 5.0 * 1024.0 * 1023.0;
+        Updater::updaterTotalToDownload = 10.0 * 1024.0 * 1022.0;
+        Updater::isUpdaterDownloadInProgress = true;
+        Updater::isUpdaterDownloadCancelled = false;
+        Updater::updaterDownloadProgress = (5.0 * 1024.0 * 1023.0) / (10.0 * 1024.0 * 1022.0);
+     }*/
+
     _Host_RunFrame.Hook(WRAPPED_MEMBER(RunFrameHook));
 
-    //m_conCommandManager->RegisterCommand("testtt", test, "Tests", 0);
+    m_conCommandManager->RegisterCommand("testtt", test, "Tests", 0);
     m_conCommandManager->RegisterConVar("bme_version", BME_VERSION, FCVAR_UNLOGGED | FCVAR_DONTRECORD | FCVAR_SERVER_CANNOT_QUERY, "Current BME version");
 
     { // patch the restriction "Can't send client command; not connected to a server" of ClientCommand in script
@@ -148,9 +174,20 @@ ConCommandManager& TTFSDK::GetConCommandManager()
     return *m_conCommandManager;
 }
 
+UIManager& TTFSDK::GetUIManager()
+{
+    return *m_uiManager;
+}
+
 SourceConsole& TTFSDK::GetSourceConsole()
 {
     return *m_sourceConsole;
+}
+
+BMEGUI& TTFSDK::GetBMEGUI()
+{
+    return *m_bmegui;
+
 }
 
 DiscordWrapper& TTFSDK::GetDiscord()
@@ -171,6 +208,11 @@ SourceInterface<IVEngineClient>& TTFSDK::GetEngineClient()
 SourceInterface<ICvar>& TTFSDK::GetVstdlibCvar()
 {
     return m_vstdlibCvar;
+}
+
+SourceInterface<IInputSystem>& TTFSDK::GetInputSystem()
+{
+    return m_inputSystem;
 }
 
 void TTFSDK::RunFrameHook(double absTime, float frameTime)
@@ -212,7 +254,7 @@ void TTFSDK::RunFrameHook(double absTime, float frameTime)
             //ConVar* staticfile_hostname = m_vstdlibCvar->FindVar("staticfile_hostname");
             //staticfile_hostname->SetValueString(game_s3_url.c_str());
             m_engineClient->ClientCmd_Unrestricted(cmd.c_str());
-            if (!pendingUpdateLaunch)
+            if (!Updater::pendingUpdateLaunch)
                 m_engineClient->ClientCmd_Unrestricted("getmotd");
             else
                 m_engineClient->ClientCmd_Unrestricted("motd \"Black Market Edition update is pending! It will be installed after you exit your game.\"");
@@ -239,30 +281,38 @@ void TTFSDK::RunFrameHook(double absTime, float frameTime)
             activity.GetTimestamps().SetStart(p2);
             m_discord->UpdateActivity(activity);
         }
+
     }
 
     m_discord->core->RunCallbacks();
+
+    //m_uiManager->DrawTest();
 
     return _Host_RunFrame(absTime, frameTime);
 }
 
 TTFSDK::~TTFSDK()
 {
+    SPDLOG_LOGGER_DEBUG(spdlog::get(_("logger")), "TTFSDK destructor");
     // TODO: Reorder these
     //m_sqManager.reset();
-    m_conCommandManager.reset();
+    m_presence.reset();
+    m_discord.reset();
+    /////m_bmegui.reset();
+    m_sourceConsole.reset();
+    /////m_uiManager.reset();
     m_fsManager.reset();
+    m_conCommandManager.reset();
     //m_pakManager.reset();
     //m_modManager.reset();
-    //m_uiManager.reset();
-    m_sourceConsole.reset();
-    m_discord.reset();
-    m_presence.reset();
     // TODO: Add anything i've missed here
+    SPDLOG_LOGGER_DEBUG(spdlog::get(_("logger")), "TTFSDK destructor finishing");
+    _Host_RunFrame.Unhook();
 
-    MH_Uninitialize();
+    //MH_Uninitialize();
 
     curl_global_cleanup();
+    SPDLOG_LOGGER_DEBUG(spdlog::get(_("logger")), "TTFSDK destructor finished");
 }
 
 class flushed_file_sink_mt : public spdlog::sinks::sink
@@ -337,8 +387,8 @@ void SetupLogger(const std::string& filename, bool enableWindowsConsole)
     spdlog::register_logger(logger);
 }
 
-extern void CheckForUpdates();
-extern bool updateInProcess;
+//extern void CheckForUpdates();
+//extern bool updateInProcess;
 
 bool SetupSDK()
 {
@@ -368,10 +418,21 @@ bool SetupSDK()
         return false;
     }
 
-    CheckForUpdates();
+    Updater::CheckForUpdates();
 
     try
     {
+        bool breakpadSuccess = SetupBreakpad(GetThisPath());
+        if (breakpadSuccess)
+        {
+            spdlog::get(_("logger"))->info(_("Breakpad initialized"));
+        }
+        else
+        {
+            spdlog::get(_("logger"))->info(_("Breakpad was not initialized"));
+        }
+
+        SPDLOG_LOGGER_DEBUG(spdlog::get(_("logger")), "Waiting for game DLLs...");
         // TODO: Make this smarter (automatically pull DLL we need to load from somewhere)
         Util::WaitForModuleHandle(_("engine.dll"));
         Util::WaitForModuleHandle(_("client.dll"));
@@ -380,28 +441,22 @@ bool SetupSDK()
         Util::WaitForModuleHandle(_("filesystem_stdio.dll"));
         //Util::WaitForModuleHandle("rtech_game.dll");
         //Util::WaitForModuleHandle("studiorender.dll");
-        //Util::WaitForModuleHandle("materialsystem_dx11.dll");
+        Util::WaitForModuleHandle(_("materialsystem_dx11.dll"));
+        Util::WaitForModuleHandle(_("vguimatsurface.dll"));
 
+        SPDLOG_LOGGER_DEBUG(spdlog::get(_("logger")), "Suspending threads...");
         Util::ThreadSuspender suspender;
+        SPDLOG_LOGGER_DEBUG(spdlog::get(_("logger")), "Threads suspended. Initializing ");
 
-        bool breakpadSuccess = SetupBreakpad(GetThisPath());
-        if (breakpadSuccess)
-        {
-            spdlog::get(_("logger"))->info(_("Breakpad initialised"));
-        }
-        else
-        {
-            spdlog::get(_("logger"))->info(_("Breakpad was not initialised"));
-        }
-
-        if (updateInProcess)
+        /*if (Updater::updateInProcess)
         {
             spdlog::get(_("logger"))->info(_("Update in progress, SDK will NOT be initialized. The updater should close the game now."));
             return true;
-        }
+        }*/
 
         g_SDK = std::make_unique<TTFSDK>();
 
+        SPDLOG_LOGGER_DEBUG(spdlog::get(_("logger")), "Will unsuspend threads after this message.");
         return true;
     }
     catch (std::exception& ex)

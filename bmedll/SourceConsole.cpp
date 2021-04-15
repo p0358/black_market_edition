@@ -114,6 +114,9 @@ void SourceConsoleSink::sink_it_(const spdlog::details::log_msg& msg)
     /*spdlog::memory_buf_t formatted;
     base_sink::formatter_->format(msg, formatted);
     m_console->ColorPrint(m_colours[msg.level], fmt::to_string(formatted).c_str());*/
+    spdlog::memory_buf_t formatted;
+    base_sink<std::mutex>::formatter_->format(msg, formatted);
+    m_console->ColorPrint(m_colours[msg.level], fmt::to_string(formatted).c_str());
 }
 
 void SourceConsoleSink::flush_()

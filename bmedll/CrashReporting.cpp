@@ -20,7 +20,7 @@ bool DumpCompleted(const wchar_t* dump_path,
 {
     if (succeeded)
     {
-
+        //MessageBox(NULL, L"TEST, on before crash upload", L"Error", MB_OK | MB_ICONERROR);
         bool upload_ok = false;
         CURLcode res;
         {

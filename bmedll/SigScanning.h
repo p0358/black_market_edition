@@ -81,7 +81,9 @@ public:
 
     }
 
-    void Hook(T(*detourFunc)(Args...))
+    //void Hook(T(*detourFunc)(Args...))
+    //void Hook(std::function<T(Args...)> detourFunc)
+    void Hook(LPVOID detourFunc)
     {
         if (m_hooked)
         {
@@ -108,6 +110,14 @@ public:
 
         m_hooked = true;
         SPDLOG_LOGGER_DEBUG(logger, "Hooked function at {} - trampoline location: {}", (void*)m_hookedFunc, (void*)m_func);
+    }
+
+    void Unhook()
+    {
+        if (m_hooked)
+        {
+            MH_RemoveHook(m_hookedFunc);
+        }
     }
 
     ~HookedFunc()
@@ -165,6 +175,14 @@ public:
 
         m_hooked = true;
         SPDLOG_LOGGER_DEBUG(logger, "Hooked function at {} - trampoline location: {}", (void*)m_hookedFunc, (void*)m_origFunc);
+    }
+
+    void Unhook()
+    {
+        if (m_hooked)
+        {
+            MH_RemoveHook(m_hookedFunc);
+        }
     }
 
     ~HookedFuncStatic()

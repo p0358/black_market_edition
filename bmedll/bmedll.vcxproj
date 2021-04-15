@@ -160,6 +160,7 @@
       <EnableUAC>false</EnableUAC>
       <AdditionalDependencies>common.lib;crash_generation_client.lib;exception_handler.lib;discord_game_sdk.dll.lib;libMinHook-x64-v141-md.lib;libcurl_a.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;ws2_32.lib;wldap32.lib;Normaliz.lib;Crypt32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>..\thirdparty\breakpad;..\thirdparty\MinHook;..\thirdparty\curl-7.73.0\builds\libcurl-vc-x64-release-static-ipv6-sspi-schannel\lib;..\thirdparty\discord_game_sdk\lib\x86_64</AdditionalLibraryDirectories>
+      <IgnoreSpecificDefaultLibraries>LIBCMTD;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
     </Link>
     <CustomBuildStep>
       <Command>cmd /C "copy $(SolutionDir)\x64\Debug\bme.dll $(SolutionDir)\x64\Debug\bme.asi"</Command>
@@ -167,6 +168,13 @@
     </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\thirdparty\imgui\backends\imgui_impl_dx11.h" />
+    <ClInclude Include="..\thirdparty\imgui\backends\imgui_impl_win32.h" />
+    <ClInclude Include="..\thirdparty\imgui\imgui.h" />
+    <ClInclude Include="..\thirdparty\imgui\imgui_internal.h" />
+    <ClInclude Include="..\thirdparty\imgui\imstb_rectpack.h" />
+    <ClInclude Include="..\thirdparty\imgui\imstb_textedit.h" />
+    <ClInclude Include="..\thirdparty\imgui\imstb_truetype.h" />
     <ClInclude Include="..\thirdparty\rapidjson\include\rapidjson\allocators.h" />
     <ClInclude Include="..\thirdparty\rapidjson\include\rapidjson\cursorstreamwrapper.h" />
     <ClInclude Include="..\thirdparty\rapidjson\include\rapidjson\document.h" />
@@ -204,6 +212,7 @@
     <ClInclude Include="..\thirdparty\rapidjson\include\rapidjson\stringbuffer.h" />
     <ClInclude Include="..\thirdparty\rapidjson\include\rapidjson\writer.h" />
     <ClInclude Include="..\thirdparty\xorstr.hpp" />
+    <ClInclude Include="BMEGUI.h" />
     <ClInclude Include="Chat.h" />
     <ClInclude Include="ConCommandManager.h" />
     <ClInclude Include="Console.h" />
@@ -233,6 +242,8 @@
     <ClInclude Include="framework.h" />
     <ClInclude Include="ICvar.h" />
     <ClInclude Include="IFileSystem.h" />
+    <ClInclude Include="IInputSystem.h" />
+    <ClInclude Include="ISurface.h" />
     <ClInclude Include="IVEngineClient.h" />
     <ClInclude Include="ModuleScan.h" />
     <ClInclude Include="Origin.h" />
@@ -242,12 +253,23 @@
     <ClInclude Include="SourceConsole.h" />
     <ClInclude Include="SourceInterface.h" />
     <ClInclude Include="TTFSDK.h" />
+    <ClInclude Include="UIManager.h" />
+    <ClInclude Include="Updater.h" />
     <ClInclude Include="Util.h" />
     <ClInclude Include="VTableHooking.h" />
     <ClInclude Include="_version.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\thirdparty\imgui\backends\imgui_impl_dx11.cpp" />
+    <ClCompile Include="..\thirdparty\imgui\backends\imgui_impl_win32.cpp" />
+    <ClCompile Include="..\thirdparty\imgui\imgui.cpp" />
+    <ClCompile Include="..\thirdparty\imgui\imgui_draw.cpp" />
+    <ClCompile Include="..\thirdparty\imgui\imgui_tables.cpp" />
+    <ClCompile Include="..\thirdparty\imgui\imgui_widgets.cpp" />
     <ClCompile Include="AntiEventCrash.cpp" />
+    <ClCompile Include="BMEGUI.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Staging|x64'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="Chat.cpp" />
     <ClCompile Include="ConCommandManager.cpp" />
     <ClCompile Include="Console.cpp" />
@@ -280,6 +302,9 @@
     <ClCompile Include="SigScanning.cpp" />
     <ClCompile Include="SourceConsole.cpp" />
     <ClCompile Include="TTFSDK.cpp" />
+    <ClCompile Include="UIManager.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Staging|x64'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="Updater.cpp" />
     <ClCompile Include="Util.cpp" />
   </ItemGroup>

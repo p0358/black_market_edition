@@ -25,6 +25,12 @@
     <Filter Include="Pliki nagłówkowe\discord">
       <UniqueIdentifier>{5d9fb6f8-3b0d-4700-a6d3-2e808428f990}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Pliki źródłowe\imgui">
+      <UniqueIdentifier>{38b58fd1-89cb-4907-9e86-33c662cc8582}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Pliki nagłówkowe\imgui">
+      <UniqueIdentifier>{06fee694-d1b0-44aa-9d21-95fb614fe211}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h">
@@ -261,6 +267,42 @@
     <ClInclude Include="_version.h">
       <Filter>Pliki nagłówkowe</Filter>
     </ClInclude>
+    <ClInclude Include="UIManager.h">
+      <Filter>Pliki nagłówkowe</Filter>
+    </ClInclude>
+    <ClInclude Include="ISurface.h">
+      <Filter>Pliki nagłówkowe</Filter>
+    </ClInclude>
+    <ClInclude Include="IInputSystem.h">
+      <Filter>Pliki nagłówkowe</Filter>
+    </ClInclude>
+    <ClInclude Include="..\thirdparty\imgui\backends\imgui_impl_dx11.h">
+      <Filter>Pliki nagłówkowe\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\thirdparty\imgui\backends\imgui_impl_win32.h">
+      <Filter>Pliki nagłówkowe\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\thirdparty\imgui\imstb_textedit.h">
+      <Filter>Pliki nagłówkowe\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\thirdparty\imgui\imstb_truetype.h">
+      <Filter>Pliki nagłówkowe\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\thirdparty\imgui\imgui.h">
+      <Filter>Pliki nagłówkowe\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\thirdparty\imgui\imgui_internal.h">
+      <Filter>Pliki nagłówkowe\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\thirdparty\imgui\imstb_rectpack.h">
+      <Filter>Pliki nagłówkowe\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="Updater.h">
+      <Filter>Pliki nagłówkowe</Filter>
+    </ClInclude>
+    <ClInclude Include="BMEGUI.h">
+      <Filter>Pliki nagłówkowe</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">
@@ -351,6 +393,30 @@
       <Filter>Pliki źródłowe</Filter>
     </ClCompile>
     <ClCompile Include="Updater.cpp">
+      <Filter>Pliki źródłowe</Filter>
+    </ClCompile>
+    <ClCompile Include="..\thirdparty\imgui\imgui_draw.cpp">
+      <Filter>Pliki źródłowe\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\thirdparty\imgui\imgui.cpp">
+      <Filter>Pliki źródłowe\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\thirdparty\imgui\backends\imgui_impl_dx11.cpp">
+      <Filter>Pliki źródłowe\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\thirdparty\imgui\backends\imgui_impl_win32.cpp">
+      <Filter>Pliki źródłowe\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\thirdparty\imgui\imgui_tables.cpp">
+      <Filter>Pliki źródłowe\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\thirdparty\imgui\imgui_widgets.cpp">
+      <Filter>Pliki źródłowe\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="BMEGUI.cpp">
+      <Filter>Pliki źródłowe</Filter>
+    </ClCompile>
+    <ClCompile Include="UIManager.cpp">
       <Filter>Pliki źródłowe</Filter>
     </ClCompile>
   </ItemGroup>

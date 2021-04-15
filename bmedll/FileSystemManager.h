@@ -27,6 +27,7 @@ private:
 
 public:
     FileSystemManager(const std::string& basePath, ConCommandManager& conCommandManager);
+    ~FileSystemManager();
 
     void EnsurePathsCreated();
     void AddSearchPathHook(IFileSystem* fileSystem, const char* pPath, const char* pathID, SearchPathAdd_t addType);

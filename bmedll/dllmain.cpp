@@ -9,6 +9,7 @@ HANDLE threadHandle;
 
 DWORD WINAPI OnAttach(LPVOID lpThreadParameter)
 {
+    curl_global_init(CURL_GLOBAL_ALL);
 
     // Setup the SDK or unload the DLL if we can't
     if (!SetupSDK())
@@ -45,7 +46,6 @@ BOOL APIENTRY DllMain( HMODULE hModule,
     case DLL_PROCESS_ATTACH:
 
         hDLLModule = hModule;
-        curl_global_init(CURL_GLOBAL_ALL);
 
         threadHandle = CreateThread(NULL, 0, OnAttach, NULL, 0, NULL);
         break;

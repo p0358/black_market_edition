@@ -1,6 +1,6 @@
 #pragma once
 
-#define BME_VERSION "1b3"
+#define BME_VERSION "1b4"
 
 #ifdef _DEBUG
 #define BME_CHANNEL "dev"

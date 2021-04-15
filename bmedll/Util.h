@@ -18,9 +18,26 @@ struct MemberWrapper<RT(T::*)(Args...), pF, T& (*)(), pObjGet>
 
     static RT Call(Args... args)
     {
+        //if (&pObjGet() == nullptr /*|| ((pObjGet()).*pF) == nullptr*/) return NULL;
         return ((pObjGet()).*pF)(args...);
     }
 };
+
+/*template <typename T, T, typename U, U> struct MemberWrapper;
+template<typename T, T& (*pObjGet)(), typename... Args, void(T::* pF)(Args...)>
+struct MemberWrapper<void(T::*)(Args...), pF, T& (*)(), pObjGet>
+{
+    /*static RT Call(Args&&... args)
+    {
+        return ((pObjGet()).*pF)(std::forward<Args>(args)...);
+    }* /
+
+    static void Call(Args... args)
+    {
+        if (&pObjGet() == nullptr /*|| ((pObjGet()).*pF) == nullptr* /) return;
+        return ((pObjGet()).*pF)(args...);
+    }
+};*/
 
 namespace Util
 {

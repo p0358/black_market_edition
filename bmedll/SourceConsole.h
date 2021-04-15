@@ -7,7 +7,7 @@ class EditablePanel
 {
 public:
     virtual ~EditablePanel() = 0;
-    unsigned char unknown[0x2B0];
+    unsigned char unknown[0x2A8];
 };
 
 struct SourceColor
@@ -57,7 +57,8 @@ public:
     };
 
     VTable* m_vtable;
-    unsigned char unknown[0x398];
+    //unsigned char unknown[0x398];
+    unsigned char unknown[0x390];
     CConsolePanel* m_pConsolePanel;
 };
 

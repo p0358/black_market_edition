@@ -19,7 +19,8 @@ public:
     //std::unique_ptr<discord::Core> core;
     //DiscordState state;
     //discord::User currentUser;
-    std::unique_ptr<discord::User> currentUser;
+    //std::unique_ptr<discord::User> currentUser;
+    discord::User currentUser;
     std::unique_ptr<discord::Core> core;
 
     void OpenDiscordInvite(const CCommand& args);

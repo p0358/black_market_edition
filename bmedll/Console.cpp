@@ -1,17 +1,36 @@
 #include "pch.h"
 #include "Console.h"
 #include "Util.h"
+#include "TTFSDK.h"
+
+BOOL WINAPI HandlerRoutine(_In_ DWORD dwCtrlType)
+{
+    if (dwCtrlType == CTRL_C_EVENT || CTRL_BREAK_EVENT)
+    {
+        if (&SDK() != nullptr && SDK().GetEngineClient() != nullptr && SDK().GetEngineClient() != NULL)
+            SDK().GetEngineClient()->ClientCmd_Unrestricted("quit");
+        g_console.reset();
+        return true;
+    }
+    else if (dwCtrlType == CTRL_CLOSE_EVENT)
+    {
+        g_console.reset();
+        return true;
+    }
+    return false;
+}
 
 Console::Console()
     : m_winConsole(), m_conOut("CONOUT$", "w", stdout), m_conIn("CONIN$", "r", stdin)
 {
     RemoveMenu(GetSystemMenu(GetConsoleWindow(), FALSE), SC_CLOSE, MF_BYCOMMAND);
     SetConsoleCtrlHandler(NULL, TRUE);
+    //SetConsoleCtrlHandler(HandlerRoutine, TRUE);
 }
 
 Console::~Console()
 {
-    SetConsoleCtrlHandler(NULL, FALSE);
+    //SetConsoleCtrlHandler(HandlerRoutine, FALSE);
 }
 
 FileStreamWrapper::FileStreamWrapper(const char* filename, const char* mode, FILE* oldStream) : m_file(nullptr)

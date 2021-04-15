@@ -272,11 +272,13 @@ namespace Util
 
     HMODULE WaitForModuleHandle(const std::string& moduleName)
     {
-        HMODULE m = nullptr;
-        do
+        HMODULE m = GetModuleHandle(Util::Widen(moduleName).c_str());
+        while (m == nullptr)
         {
+            //Sleep(1);
+            YieldProcessor();
             m = GetModuleHandle(Util::Widen(moduleName).c_str());
-        } while (m == nullptr);
+        }
         return m;
     }
 
