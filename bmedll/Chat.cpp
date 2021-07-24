@@ -4,6 +4,8 @@
 
 void Chat::showChatLineEasy(const char* str, unsigned int color)
 {
+    if (!IsSDKReady()) return;
+
     typedef char(__fastcall* TESTFN) (__int64 a1, const char* a2, int a3, int a41);
     //sub_1806CBB40(__int64 a1, const char *a2, int a3, int a4)
 
@@ -21,6 +23,8 @@ void Chat::showChatLineEasy(const char* str, unsigned int color)
 }
 
 void Chat::showChatLineAsPlayer(int playerSlot, const char* str, bool isTeam, double xmm0_8_0) {
+    if (!IsSDKReady()) return;
+
     typedef __int64 (/*__usercall*/ *TEST2FN) (__int64 a1, const CHAR* text, unsigned int playerSlot, char isTeam, double xmm0_8_0, char isDead);
     //__int64 __usercall sub_18017D440@<rax>(__int64 a1@<rcx>, const CHAR *text@<rdx>, unsigned int playerSlot@<r8d>, char isTeam@<r9b>, double xmm0_8_0@<xmm0>, char isDead)
     

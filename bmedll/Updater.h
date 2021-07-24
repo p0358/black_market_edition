@@ -9,6 +9,7 @@ namespace Updater {
 	std::wstring SaveUpdaterFile(std::string url);
 
 	extern bool pendingUpdateLaunch;
+	extern bool pendingUpdateLaunchMotdChange;
 	extern bool updateInProcess;
 	extern std::wstring updater_path;
 	extern std::string params;
@@ -19,6 +20,7 @@ namespace Updater {
 	extern double updaterNowDownloaded;
 	extern double updaterTotalToDownload;
 	extern bool isUpdaterLaunching;
+	extern bool drawModalWillUpdaterLaunchAfterGameClose;
 
 	void LaunchUpdater();
 	DWORD WINAPI DownloadAndApplyUpdate(LPVOID lpThreadParameter);

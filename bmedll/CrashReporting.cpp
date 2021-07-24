@@ -58,7 +58,7 @@ bool DumpCompleted(const wchar_t* dump_path,
                 curl_mime_name(field, "sentry[environment]"); // consider adding "dist", especially if you ever report dev reports
                 curl_mime_data(field, GetBMEChannel().c_str(), CURL_ZERO_TERMINATED);
 
-                {
+                if (IsSDKReady()) {
                     TFOrigin* origin = SDK().origin;
                     if (origin) {
                         if (origin->uid)

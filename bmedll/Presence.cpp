@@ -6,6 +6,7 @@
 #include "SigScanning.h"
 #include "ConCommandManager.h"
 #include "Util.h"
+#include "_version.h"
 
 Presence& PresenceGlob()
 {
@@ -114,7 +115,7 @@ void Presence::updateRichPresenceLoading(bool requestOriginUpdateImmediately) {
     discord::Activity activity{};
     activity.SetType(discord::ActivityType::Playing);
     activity.SetDetails("Loading...");
-    activity.SetState("Black Market Edition");
+    activity.SetState(BME_VERSION_LONG);
     /*activity.GetAssets().SetSmallImage("");
     activity.GetAssets().SetSmallText("");*/
     activity.GetAssets().SetLargeImage("titanfall_101");
@@ -143,7 +144,7 @@ void Presence::updateRichPresenceLoadingWithMap(const char* map, bool requestOri
     discord::Activity activity{};
     activity.SetType(discord::ActivityType::Playing);
     activity.SetDetails("Loading...");
-    activity.SetState("Black Market Edition");
+    activity.SetState(BME_VERSION_LONG);
     /*activity.GetAssets().SetSmallImage("");
     activity.GetAssets().SetSmallText("");*/
 
@@ -203,7 +204,7 @@ void Presence::updateRichPresence(bool requestOriginUpdateImmediately)
 
         ss << "Main menu";
         activity.SetDetails("Main Menu");
-        activity.SetState("Black Market Edition");
+        activity.SetState(BME_VERSION_LONG);
         /*activity.GetAssets().SetSmallImage("");
         activity.GetAssets().SetSmallText("");*/
         activity.GetAssets().SetLargeImage("titanfall_101");
@@ -371,7 +372,7 @@ void Presence::updateRichPresence(bool requestOriginUpdateImmediately)
     }
     
     strncpy(richPresenceBuffer, ss.str().c_str(), 1024);
-    bool wasPresenceStringChanged = std::strcmp(richPresenceBuffer, richPresenceBuffer) != 0;
+    bool wasPresenceStringChanged = std::strcmp(richPresenceBuffer, richPresenceBufferInGame) != 0;
     strncpy(richPresenceBufferInGame, ss.str().c_str(), 256);
     SDK().GetDiscord().UpdateActivity(activity);
 

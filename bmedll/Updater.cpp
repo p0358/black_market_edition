@@ -141,10 +141,12 @@ namespace Updater {
     }
 
     bool pendingUpdateLaunch = false;
+    bool pendingUpdateLaunchMotdChange = false;
     bool updateInProcess = false;
     std::wstring updater_path;
     std::string params;
     bool isUpdaterLaunching = false;
+    bool drawModalWillUpdaterLaunchAfterGameClose = false;
 
     void LaunchUpdater()
     {
@@ -193,6 +195,11 @@ namespace Updater {
         logger->info(_("Found an update, downloading updater..."));
 
         updater_path = SaveUpdaterFile(d["updater_url"].GetString());
+        if (Updater::isUpdaterDownloadCancelled)
+        {
+            logger->error(_("Update cancelled by user."));
+            return 0;
+        }
         // TODO: poni¿sze jako MsgBox?
         if (updater_path.empty())
         {
@@ -205,14 +212,17 @@ namespace Updater {
         params = std::string(d["updater_params"].GetString());
         params = std::regex_replace(params, std::regex("\\$dir"), GetThisPath());
 
+        pendingUpdateLaunch = true; // change, we will always launch updater after game close...
+        pendingUpdateLaunchMotdChange = true;
         if (&SDK() != nullptr && SDK().runFrameHookCalled)
         {
-            pendingUpdateLaunch = true;
-            logger->info(_("Game is already launched, delaying update until it's quit."));
+            //pendingUpdateLaunch = true;
+            //logger->info(_("Game is already launched, delaying update until it's quit."));
         }
         else
         {
-            LaunchUpdater();
+            //LaunchUpdater();
+            drawModalWillUpdaterLaunchAfterGameClose = true;
         }
         return 0;
     }

@@ -11,10 +11,10 @@
 
 UIManager& UIMan()
 {
-    if (!&SDK() || !&(SDK().GetUIManager())) {
+    /*if (!&SDK() || !&(SDK().GetUIManager())) {
         UIManager* u = nullptr;
         return *u;
-    }
+    }*/
     return SDK().GetUIManager();
 }
 
@@ -23,12 +23,12 @@ UIManager& UIMan()
 //SigScanFunc<void> d3d11ContextFinder("materialsystem_dx11.dll", "\x40\x53\x48\x83\xEC\x00\x48\x8B\x0D\x00\x00\x00\x00\x48\x8B\x01\xFF\x90\x00\x00\x00\x00\xE8\x00\x00\x00\x00", "xxxxx?xxx????xxxxx????x????");
 //SigScanFunc<void> d3d11SwapChainFinder("materialsystem_dx11.dll", "\x48\x89\x5C\x24\x00\x57\x48\x83\xEC\x00\x48\x83\x3D\x00\x00\x00\x00\x00\x8B\xDA", "xxxx?xxxx?xxx?????xx");
 
-/////HookedVTableFunc<decltype(&IDXGISwapChainVtbl::Present), &IDXGISwapChainVtbl::Present> IDXGISwapChain_Present;
+HookedVTableFunc<decltype(&IDXGISwapChainVtbl::Present), &IDXGISwapChainVtbl::Present> IDXGISwapChain_Present;
 
-/////HookedFunc<int, void*, HWND, UINT, WPARAM, LPARAM> GameWindowProc("inputsystem.dll", "\x48\x89\x54\x24\x00\x55\x56\x41\x54", "xxxx?xxxx");
+HookedFunc<int, void*, HWND, UINT, WPARAM, LPARAM> GameWindowProc("inputsystem.dll", "\x48\x89\x54\x24\x00\x55\x56\x41\x54", "xxxx?xxxx");
 
-/////HookedVTableFunc<decltype(&ISurface::VTable::LockCursor), &ISurface::VTable::LockCursor> ISurface_LockCursor;
-/////HookedVTableFunc<decltype(&ISurface::VTable::SetCursor), &ISurface::VTable::SetCursor> ISurface_SetCursor;
+HookedVTableFunc<decltype(&ISurface::VTable::LockCursor), &ISurface::VTable::LockCursor> ISurface_LockCursor; // does it work?
+HookedVTableFunc<decltype(&ISurface::VTable::SetCursor), &ISurface::VTable::SetCursor> ISurface_SetCursor; // does it work?
 
 /*typedef void* voidptr_t;
 
@@ -72,24 +72,32 @@ UIManager::UIManager(ConCommandManager& conCommandManager/*, SquirrelManager& sq
     using namespace std::placeholders;
 
     SPDLOG_LOGGER_TRACE(m_logger, "Will hook IDXGISwapChain_Present");
-    IDXGISwapChain_Present.Hook(((IDXGISwapChainC*) *m_ppSwapChain)->lpVtbl, WRAPPED_MEMBER(PresentHook));
+    //IDXGISwapChain_Present.Hook(((IDXGISwapChainC*) *m_ppSwapChain)->lpVtbl, WRAPPED_MEMBER(PresentHook));
+    HRESULT STDMETHODCALLTYPE IDXGISwapChain_Present_Hook(IDXGISwapChain * SwapChain, UINT SyncInterval, UINT Flags);
+    IDXGISwapChain_Present.Hook(((IDXGISwapChainC*) *m_ppSwapChain)->lpVtbl, IDXGISwapChain_Present_Hook);
 
     SPDLOG_LOGGER_TRACE(m_logger, "Will hook GameWindowProc");
     //GameWindowProc.Hook(WRAPPED_MEMBER(WindowProcHook));
     //auto f = std::bind(&UIManager::WindowProcHook, this, _1, _2, _3, _4, _5);
     //GameWindowProc.Hook(f);
     //GameWindowProc.Hook( /*(int(*)(void*, HWND, UINT, WPARAM, LPARAM))*/ (LPVOID) [this](void* a1, HWND a2, UINT a3, WPARAM a4, LPARAM a5) -> int {return this->WindowProcHook(a1, a2, a3, a4, a5);});
-    using my_lambda_type = int(*)(void*, HWND, UINT, WPARAM, LPARAM);
-    //my_lambda_type my_func = [this](void* a1, HWND a2, UINT a3, WPARAM a4, LPARAM a5) -> int {return 0;/*this->WindowProcHook(a1, a2, a3, a4, a5);*/ };
-    my_lambda_type a = [](void* a1, HWND a2, UINT a3, WPARAM a4, LPARAM a5) -> int {
-        //if (&UIMan() == nullptr) return 0;
-        if (&UIMan() == nullptr) return GameWindowProc(a1, a2, a3, a4, a5);
-        return UIMan().WindowProcHook(a1, a2, a3, a4, a5);
-    };//this->WindowProcHook(a1, a2, a3, a4, a5);
+    //    using my_lambda_type = int(*)(void*, HWND, UINT, WPARAM, LPARAM);
+    //    //my_lambda_type my_func = [this](void* a1, HWND a2, UINT a3, WPARAM a4, LPARAM a5) -> int {return 0;/*this->WindowProcHook(a1, a2, a3, a4, a5);*/ };
+    //    my_lambda_type a = [](void* a1, HWND a2, UINT a3, WPARAM a4, LPARAM a5) -> int {
+    //        //if (&UIMan() == nullptr) return 0;
+    //        if (&UIMan() == nullptr) return GameWindowProc(a1, a2, a3, a4, a5);
+    //        return UIMan().WindowProcHook(a1, a2, a3, a4, a5);
+    //    };//this->WindowProcHook(a1, a2, a3, a4, a5);
     ///////////////GameWindowProc.Hook( /*(int(*)(void*, HWND, UINT, WPARAM, LPARAM))*/ (void*)a );
+    int GameWindowProc_Hook(void* game, HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+    GameWindowProc.Hook(GameWindowProc_Hook);
     SPDLOG_LOGGER_TRACE(m_logger, "Will hook ISurface_SetCursor and ISurface_LockCursor");
     //ISurface_SetCursor.Hook(m_surface->m_vtable, WRAPPED_MEMBER(SetCursorHook));
     //ISurface_LockCursor.Hook(m_surface->m_vtable, WRAPPED_MEMBER(LockCursorHook));
+    void ISurface_SetCursor_Hook(ISurface * surface, unsigned int cursor);
+    void ISurface_LockCursor_Hook(ISurface * surface);
+    ISurface_SetCursor.Hook(m_surface->m_vtable, ISurface_SetCursor_Hook);
+    ISurface_LockCursor.Hook(m_surface->m_vtable, ISurface_LockCursor_Hook);
 
     conCommandManager.RegisterCommand("show_cursor", WRAPPED_MEMBER(ShowCursorCommand), "Set visibility of cursor", 0);
 
@@ -268,6 +276,13 @@ void UIManager::UpdateImGuiKeyStates()
     }
 }
 
+int GameWindowProc_Hook(void* game, HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+    if (IsSDKReady())
+        return UIMan().WindowProcHook(game, hWnd, uMsg, wParam, lParam);
+    return GameWindowProc(game, hWnd, uMsg, wParam, lParam);
+}
+
 extern LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 int UIManager::WindowProcHook(void* game, HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
@@ -276,7 +291,7 @@ int UIManager::WindowProcHook(void* game, HWND hWnd, UINT uMsg, WPARAM wParam, L
 
     if (uMsg == WM_ENDSESSION && lParam == ENDSESSION_CLOSEAPP)
     {
-        SPDLOG_LOGGER_DEBUG(spdlog::get(_("logger")), "WM_ENDSESSION");
+        /*SPDLOG_LOGGER_DEBUG(spdlog::get(_("logger")), "WM_ENDSESSION");
         isProcessTerminating = true;
         SDK().GetEngineClient()->ClientCmd_Unrestricted("quit");
         if (!SDK().runFrameHookCalled)
@@ -285,12 +300,12 @@ int UIManager::WindowProcHook(void* game, HWND hWnd, UINT uMsg, WPARAM wParam, L
             //TerminateProcess(GetCurrentProcess(), 0);
         }
         //return true;
-        return GameWindowProc(game, hWnd, uMsg, wParam, lParam);
+        return GameWindowProc(game, hWnd, uMsg, wParam, lParam);*/
     }
 
     if (uMsg == WM_CLOSE)
     {
-        SPDLOG_LOGGER_DEBUG(spdlog::get(_("logger")), "WM_CLOSE");
+        /*SPDLOG_LOGGER_DEBUG(spdlog::get(_("logger")), "WM_CLOSE");
         isProcessTerminating = true;
         if (&SDK() != nullptr && SDK().GetEngineClient() != nullptr && SDK().GetEngineClient() != NULL)
             SDK().GetEngineClient()->ClientCmd_Unrestricted("quit");
@@ -300,7 +315,7 @@ int UIManager::WindowProcHook(void* game, HWND hWnd, UINT uMsg, WPARAM wParam, L
             //TerminateProcess(GetCurrentProcess(), 0);
         }
         //return true;
-        return GameWindowProc(game, hWnd, uMsg, wParam, lParam);
+        return GameWindowProc(game, hWnd, uMsg, wParam, lParam);*/
     }
 
     // Don't pass to imgui if there's no cursor visible
@@ -359,6 +374,12 @@ static bool ImGui_UpdateMouseCursor(ISurface* surface)
     return true;
 }
 
+void ISurface_SetCursor_Hook(ISurface* surface, unsigned int cursor)
+{
+    if (IsSDKReady())
+        return UIMan().SetCursorHook(surface, cursor);
+}
+
 void UIManager::SetCursorHook(ISurface* surface, unsigned int cursor)
 {
     bool cursorSet = (cursor != dc_user && cursor != dc_none && cursor != dc_blank);
@@ -393,6 +414,12 @@ void UIManager::SetCursorHook(ISurface* surface, unsigned int cursor)
     ISurface_SetCursor(surface, cursor);
 }
 
+void ISurface_LockCursor_Hook(ISurface* surface)
+{
+    if (IsSDKReady())
+        return UIMan().LockCursorHook(surface);
+}
+
 void UIManager::LockCursorHook(ISurface* surface)
 {
     // Only allow the cursor to be locked if we're not forcing it
@@ -402,7 +429,16 @@ void UIManager::LockCursorHook(ISurface* surface)
     }
 }
 
-HRESULT UIManager::PresentHook(IDXGISwapChain* SwapChain, UINT SyncInterval, UINT Flags)
+HRESULT STDMETHODCALLTYPE IDXGISwapChain_Present_Hook(IDXGISwapChain* SwapChain, UINT SyncInterval, UINT Flags)
+{
+    if (IsSDKReady())
+    {
+        UIMan().PresentHook(SwapChain, SyncInterval, Flags);
+    }
+    return IDXGISwapChain_Present(SwapChain, SyncInterval, Flags);
+}
+
+void UIManager::PresentHook(IDXGISwapChain* SwapChain, UINT SyncInterval, UINT Flags)
 {
     //SPDLOG_LOGGER_TRACE(m_logger, "IDXGISwapChain_Present");
     static bool deviceObjectsInitialised = false;
@@ -438,7 +474,7 @@ HRESULT UIManager::PresentHook(IDXGISwapChain* SwapChain, UINT SyncInterval, UIN
 
     }
 
-    return IDXGISwapChain_Present(SwapChain, SyncInterval, Flags);
+    //return IDXGISwapChain_Present(SwapChain, SyncInterval, Flags);
 }
 
 void UIManager::DrawTest()

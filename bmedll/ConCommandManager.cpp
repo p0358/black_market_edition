@@ -62,6 +62,6 @@ void ConCommandManager::UnregisterAllCommands()
 ConCommandManager::~ConCommandManager()
 {
     SPDLOG_LOGGER_DEBUG(spdlog::get(_("logger")), "ConCommandManager destructor");
-    if (!isProcessTerminating)
+    if (!g_isShuttingDown)
         UnregisterAllCommands();
 }

@@ -59,6 +59,13 @@ sub_18019FB30: a1 = vpk/mp_fracture.bsp, a2 = 2, a3 = 0, a4 = 0 // in lobby
     return res;
 }
 
+VPKData* IFileSystem_MountVPK_Hook(IFileSystem* fileSystem, const char* vpkPath)
+{
+    if (IsSDKReady())
+        return FSManager().MountVPKHook(fileSystem, vpkPath);
+    return IFileSystem_MountVPK(fileSystem, vpkPath);
+}
+
 FileSystemManager::FileSystemManager(const std::string& basePath, ConCommandManager& conCommandManager) :
     m_engineFileSystem("filesystem_stdio.dll", "VFileSystem017")
 {
@@ -72,7 +79,7 @@ FileSystemManager::FileSystemManager(const std::string& basePath, ConCommandMana
         m_basePath = basePath;
     }
 
-    m_logger->info("Base path: {}", m_basePath);
+    m_logger->info("Base path: {}", m_basePath.string());
     //m_compiledPath = m_basePath / "compiled_assets";
     m_compiledPath = m_basePath / "r1_modsrc";
     m_dumpPath = m_basePath / "assets_dump";
@@ -91,15 +98,16 @@ FileSystemManager::FileSystemManager(const std::string& basePath, ConCommandMana
     IFileSystem_ReadFromCache.Hook(m_engineFileSystem->m_vtable, WRAPPED_MEMBER(ReadFromCacheHook));
 #endif
     //IFileSystem_MountVPK.Hook(m_engineFileSystem->m_vtable, WRAPPED_MEMBER(MountVPKHook));
-    using my_lambda_type = VPKData* (*)(IFileSystem*, const char*);
-    //my_lambda_type my_func = [this](void* a1, HWND a2, UINT a3, WPARAM a4, LPARAM a5) -> int {return 0;/*this->WindowProcHook(a1, a2, a3, a4, a5);*/ };
+    IFileSystem_MountVPK.Hook(m_engineFileSystem->m_vtable, IFileSystem_MountVPK_Hook);
+    /*using my_lambda_type = VPKData* (*)(IFileSystem*, const char*);
+    //my_lambda_type my_func = [this](void* a1, HWND a2, UINT a3, WPARAM a4, LPARAM a5) -> int {return 0;/ *this->WindowProcHook(a1, a2, a3, a4, a5);* / };
     my_lambda_type a = [](IFileSystem* a1, const char* a2) -> VPKData* {
         //if (&UIMan() == nullptr) return 0;
         if (isProcessTerminating) return IFileSystem_MountVPK(a1, a2);
         if (&FSManager() == nullptr) return IFileSystem_MountVPK(a1, a2);
         return FSManager().MountVPKHook(a1, a2);
     };
-    IFileSystem_MountVPK.Hook(m_engineFileSystem->m_vtable, a);
+    IFileSystem_MountVPK.Hook(m_engineFileSystem->m_vtable, a);*/
 
     IFileSystem_AddVPKFile.Hook(m_engineFileSystem->m_vtable, WRAPPED_MEMBER(AddVPKFileHook));
     ReadFileFromVPK.Hook(WRAPPED_MEMBER(ReadFileFromVPKHook));

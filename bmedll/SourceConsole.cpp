@@ -11,23 +11,32 @@ SourceConsole& SourceCon()
 #define WRAPPED_MEMBER(name) MemberWrapper<decltype(&SourceConsole::##name), &SourceConsole::##name, decltype(&SourceCon), &SourceCon>::Call
 
 SourceConsole::SourceConsole(ConCommandManager& conCommandManager, spdlog::level::level_enum level) :
-    m_gameConsole(_("client.dll"), _("GameConsole004"))
+    //m_gameConsole(_("client.dll"), _("GameConsole004"))
+    m_gameConsole("client.dll", "GameConsole004")
 {
     m_logger = spdlog::get(_("logger"));
 
     m_sink = std::make_shared<SourceConsoleSink>(this);
-    m_sink->set_pattern(_("[%l] %v"));
+    m_sink->set_pattern(_("%v")); // [%l] 
     m_sink->set_level(level);
     m_logger->sinks().push_back(m_sink);
 
-    conCommandManager.RegisterCommand(_("toggleconsole"), WRAPPED_MEMBER(ToggleConsoleCommand), _("Show/hide the console"), 0);
-    conCommandManager.RegisterCommand(_("clear"), WRAPPED_MEMBER(ClearConsoleCommand), _("Clears the console"), 0);
+    //conCommandManager.RegisterCommand(_("toggleconsole"), WRAPPED_MEMBER(ToggleConsoleCommand), _("Show/hide the console"), 0);
+    //conCommandManager.RegisterCommand(_("clear"), WRAPPED_MEMBER(ClearConsoleCommand), _("Clears the console"), 0);
+    conCommandManager.RegisterCommand("toggleconsole", WRAPPED_MEMBER(ToggleConsoleCommand), "Show/hide the console", 0);
+    conCommandManager.RegisterCommand("clear", WRAPPED_MEMBER(ClearConsoleCommand), "Clears the console", 0);
 }
 
-void SourceConsole::InitialiseSource()
+void SourceConsole::InitializeSource()
 {
     m_gameConsole->Initialize();
     CConsoleDialog_OnCommandSubmitted.Hook(m_gameConsole->m_pConsole->m_vtable, WRAPPED_MEMBER(OnCommandSubmittedHook));
+}
+
+void SourceConsole::Deinitialize()
+{
+    auto& sinks = m_logger->sinks();
+    sinks.erase(std::remove(sinks.begin(), sinks.end(), m_sink), sinks.end());
 }
 
 void SourceConsole::ToggleConsoleCommand(const CCommand& args)
@@ -68,7 +77,7 @@ void SourceConsole::OnCommandSubmittedHook(CConsoleDialog* consoleDialog, const 
 
 void SourceConsole::ColorPrint(const SourceColor& clr, const char* pMessage)
 {
-    if (!m_gameConsole->m_bInitialized)
+    if (!m_gameConsole->m_bInitialized || !IsSDKReady())
     {
         return;
     }
@@ -78,7 +87,7 @@ void SourceConsole::ColorPrint(const SourceColor& clr, const char* pMessage)
 
 void SourceConsole::Print(const char* pMessage)
 {
-    if (!m_gameConsole->m_bInitialized)
+    if (!m_gameConsole->m_bInitialized || !IsSDKReady())
     {
         return;
     }
@@ -88,7 +97,7 @@ void SourceConsole::Print(const char* pMessage)
 
 void SourceConsole::DPrint(const char* pMessage)
 {
-    if (!m_gameConsole->m_bInitialized)
+    if (!m_gameConsole->m_bInitialized || !IsSDKReady())
     {
         return;
     }

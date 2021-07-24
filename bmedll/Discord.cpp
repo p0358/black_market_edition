@@ -44,6 +44,7 @@ DiscordWrapper::DiscordWrapper(ConCommandManager& conCommandManager)
 
     core->SetLogHook(
         discord::LogLevel::Debug, [](discord::LogLevel level, const char* message) {
+            if (!IsSDKReady()) return;
             //std::cerr << "Log(" << static_cast<uint32_t>(level) << "): " << message << "\n";
             spdlog::get("logger")->info("[discord] {}", message);
         }); std::cout << "d";
@@ -51,6 +52,7 @@ DiscordWrapper::DiscordWrapper(ConCommandManager& conCommandManager)
 
     //core->UserManager().OnCurrentUserUpdate.Connect([&state]() {
     core->UserManager().OnCurrentUserUpdate.Connect([this]() {
+        if (!IsSDKReady()) return;
         this->isDiscordReady = true;
         //static discord::User user;
         //this->core->UserManager().GetCurrentUser(&user);
@@ -123,6 +125,7 @@ DiscordWrapper::DiscordWrapper(ConCommandManager& conCommandManager)
     });*/
 
     core->ActivityManager().OnActivityJoin.Connect([this](const char* secret) {
+        if (!IsSDKReady()) return;
         bool suc = SDK().GetPresence().joinGameWithDiscordJoinSecret((char*)secret);
         spdlog::get("logger")->info("[discord] OnActivityJoin secret:{} isSuccess:{}", secret, suc);
         /*ourInGameJoinData data = SDK().GetPresence().parseJoinSecret((char*)secret);
@@ -139,6 +142,7 @@ DiscordWrapper::DiscordWrapper(ConCommandManager& conCommandManager)
     });
 
     core->ActivityManager().OnActivityJoinRequest.Connect([this](const discord::User& user) {
+        if (!IsSDKReady()) return;
         // Fires when a user asks to join the current user's game.
         spdlog::get("logger")->info("[discord] OnActivityJoinRequest {}{} {}", user.GetUsername(), user.GetDiscriminator(), user.GetId());
         {
@@ -153,6 +157,7 @@ DiscordWrapper::DiscordWrapper(ConCommandManager& conCommandManager)
     });
 
     core->ActivityManager().OnActivityInvite.Connect([this](discord::ActivityActionType actionType, const discord::User& user, const discord::Activity& activity) {
+        if (!IsSDKReady()) return;
         // Fires when the user receives a join or spectate invite.
         spdlog::get("logger")->info("[discord] OnActivityInvite type:{} {}{} {}", actionType, user.GetUsername(), user.GetDiscriminator(), user.GetId());
         {
@@ -207,6 +212,7 @@ void DiscordWrapper::OpenDiscordFriendsInvite(const CCommand& args)
 void DiscordWrapper::UpdateActivity(discord::Activity activity) {
     if (!core) return;
     core->ActivityManager().UpdateActivity(activity, [activity](discord::Result result) {
+        if (!IsSDKReady()) return;
         std::stringstream ss;
         ss << ((result == discord::Result::Ok) ? "Succeeded" : "Failed")
             << " updating activity!";

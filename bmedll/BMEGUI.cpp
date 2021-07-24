@@ -17,6 +17,7 @@ BMEGUI::BMEGUI(ConCommandManager& conCommandManager, UIManager& uiManager/*, Squ
     //uiManager.AddDrawCallback("UpdaterDownloadProgress", &Updater::isUpdaterDownloadInProgress, std::bind(&BMEGUI::DrawUpdaterDownloadProgress, this));
     uiManager.AddDrawCallback("UpdaterDownloadProgress", &Updater::isUpdaterDownloadInProgress, WRAPPED_MEMBER(DrawUpdaterDownloadProgress));
     uiManager.AddDrawCallback("DrawUpdaterLaunchingSplashScreen", &Updater::isUpdaterLaunching, WRAPPED_MEMBER(DrawUpdaterLaunchingSplashScreen));
+    uiManager.AddDrawCallback("DrawUpdaterAfterGameClose", &Updater::drawModalWillUpdaterLaunchAfterGameClose, WRAPPED_MEMBER(DrawUpdaterAfterGameClose));
 }
 
 BMEGUI::~BMEGUI()
@@ -85,7 +86,7 @@ void BMEGUI::DrawUpdaterLaunchingSplashScreen()
 {
     if (!Updater::isUpdaterLaunching) return;
     if (Updater::isUpdaterDownloadInProgress) return; // only one of the two at once!
-    if (Updater::pendingUpdateLaunch) return; // we only want to display it if the game will be closed as a result
+    //if (Updater::pendingUpdateLaunch) return; // we only want to display it if the game will be closed as a result
     //if (SDK().runFrameHookCalled) return; // TODO: think about this
     //SPDLOG_LOGGER_TRACE(m_logger, "BMEGUI::DrawUpdaterLaunchingSplashScreen");
 
@@ -100,6 +101,37 @@ void BMEGUI::DrawUpdaterLaunchingSplashScreen()
     if (ImGui::BeginPopupModal("Black Market Edition Updater", &Updater::isUpdaterLaunching, ImGuiWindowFlags_AlwaysAutoResize))
     {
         ImGui::Text("Launching updater...");
+        ImGui::EndPopup();
+    }
+    //SPDLOG_LOGGER_TRACE(m_logger, "BMEGUI::DrawUpdaterLaunchingSplashScreen: end");
+}
+
+void BMEGUI::DrawUpdaterAfterGameClose()
+{
+    if (Updater::isUpdaterLaunching) return;
+    if (Updater::isUpdaterDownloadInProgress) return;
+    if (!Updater::drawModalWillUpdaterLaunchAfterGameClose) return;
+    //SPDLOG_LOGGER_TRACE(m_logger, "BMEGUI::DrawUpdaterAfterGameClose");
+
+    //return;
+    ImGui::OpenPopup("Black Market Edition Updater");
+
+    // Always center this window when appearing
+    ImVec2 center(ImGui::GetIO().DisplaySize.x * 0.5f, ImGui::GetIO().DisplaySize.y * 0.5f);
+    ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+
+    //SPDLOG_LOGGER_TRACE(m_logger, "BMEGUI::DrawUpdaterLaunchingSplashScreen: before popup modal");
+    if (ImGui::BeginPopupModal("Black Market Edition Updater", &Updater::isUpdaterLaunching, ImGuiWindowFlags_AlwaysAutoResize))
+    {
+        ImGui::Text("Update has been downloaded and its installer will be launched after you close your game.");
+
+        ImGui::NewLine();
+        ImGui::SameLine((ImGui::GetWindowWidth() / 2) - (50 / 2));
+        if (ImGui::Button("OK", ImVec2(50, 0))) {
+            Updater::drawModalWillUpdaterLaunchAfterGameClose = false; // stop drawing
+            ImGui::CloseCurrentPopup();
+        }
+
         ImGui::EndPopup();
     }
     //SPDLOG_LOGGER_TRACE(m_logger, "BMEGUI::DrawUpdaterLaunchingSplashScreen: end");

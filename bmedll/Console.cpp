@@ -23,8 +23,8 @@ BOOL WINAPI HandlerRoutine(_In_ DWORD dwCtrlType)
 Console::Console()
     : m_winConsole(), m_conOut("CONOUT$", "w", stdout), m_conIn("CONIN$", "r", stdin)
 {
-    RemoveMenu(GetSystemMenu(GetConsoleWindow(), FALSE), SC_CLOSE, MF_BYCOMMAND);
-    SetConsoleCtrlHandler(NULL, TRUE);
+    ////RemoveMenu(GetSystemMenu(GetConsoleWindow(), FALSE), SC_CLOSE, MF_BYCOMMAND);
+    ////SetConsoleCtrlHandler(NULL, TRUE);
     //SetConsoleCtrlHandler(HandlerRoutine, TRUE);
 }
 
@@ -38,7 +38,11 @@ FileStreamWrapper::FileStreamWrapper(const char* filename, const char* mode, FIL
     errno_t err = freopen_s(&m_file, filename, mode, oldStream);
     if (err != 0)
     {
-        throw std::exception("Failed to reopen"); // TODO: better exception
+        //throw std::exception("Failed to reopen console stream"); // TODO: better exception
+        std::stringstream e;
+        e << "Failed to reopen console stream";
+        e << " " << filename << " in mode " << mode;
+        throw std::exception(e.str().c_str());
     }
 }
 
@@ -65,7 +69,7 @@ WindowsConsole::WindowsConsole()
             e << GetLastError();
             e << "): ";
             e << Util::GetLastErrorAsString();
-            throw std::exception(e.str().c_str()); // TODO: better exception
+            throw std::exception(e.str().c_str());
         }
     }
 }

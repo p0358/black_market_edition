@@ -185,7 +185,7 @@ public:
     int WindowProcHook(void* game, HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
     void SetCursorHook(ISurface* surface, unsigned int cursor);
     void LockCursorHook(ISurface* surface);
-    HRESULT STDMETHODCALLTYPE PresentHook(IDXGISwapChain* SwapChain, UINT SyncInterval, UINT Flags);
+    void STDMETHODCALLTYPE PresentHook(IDXGISwapChain* SwapChain, UINT SyncInterval, UINT Flags);
     void DrawTest();
 
 private:

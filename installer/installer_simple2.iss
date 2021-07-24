@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "Black Market Edition"
-#define MyAppVersion "1b3"
+#define MyAppVersion "1b5"
 #define MyAppPublisher "p0358"
 #define MyAppURL "https://titanfall.top/"
 
@@ -61,13 +61,21 @@ Name: "{app}\bin\x64_retail"; Flags: uninsneveruninstall
 Name: "{app}\bme"
 
 [Files]
-Source: "source\winmm.dll"; DestDir: "{app}"; Flags: ignoreversion onlyifdoesntexist
-Source: "source\bin\x64_retail\winmm.dll"; DestDir: "{app}\bin\x64_retail"; Flags: ignoreversion onlyifdoesntexist
-Source: "source\bme\bme.asi"; DestDir: "{app}\bme"; Flags: ignoreversion
+;Source: "source\winmm.dll"; DestDir: "{app}"; Flags: ignoreversion onlyifdoesntexist
+;Source: "source\bin\x64_retail\winmm.dll"; DestDir: "{app}\bin\x64_retail"; Flags: ignoreversion onlyifdoesntexist
+;Source: "source\bme\bme.asi"; DestDir: "{app}\bme"; Flags: ignoreversion
+Source: "source\bme\bme.dll"; DestDir: "{app}\bme"; Flags: ignoreversion
 Source: "source\bme\bme.bsp"; DestDir: "{app}\bme"; Flags: ignoreversion
 Source: "source\bme\bme.log"; DestDir: "{app}\bme"; Flags: ignoreversion onlyifdoesntexist
 Source: "source\bme\bme_channel.txt"; DestDir: "{app}\bme"; Flags: ignoreversion
 Source: "source\discord_game_sdk.dll"; DestDir: "{app}"; Flags: ignoreversion onlyifdoesntexist
+Source: "{app}\bin\x64_retail\launcher.dll"; DestDir: "{app}\bin\x64_retail"; DestName: "launcher.org.dll"; Flags: external skipifsourcedoesntexist onlyifdoesntexist uninsneveruninstall
+Source: "source\bin\x64_retail\launcher.dll"; DestDir: "{app}\bin\x64_retail"; Flags: ignoreversion
+
+[InstallDelete]
+Type: files; Name: "{app}\winmm.dll"
+Type: files; Name: "{app}\bin\x64_retail\winmm.dll"
+Type: files; Name: "{app}\bme\bme.asi"
 
 [Code]
 procedure CurPageChanged(CurPageID: Integer);

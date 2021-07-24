@@ -98,8 +98,8 @@
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
-      <AdditionalLibraryDirectories>..\thirdparty\MinHook;..\thirdparty\curl-7.73.0\builds\libcurl-vc-x64-release-static-ipv6-sspi-schannel\lib;..\thirdparty\discord_game_sdk\lib\x86_64</AdditionalLibraryDirectories>
-      <AdditionalDependencies>discord_game_sdk.dll.lib;libMinHook-x64-v141-md.lib;libcurl_a.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;ws2_32.lib;wldap32.lib;Normaliz.lib;Crypt32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\thirdparty\MinHook;..\thirdparty\curl-7.73.0\builds\libcurl-vc-x64-release-static-ipv6-sspi-schannel\lib;..\thirdparty\discord_game_sdk\lib\x86_64;..\thirdparty\tier0</AdditionalLibraryDirectories>
+      <AdditionalDependencies>discord_game_sdk.dll.lib;libMinHook-x64-v141-md.lib;libcurl_a.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;ws2_32.lib;wldap32.lib;Normaliz.lib;Crypt32.lib;tier0.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <CustomBuildStep>
       <Command>cmd /C "copy $(SolutionDir)\x64\Debug\bme.dll $(SolutionDir)\x64\Debug\bme.asi"</Command>
@@ -128,8 +128,8 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
-      <AdditionalDependencies>common.lib;crash_generation_client.lib;exception_handler.lib;discord_game_sdk.dll.lib;libMinHook-x64-v141-md.lib;libcurl_a.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;ws2_32.lib;wldap32.lib;Normaliz.lib;Crypt32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>..\thirdparty\breakpad;..\thirdparty\MinHook;..\thirdparty\curl-7.73.0\builds\libcurl-vc-x64-release-static-ipv6-sspi-schannel\lib;..\thirdparty\discord_game_sdk\lib\x86_64</AdditionalLibraryDirectories>
+      <AdditionalDependencies>common.lib;crash_generation_client.lib;exception_handler.lib;discord_game_sdk.dll.lib;libMinHook-x64-v141-md.lib;libcurl_a.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;ws2_32.lib;wldap32.lib;Normaliz.lib;Crypt32.lib;tier0.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\thirdparty\breakpad;..\thirdparty\MinHook;..\thirdparty\curl-7.73.0\builds\libcurl-vc-x64-release-static-ipv6-sspi-schannel\lib;..\thirdparty\discord_game_sdk\lib\x86_64;..\thirdparty\tier0</AdditionalLibraryDirectories>
     </Link>
     <CustomBuildStep>
       <Command>cmd /C "copy $(SolutionDir)\x64\Debug\bme.dll $(SolutionDir)\x64\Debug\bme.asi"</Command>
@@ -158,8 +158,8 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
-      <AdditionalDependencies>common.lib;crash_generation_client.lib;exception_handler.lib;discord_game_sdk.dll.lib;libMinHook-x64-v141-md.lib;libcurl_a.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;ws2_32.lib;wldap32.lib;Normaliz.lib;Crypt32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>..\thirdparty\breakpad;..\thirdparty\MinHook;..\thirdparty\curl-7.73.0\builds\libcurl-vc-x64-release-static-ipv6-sspi-schannel\lib;..\thirdparty\discord_game_sdk\lib\x86_64</AdditionalLibraryDirectories>
+      <AdditionalDependencies>common.lib;crash_generation_client.lib;exception_handler.lib;discord_game_sdk.dll.lib;libMinHook-x64-v141-md.lib;libcurl_a.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;ws2_32.lib;wldap32.lib;Normaliz.lib;Crypt32.lib;tier0.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\thirdparty\breakpad;..\thirdparty\MinHook;..\thirdparty\curl-7.73.0\builds\libcurl-vc-x64-release-static-ipv6-sspi-schannel\lib;..\thirdparty\discord_game_sdk\lib\x86_64;..\thirdparty\tier0</AdditionalLibraryDirectories>
       <IgnoreSpecificDefaultLibraries>LIBCMTD;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
     </Link>
     <CustomBuildStep>
@@ -245,6 +245,7 @@
     <ClInclude Include="IInputSystem.h" />
     <ClInclude Include="ISurface.h" />
     <ClInclude Include="IVEngineClient.h" />
+    <ClInclude Include="Memory.h" />
     <ClInclude Include="ModuleScan.h" />
     <ClInclude Include="Origin.h" />
     <ClInclude Include="pch.h" />
@@ -252,6 +253,7 @@
     <ClInclude Include="SigScanning.h" />
     <ClInclude Include="SourceConsole.h" />
     <ClInclude Include="SourceInterface.h" />
+    <ClInclude Include="tier0.h" />
     <ClInclude Include="TTFSDK.h" />
     <ClInclude Include="UIManager.h" />
     <ClInclude Include="Updater.h" />
@@ -267,9 +269,7 @@
     <ClCompile Include="..\thirdparty\imgui\imgui_tables.cpp" />
     <ClCompile Include="..\thirdparty\imgui\imgui_widgets.cpp" />
     <ClCompile Include="AntiEventCrash.cpp" />
-    <ClCompile Include="BMEGUI.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Staging|x64'">true</ExcludedFromBuild>
-    </ClCompile>
+    <ClCompile Include="BMEGUI.cpp" />
     <ClCompile Include="Chat.cpp" />
     <ClCompile Include="ConCommandManager.cpp" />
     <ClCompile Include="Console.cpp" />
@@ -291,6 +291,7 @@
     <ClCompile Include="discord\voice_manager.cpp" />
     <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="FileSystemManager.cpp" />
+    <ClCompile Include="Memory.cpp" />
     <ClCompile Include="ModuleScan.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
@@ -302,9 +303,7 @@
     <ClCompile Include="SigScanning.cpp" />
     <ClCompile Include="SourceConsole.cpp" />
     <ClCompile Include="TTFSDK.cpp" />
-    <ClCompile Include="UIManager.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Staging|x64'">true</ExcludedFromBuild>
-    </ClCompile>
+    <ClCompile Include="UIManager.cpp" />
     <ClCompile Include="Updater.cpp" />
     <ClCompile Include="Util.cpp" />
   </ItemGroup>

@@ -52,7 +52,8 @@ class CConsoleDialog
 public:
     struct VTable
     {
-        void* unknown[298];
+        //void* unknown[298];
+        void* unknown[294];
         void(*OnCommandSubmitted)(CConsoleDialog* consoleDialog, const char* pCommand);
     };
 
@@ -93,7 +94,8 @@ class SourceConsole
 {
 public:
     SourceConsole(ConCommandManager& conCommandManager, spdlog::level::level_enum level);
-    void InitialiseSource();
+    void InitializeSource();
+    void Deinitialize();
 
     void ToggleConsoleCommand(const CCommand& args);
     void ClearConsoleCommand(const CCommand& args);

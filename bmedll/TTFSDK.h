@@ -70,7 +70,8 @@ public:
     SourceInterface<ICvar>& GetVstdlibCvar();
     SourceInterface<IInputSystem>& GetInputSystem();
 
-    void RunFrameHook(double absTime, float frameTime);
+    //void RunFrameHook(double absTime, float frameTime);
+    void RunFrameHook(__int64 a1, double frameTime);
     bool runFrameHookCalled;
 
     //void AddFrameTask(std::shared_ptr<IFrameTask> task);
@@ -84,11 +85,16 @@ public:
 };
 
 TTFSDK& SDK();
+bool IsSDKReady();
+bool SetupLogger();
 bool SetupSDK();
 void FreeSDK();
 const std::string GetThisPath();
+const std::wstring GetThisPathWide();
 const std::string GetBMEChannel();
 void HostState_Shutdown_Hook();
 extern std::unique_ptr<Console> g_console;
 extern HMODULE hDLLModule;
-extern bool isProcessTerminating;
+//extern bool isProcessTerminating;
+extern bool g_isShuttingDown;
+extern bool g_isDedicated;

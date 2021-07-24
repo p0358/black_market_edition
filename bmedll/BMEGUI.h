@@ -10,11 +10,12 @@ public:
 
 	void DrawUpdaterDownloadProgress();
 	void DrawUpdaterLaunchingSplashScreen();
+	void DrawUpdaterAfterGameClose();
 	/*void DrawPropsGui();
 	void DrawSearchResults();
 	void DrawModelsDirectory(struct ModelsDirectory* dir);
 	void DrawDirectoryModels(struct ModelsDirectory* dir);
-	void DrawModelButton(std::string& modelName, std::string& displayName, ImVec2 size);
+	void DrawModelButton(const std::string& modelName, const std::string& displayName, ImVec2 size);
 	void DrawToolsGui(float ToolsPanelWidth);
 	void DrawOptionsGui();
 	void DrawPage(int idx);

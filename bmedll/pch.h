@@ -45,6 +45,8 @@
 #include <imgui/backends/imgui_impl_dx11.h>
 #include <imgui/backends/imgui_impl_win32.h>
 
+#include "Memory.h"
+#include "tier0.h"
 #include <algorithm>
 #include <functional>
 #include <shared_mutex>
