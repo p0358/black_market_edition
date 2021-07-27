@@ -7,6 +7,11 @@
 #ifndef PCH_H
 #define PCH_H
 
+typedef unsigned __int64 _QWORD;
+typedef unsigned int _DWORD;
+
+#define NOMINMAX
+
 // w tym miejscu dodaj nagłówki, które mają być wstępnie kompilowane
 #include "framework.h"
 

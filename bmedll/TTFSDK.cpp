@@ -30,9 +30,9 @@ bool IsSDKReady()
 
 #define WRAPPED_MEMBER(name) MemberWrapper<decltype(&TTFSDK::##name), &TTFSDK::##name, decltype(&SDK), &SDK>::Call
 
-//HookedFunc<void, double, float> _Host_RunFrame("engine.dll", "\x48\x8B\xC4\x48\x89\x58\x00\xF3\x0F\x11\x48\x00\xF2\x0F\x11\x40\x00", "xxxxxx?xxxx?xxxx?");
-////HookedFunc<void, double, float> _Host_RunFrame("engine.dll", "\x48\x8B\xC4\x48\x89\x58\x10\x48\x89\x68\x18\x48\x89\x70\x20\xF3\x0F\x11\x40\x08", "xxxxxxxxxxxxxxxxxxxx");
-//HookedFunc<void, double, float> _Host_RunFrame("engine.dll", "\x48\x8B\xC4\x48\x89\x58\x10\x48\x89\x68\x18\x48\x89\x70\x20\xF3\x0F\x11\x40\x08", "xxxxxx??????????xxx?");
+//HookedSigScanFunc<void, double, float> _Host_RunFrame("engine.dll", "\x48\x8B\xC4\x48\x89\x58\x00\xF3\x0F\x11\x48\x00\xF2\x0F\x11\x40\x00", "xxxxxx?xxxx?xxxx?");
+////HookedSigScanFunc<void, double, float> _Host_RunFrame("engine.dll", "\x48\x8B\xC4\x48\x89\x58\x10\x48\x89\x68\x18\x48\x89\x70\x20\xF3\x0F\x11\x40\x08", "xxxxxxxxxxxxxxxxxxxx");
+//HookedSigScanFunc<void, double, float> _Host_RunFrame("engine.dll", "\x48\x8B\xC4\x48\x89\x58\x10\x48\x89\x68\x18\x48\x89\x70\x20\xF3\x0F\x11\x40\x08", "xxxxxx??????????xxx?");
 HookedFuncStatic<void __fastcall, __int64, double> CHostState_State_Run("engine.dll", 0x14B300);
 HookedFuncStatic<void> HostState_Shutdown("engine.dll", 0x14B810);
 
@@ -136,14 +136,14 @@ TTFSDK::TTFSDK() :
     }*/
 
     m_conCommandManager.reset(new ConCommandManager());
-    //m_fsManager.reset(new FileSystemManager("C:\\Program Files (x86)\\Origin Games\\Titanfall", *m_conCommandManager));
+    m_sqManager.reset(new SquirrelManager(*m_conCommandManager));
     m_fsManager.reset(new FileSystemManager(GetThisPath(), *m_conCommandManager));
     //m_uiManager.reset(new UIManager(*m_conCommandManager, *m_fsManager));
     m_sourceConsole.reset(new SourceConsole(*m_conCommandManager, true ? spdlog::level::debug : spdlog::level::info));
 
     //m_bmegui.reset(new BMEGUI(*m_conCommandManager, *m_uiManager, *m_fsManager));
-    //////m_discord.reset(new DiscordWrapper(*m_conCommandManager));
-    //////m_presence.reset(new Presence(*m_conCommandManager));
+    m_discord.reset(new DiscordWrapper(*m_conCommandManager));
+    m_presence.reset(new Presence(*m_conCommandManager));
 
     /*{
         Updater::updaterNowDownloaded = 5.0 * 1024.0 * 1023.0;
@@ -216,6 +216,11 @@ ConCommandManager& TTFSDK::GetConCommandManager()
     return *m_conCommandManager;
 }
 
+SquirrelManager& TTFSDK::GetSQManager()
+{
+    return *m_sqManager;
+}
+
 UIManager& TTFSDK::GetUIManager()
 {
     return *m_uiManager;
@@ -269,7 +274,7 @@ void __fastcall TTFSDK::RunFrameHook(__int64 a1, double frameTime)
         translatorUpdated = true;
     }
 
-    /*for (const auto& frameTask : m_frameTasks)
+    for (const auto& frameTask : m_frameTasks)
     {
         frameTask->RunFrame();
     }
@@ -277,13 +282,13 @@ void __fastcall TTFSDK::RunFrameHook(__int64 a1, double frameTime)
     m_frameTasks.erase(std::remove_if(m_frameTasks.begin(), m_frameTasks.end(), [](const std::shared_ptr<IFrameTask>& t)
         {
             return t->IsFinished();
-        }), m_frameTasks.end());*/
+        }), m_frameTasks.end());
 
     static bool called = false;
     if (!called)
     {
         runFrameHookCalled = true;
-        m_logger->info("RunFrame called for the first time");
+        m_logger->info(_("RunFrame called for the first time"));
         called = true;
         Updater::drawModalWillUpdaterLaunchAfterGameClose = false;
         m_sourceConsole->InitializeSource();
@@ -309,7 +314,7 @@ void __fastcall TTFSDK::RunFrameHook(__int64 a1, double frameTime)
 #if 0
         { // FOV range patch
             ConVar* fov = (ConVar*)m_vstdlibCvar->FindVar("cl_fovScale");
-            *(float*)((DWORD64)fov + 108) = 2.5f; // max
+            *(float*)((DWORD64)fov + 108) = 3.85f; // max
             //*(float*)((DWORD64)fov + 100) = 0.5f; // min
         }
 
@@ -321,7 +326,12 @@ void __fastcall TTFSDK::RunFrameHook(__int64 a1, double frameTime)
         }
 #endif
 
-        /*{
+        {
+            extern void StartPreloading();
+            StartPreloading();
+        }
+
+        {
             discord::Activity activity{};
             activity.SetDetails(_("Main Menu"));
             activity.SetState(_(BME_VERSION_LONG));
@@ -335,7 +345,7 @@ void __fastcall TTFSDK::RunFrameHook(__int64 a1, double frameTime)
                 p1.time_since_epoch()).count();
             activity.GetTimestamps().SetStart(p2);
             m_discord->UpdateActivity(activity);
-        }*/
+        }
 
     }
 
@@ -357,13 +367,30 @@ void __fastcall TTFSDK::RunFrameHook(__int64 a1, double frameTime)
     if (callCount >= 5)
     {
         callCount = 0;
-        /////////m_discord->core->RunCallbacks();
+        if (m_discord->core)
+            m_discord->core->RunCallbacks();
 
     }
 
     //m_uiManager->DrawTest();
 
     //return _Host_RunFrame(absTime, frameTime);
+}
+
+void TTFSDK::AddFrameTask(std::shared_ptr<IFrameTask> task)
+{
+    m_frameTasks.push_back(std::move(task));
+}
+
+void TTFSDK::AddDelayedFunc(std::function<void()> func, int frames)
+{
+    m_delayedFuncTask->AddFunc(func, frames);
+}
+
+void TTFSDK::ReinitDiscord()
+{
+    m_discord.reset();
+    m_discord.reset(new DiscordWrapper(*m_conCommandManager));
 }
 
 TTFSDK::~TTFSDK()

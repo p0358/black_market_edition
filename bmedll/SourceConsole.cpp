@@ -10,6 +10,25 @@ SourceConsole& SourceCon()
 
 #define WRAPPED_MEMBER(name) MemberWrapper<decltype(&SourceConsole::##name), &SourceConsole::##name, decltype(&SourceCon), &SourceCon>::Call
 
+//
+HookedFuncStatic<bool __fastcall, __int64> SVC_Print_Process("engine.dll", 0x23E20); // in SVC_Print's vtable
+bool __fastcall SVC_Print_Process_Hook(__int64 a1) // processing of received SVC_Print message
+{
+    auto text = *(char**)(a1 + 32);
+    static auto logger = spdlog::get("logger");
+
+    char buf[2048];
+    sprintf_s(buf, "%s", text);
+
+    auto len = strlen(buf);
+    if (len > 0 && buf[len - 1] == '\n')
+        buf[len - 1] = '\0';
+
+    SPDLOG_LOGGER_INFO(logger, "[svc_print] {}", buf);
+    return SVC_Print_Process(a1);
+}
+//
+
 SourceConsole::SourceConsole(ConCommandManager& conCommandManager, spdlog::level::level_enum level) :
     //m_gameConsole(_("client.dll"), _("GameConsole004"))
     m_gameConsole("client.dll", "GameConsole004")
@@ -25,6 +44,8 @@ SourceConsole::SourceConsole(ConCommandManager& conCommandManager, spdlog::level
     //conCommandManager.RegisterCommand(_("clear"), WRAPPED_MEMBER(ClearConsoleCommand), _("Clears the console"), 0);
     conCommandManager.RegisterCommand("toggleconsole", WRAPPED_MEMBER(ToggleConsoleCommand), "Show/hide the console", 0);
     conCommandManager.RegisterCommand("clear", WRAPPED_MEMBER(ClearConsoleCommand), "Clears the console", 0);
+
+    SVC_Print_Process.Hook(SVC_Print_Process_Hook);
 }
 
 void SourceConsole::InitializeSource()

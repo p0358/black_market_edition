@@ -1,11 +1,11 @@
 #include "pch.h"
 
-#if 0
+//#if 0
 
 HMODULE hTier0Module;
 IMemAlloc** g_ppMemAllocSingleton;
 
-void LoadTier0()
+/*void LoadTier0()
 {
     if (GetModuleHandleA("tier0.dll")) return;
 
@@ -17,7 +17,7 @@ void LoadTier0()
     LoadLibraryW(p.c_str());
 
     g_ppMemAllocSingleton = (IMemAlloc**)GetProcAddress(hTier0Module, "g_pMemAllocSingleton");
-}
+}*/
 
 /*IMemAlloc* CreateGlobalMemAlloc()
 {
@@ -75,4 +75,4 @@ void operator delete(void* p) throw()
 }
 #pragma optimize("", on)
 
-#endif
+//#endif

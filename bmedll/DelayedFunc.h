@@ -1,5 +1,6 @@
 #pragma once
 #include "pch.h"
+#include "IFrameTask.h"
 
 struct DelayedFunc
 {
@@ -12,7 +13,7 @@ struct DelayedFunc
     }
 };
 
-/*class DelayedFuncTask : public IFrameTask
+class DelayedFuncTask : public IFrameTask
 {
 public:
     virtual ~DelayedFuncTask() {}
@@ -48,4 +49,4 @@ public:
 private:
     std::mutex m_lock;
     std::list<DelayedFunc> m_delayedFuncs;
-};*/
+};

@@ -13,6 +13,8 @@
 #include "FileSystemManager.h"
 #include "UIManager.h"
 #include "IInputSystem.h"
+#include "SquirrelManager.h"
+#include "DelayedFunc.h"
 
 class TTFSDK
 {
@@ -21,7 +23,7 @@ private:
 
     std::unique_ptr<FileSystemManager> m_fsManager;
     std::unique_ptr<ConCommandManager> m_conCommandManager;
-    //std::unique_ptr<SquirrelManager> m_sqManager;
+    std::unique_ptr<SquirrelManager> m_sqManager;
     //std::unique_ptr<PakManager> m_pakManager;
     //std::unique_ptr<ModManager> m_modManager;
     std::unique_ptr<UIManager> m_uiManager;
@@ -33,8 +35,8 @@ private:
 
     //std::unique_ptr<IcepickMenu> m_icepickMenu;
 
-    //std::list<std::shared_ptr<IFrameTask>> m_frameTasks;
-    //std::shared_ptr<DelayedFuncTask> m_delayedFuncTask;
+    std::list<std::shared_ptr<IFrameTask>> m_frameTasks;
+    std::shared_ptr<DelayedFuncTask> m_delayedFuncTask;
 
     //SourceInterface<IVEngineServer> m_engineServer;
     SourceInterface<IVEngineClient> m_engineClient;
@@ -51,7 +53,7 @@ public:
 
     FileSystemManager& GetFSManager();
     ConCommandManager& GetConCommandManager();
-    //SquirrelManager& GetSQManager();
+    SquirrelManager& GetSQManager();
     //PakManager& GetPakManager();
     //ModManager& GetModManager();
     UIManager& GetUIManager();
@@ -74,14 +76,16 @@ public:
     void RunFrameHook(__int64 a1, double frameTime);
     bool runFrameHookCalled;
 
-    //void AddFrameTask(std::shared_ptr<IFrameTask> task);
-    //void AddDelayedFunc(std::function<void()> func, int frames);
+    void AddFrameTask(std::shared_ptr<IFrameTask> task);
+    void AddDelayedFunc(std::function<void()> func, int frames);
 
     //SQInteger SQGetMouseDeltaX(HSQUIRRELVM v);
     //SQInteger SQGetMouseDeltaY(HSQUIRRELVM v);
 
     //void EnableNoclipCommand(const CCommand& args);
     //void DisableNoclipCommand(const CCommand& args);
+
+    void ReinitDiscord();
 };
 
 TTFSDK& SDK();
@@ -98,3 +102,6 @@ extern HMODULE hDLLModule;
 //extern bool isProcessTerminating;
 extern bool g_isShuttingDown;
 extern bool g_isDedicated;
+
+#define IsDedi() (false)
+#define IsClient() (true)

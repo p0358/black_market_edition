@@ -32,7 +32,7 @@ HookedVTableFunc<decltype(&IFileSystem::VTable::AddSearchPath), &IFileSystem::VT
 HookedVTableFunc<decltype(&IFileSystem::VTable::ReadFromCache), &IFileSystem::VTable::ReadFromCache> IFileSystem_ReadFromCache;
 HookedVTableFunc<decltype(&IFileSystem::VTable::MountVPK), &IFileSystem::VTable::MountVPK> IFileSystem_MountVPK;
 HookedVTableFunc<decltype(&IFileSystem::VTable::AddVPKFile), &IFileSystem::VTable::AddVPKFile> IFileSystem_AddVPKFile;
-HookedFunc<FileHandle_t, VPKData*, __int32*, const char*> ReadFileFromVPK("filesystem_stdio.dll", "\x48\x89\x5C\x24\x00\x57\x48\x81\xEC\x00\x00\x00\x00\x49\x8B\xC0\x48\x8B\xDA", "xxxx?xxxx????xxxxxx");
+HookedSigScanFunc<FileHandle_t, VPKData*, __int32*, const char*> ReadFileFromVPK("filesystem_stdio.dll", "\x48\x89\x5C\x24\x00\x57\x48\x81\xEC\x00\x00\x00\x00\x49\x8B\xC0\x48\x8B\xDA", "xxxx?xxxx????xxxxxx");
 HookedFuncStatic<unsigned __int64 __fastcall, __int64> RemoveAllMapSearchPaths("filesystem_stdio.dll", 0x16570); // this is vtable function
 
 std::regex FileSystemManager::s_mapFromVPKRegex("client_(.+)\\.bsp");

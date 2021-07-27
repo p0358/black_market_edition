@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "Util.h"
+#include "TTFSDK.h"
 
 std::map<std::string, DWORD64> baseModuleAddressCache;
 
@@ -218,9 +219,23 @@ namespace Util
         return hModule;
     }
 
+    HMODULE GetModuleHandleOrThrow(const std::string& moduleName) {
+        HMODULE hModule = GetModuleHandle(Util::Widen(moduleName).c_str());
+        if (!hModule)
+        {
+            auto err = fmt::sprintf("GetModuleHandle failed for %s (Error = 0x%X)", moduleName, GetLastError());
+            if (IsSDKReady()) spdlog::get("logger")->critical(err);
+            else fprintf(stderr, "%s\n", err.c_str());
+            if (IsClient()) MessageBoxA(NULL, err.c_str(), "Critical BME Error", MB_ICONERROR);
+            throw std::runtime_error(err);
+        }
+        return hModule;
+    }
+
     MODULEINFO GetModuleInfo(const std::string& moduleName) {
         MODULEINFO modinfo = { 0 };
-        HMODULE hModule = SafeGetModuleHandle(moduleName);
+        //HMODULE hModule = SafeGetModuleHandle(moduleName);
+        HMODULE hModule = GetModuleHandleOrThrow(moduleName);
         GetModuleInformation(GetCurrentProcess(), hModule, &modinfo, sizeof(MODULEINFO));
         return modinfo;
     }
@@ -232,6 +247,10 @@ namespace Util
             baseModuleAddressCache[moduleName] = lpBaseOfDll;
         }
         return lpBaseOfDll;
+    }
+
+    DWORD64 GetModuleBaseAddressNoCache(const std::string& moduleName) {
+        return (DWORD64)GetModuleInfo(moduleName).lpBaseOfDll;
     }
 
     void* ResolveLibraryExport(const std::string& moduleName, const std::string& exportName)

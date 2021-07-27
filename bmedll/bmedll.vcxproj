@@ -242,6 +242,7 @@
     <ClInclude Include="framework.h" />
     <ClInclude Include="ICvar.h" />
     <ClInclude Include="IFileSystem.h" />
+    <ClInclude Include="IFrameTask.h" />
     <ClInclude Include="IInputSystem.h" />
     <ClInclude Include="ISurface.h" />
     <ClInclude Include="IVEngineClient.h" />
@@ -253,6 +254,7 @@
     <ClInclude Include="SigScanning.h" />
     <ClInclude Include="SourceConsole.h" />
     <ClInclude Include="SourceInterface.h" />
+    <ClInclude Include="SquirrelManager.h" />
     <ClInclude Include="tier0.h" />
     <ClInclude Include="TTFSDK.h" />
     <ClInclude Include="UIManager.h" />
@@ -299,9 +301,11 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Staging|x64'">Create</PrecompiledHeader>
       <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(ForcedIncludeFiles)</ForcedIncludeFiles>
     </ClCompile>
+    <ClCompile Include="Preloader.cpp" />
     <ClCompile Include="Presence.cpp" />
     <ClCompile Include="SigScanning.cpp" />
     <ClCompile Include="SourceConsole.cpp" />
+    <ClCompile Include="SquirrelManager.cpp" />
     <ClCompile Include="TTFSDK.cpp" />
     <ClCompile Include="UIManager.cpp" />
     <ClCompile Include="Updater.cpp" />

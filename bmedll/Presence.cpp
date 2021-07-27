@@ -241,7 +241,7 @@ void Presence::updateRichPresence(bool requestOriginUpdateImmediately)
         activity.SetState("Private lobby");
         activity.GetAssets().SetLargeImage("mp_lobby_widescreen");
         activity.GetAssets().SetLargeText("Lobby");
-        activity.GetParty().GetSize().SetMaxSize(max(playerCount, 6));
+        activity.GetParty().GetSize().SetMaxSize(std::max(playerCount, 6));
         activity.GetParty().GetSize().SetCurrentSize(playerCount);
         activity.GetParty().SetId(serverIPAndPortBufferInGame);
         if (playerCount < 6)

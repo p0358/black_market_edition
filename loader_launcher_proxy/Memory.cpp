@@ -1,5 +1,7 @@
 #include "pch.h"
 #include <cstddef>
+#include <malloc.h>
+#include <stdio.h>
 
 #if 0
 HMODULE hTier0Module;
@@ -70,3 +72,18 @@ void operator delete(void* p) throw()
     (*g_ppMemAllocSingleton)->m_vtable->Free(*g_ppMemAllocSingleton, p);
 }
 #endif
+
+// they should never be used here
+void* operator new(std::size_t n)
+{
+    printf("malloc %llu\n", n);
+    //MessageBoxA(0, "malloc", "malloc", 0);
+    return malloc(n);
+}
+
+void operator delete(void* p) throw()
+{
+    printf("free %X\n", p);
+    //MessageBoxA(0, "free", "free", 0);
+    free(p);
+}

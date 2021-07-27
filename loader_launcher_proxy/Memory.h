@@ -14,5 +14,5 @@ public:
     VTable* m_vtable;
 };
 
-void* operator new(std::size_t n);
-void operator delete(void* p) throw();
+//void* operator new(std::size_t n);
+//void operator delete(void* p) throw();

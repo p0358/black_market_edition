@@ -114,7 +114,7 @@ CSourceAppSystemGroup_PreInit_type CSourceAppSystemGroup_PreInit_org;
 char __fastcall CSourceAppSystemGroup_PreInit(__int64 a1) // 
 {
     auto res = CSourceAppSystemGroup_PreInit_org(a1);
-    //SetupSDK();
+    SetupSDK();
     return res;
 }
 
@@ -132,19 +132,44 @@ void DoBinaryPatches()
         *((unsigned char*)ptr) = 0xEB;
     }
 
-#if 0
+//#if 0
     { // FOV range patch
         void* ptr = (void*)(Util::GetModuleBaseAddress(_("engine.dll")) + 0x6C6D34);
         TempReadWrite rw(ptr);
-        *((float*)ptr) = 2.5f; // will work only before cvar is registered
+        *((float*)ptr) = 3.85f; // will work only before cvar is registered
     }
     { // FOV range patch 2
         void* ptr = (void*)(Util::GetModuleBaseAddress(_("engine.dll")) + 0x31A1BE0 + 108);
         //void* ptr = (void*)(*((unsigned __int64*)(Util::GetModuleBaseAddress(_("engine.dll")) + 0x31A1BE0)) + 108);
         TempReadWrite rw(ptr);
-        *((float*)ptr) = 2.5f;
+        *((float*)ptr) = 3.85f;
     }
-#endif
+    { // FOV range patch
+        void* ptr = (void*)(Util::GetModuleBaseAddress(_("client.dll")) + 0x9CDB74);
+        TempReadWrite rw(ptr);
+        *((float*)ptr) = 3.85f; // will work only before cvar is registered
+    }
+    { // FOV range patch 2
+        void* ptr = (void*)(Util::GetModuleBaseAddress(_("client.dll")) + 0x38774C0 + 108);
+        TempReadWrite rw(ptr);
+        *((float*)ptr) = 3.85f;
+    }
+    { // FOV range patch
+        void* ptr = (void*)(Util::GetModuleBaseAddress(_("materialsystem_dx11.dll")) + 0x191734);
+        TempReadWrite rw(ptr);
+        *((float*)ptr) = 3.85f; // will work only before cvar is registered
+    }
+    { // FOV range patch 2
+        void* ptr = (void*)(Util::GetModuleBaseAddress(_("materialsystem_dx11.dll")) + 0x3B9560 + 108);
+        TempReadWrite rw(ptr);
+        *((float*)ptr) = 3.85f;
+    }
+    { // FOV range patch in client.dll
+        void* ptr = (void*)(Util::GetModuleBaseAddress(_("client.dll")) + 0x7F9844);
+        TempReadWrite rw(ptr);
+        *((float*)ptr) = 3.85f;
+    }
+//#endif
 }
 
 
@@ -225,5 +250,5 @@ BOOL APIENTRY DllMain( HMODULE hModule,
 extern "C" _declspec(dllexport) void Init()
 {
     //printf("hello in init\n");
-    ////////main();
+    main();
 }

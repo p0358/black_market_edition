@@ -14,11 +14,24 @@ DiscordWrapper& DiscordWrap()
 
 #define WRAPPED_MEMBER(name) MemberWrapper<decltype(&DiscordWrapper::##name), &DiscordWrapper::##name, decltype(&DiscordWrap), &DiscordWrap>::Call
 
+std::once_flag flag_discord1, flag_discord2;
+
 const std::string GetThisExecutablePath()
 {
     WCHAR result[MAX_PATH];
     DWORD length = GetModuleFileNameW(NULL, result, MAX_PATH);
     return Util::Narrow(result);
+}
+
+void bme_discord_reinit(const CCommand& args)
+{
+    if (!IsSDKReady()) return;
+    try {
+        SDK().ReinitDiscord();
+    }
+    catch (std::exception& ex) {
+        spdlog::get("logger")->error("Failed reinitializing Discord: {}", ex.what());
+    }
 }
 
 DiscordWrapper::DiscordWrapper(ConCommandManager& conCommandManager)
@@ -27,18 +40,27 @@ DiscordWrapper::DiscordWrapper(ConCommandManager& conCommandManager)
     //DiscordState state = state;
     auto logger = spdlog::get("logger");
     logger->info("Discord init start");
-    std::cout << "a";
+    //std::cout << "a";
 
-    discord::Core* core{};
+    this->isDiscordInitialized = false;
+    this->isDiscordReady = false;
+    //discord::Core* core{};
+    discord::Core* core;
     //this->core = core;
-    auto result = discord::Core::Create(444356071880917002, DiscordCreateFlags_NoRequireDiscord, &core); std::cout << "b";
+    auto result = discord::Core::Create(444356071880917002, DiscordCreateFlags_NoRequireDiscord, &core); //std::cout << "b";
 
     this->core.reset(core);
-    conCommandManager.RegisterConVar("bme_is_discord_initialized", !core ? "0" : "1", FCVAR_DONTRECORD | FCVAR_SERVER_CANNOT_QUERY, "Is updated with whether Discord was successfully initialized");
+
+    std::call_once(flag_discord1, [&conCommandManager, &core]() {
+        // TODO: not ideal, cause reinitialization won't modify the below cvar
+        conCommandManager.RegisterConVar("bme_is_discord_initialized", !core ? "0" : "1", FCVAR_DONTRECORD | FCVAR_SERVER_CANNOT_QUERY, "Is updated with whether Discord was successfully initialized");
+        conCommandManager.RegisterCommand("bme_discord_reinit", bme_discord_reinit, "Reinit Discord (deinitialize and reinitialize again)", 0);
+    });
+    
     if (!core) {
         logger->warn("Failed to instantiate discord core! (err {})", static_cast<int>(result));
         return;
-    } std::cout << "c";
+    } //std::cout << "c";
 
     isDiscordInitialized = result == discord::Result::Ok;
 
@@ -47,7 +69,7 @@ DiscordWrapper::DiscordWrapper(ConCommandManager& conCommandManager)
             if (!IsSDKReady()) return;
             //std::cerr << "Log(" << static_cast<uint32_t>(level) << "): " << message << "\n";
             spdlog::get("logger")->info("[discord] {}", message);
-        }); std::cout << "d";
+        }); //std::cout << "d";
 
 
     //core->UserManager().OnCurrentUserUpdate.Connect([&state]() {
@@ -74,11 +96,11 @@ DiscordWrapper::DiscordWrapper(ConCommandManager& conCommandManager)
                 }
         });*/
 
-    }); std::cout << "e";
+    }); //std::cout << "e";
 
     //core->ActivityManager().RegisterSteam(1454890);
     core->ActivityManager().RegisterCommand(GetThisExecutablePath().c_str()); // TODO: check if that works
-    std::cout << "f";
+    //std::cout << "f";
 
     /*discord::Activity activity{};
     activity.SetDetails("Fruit Tarts");
@@ -175,9 +197,11 @@ DiscordWrapper::DiscordWrapper(ConCommandManager& conCommandManager)
     SPDLOG_LOGGER_DEBUG(logger, _("Discord on before first RunCallbacks"));
     core->RunCallbacks();
 
-    conCommandManager.RegisterCommand("bme_discord_guild_invite_open", WRAPPED_MEMBER(OpenDiscordInvite), "Open Discord invite to TF Remnant Fleet", FCVAR_DONTRECORD);
-    conCommandManager.RegisterCommand("bme_discord_friends_invite_open", WRAPPED_MEMBER(OpenDiscordFriendsInvite), "Open Discord invite friends dialog", FCVAR_DONTRECORD);
-
+    std::call_once(flag_discord2, [&conCommandManager]() {
+        conCommandManager.RegisterCommand("bme_discord_guild_invite_open", WRAPPED_MEMBER(OpenDiscordInvite), "Open Discord invite to TF Remnant Fleet", FCVAR_DONTRECORD);
+        conCommandManager.RegisterCommand("bme_discord_friends_invite_open", WRAPPED_MEMBER(OpenDiscordFriendsInvite), "Open Discord invite friends dialog", FCVAR_DONTRECORD);
+    });
+    
     logger->info(_("Discord init end"));
     
 }

@@ -69,8 +69,9 @@ Source: "source\bme\bme.bsp"; DestDir: "{app}\bme"; Flags: ignoreversion
 Source: "source\bme\bme.log"; DestDir: "{app}\bme"; Flags: ignoreversion onlyifdoesntexist
 Source: "source\bme\bme_channel.txt"; DestDir: "{app}\bme"; Flags: ignoreversion
 Source: "source\discord_game_sdk.dll"; DestDir: "{app}"; Flags: ignoreversion onlyifdoesntexist
+Source: "source\r1\media\fov_video_15ms_480x400.bik"; DestDir: "{app}\r1\media"; Flags: ignoreversion onlyifdoesntexist
 Source: "{app}\bin\x64_retail\launcher.dll"; DestDir: "{app}\bin\x64_retail"; DestName: "launcher.org.dll"; Flags: external skipifsourcedoesntexist onlyifdoesntexist uninsneveruninstall
-Source: "source\bin\x64_retail\launcher.dll"; DestDir: "{app}\bin\x64_retail"; Flags: ignoreversion
+Source: "source\bin\x64_retail\launcher.dll"; DestDir: "{app}\bin\x64_retail"; Flags: ignoreversion uninsneveruninstall
 
 [InstallDelete]
 Type: files; Name: "{app}\winmm.dll"
@@ -116,4 +117,58 @@ begin
     end;
   end;
   Result := InstallationPath;
+end;
+
+
+// https://stackoverflow.com/questions/31918706/backup-files-and-restore-them-on-uninstall-with-inno-setup
+procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep);
+var
+  FindRec: TFindRec;
+  SourcePath: string;
+  DestDir: string;
+  DestPath: string;
+begin
+  if CurUninstallStep = usPostUninstall then
+  begin
+    DestDir := RemoveBackslash(ExpandConstant('{app}'));
+    if FindFirst(DestDir + '\bin\x64_retail\launcher.org.dll', FindRec) then
+    begin
+      //repeat
+        if (FindRec.Name <> '.') and (FindRec.Name <> '..') then
+        begin
+          SourcePath := DestDir + '\bin\x64_retail\launcher.org.dll';
+          DestPath := DestDir + '\bin\x64_retail\launcher.dll';
+          Log(Format('Restoring %s to %s', [SourcePath, DestPath]));
+          if not DeleteFile(DestPath) then
+          begin
+            Log('Delete failed');
+          end;
+          if not RenameFile(SourcePath, DestPath) then
+          begin
+            Log('Restore failed');
+          end;
+        end;
+      //until not FindNext(FindRec);
+    end; 
+    if FindFirst(DestDir + '\Titanfall.org.exe', FindRec) then
+    begin
+      //repeat
+        if (FindRec.Name <> '.') and (FindRec.Name <> '..') then
+        begin
+          SourcePath := DestDir + '\Titanfall.org.exe';
+          DestPath := DestDir + '\Titanfall.exe';
+          Log(Format('Restoring %s to %s', [SourcePath, DestPath]));
+          if not DeleteFile(DestPath) then
+          begin
+            Log('Delete failed');
+          end;
+          if not RenameFile(SourcePath, DestPath) then
+          begin
+            Log('Restore failed');
+          end;
+        end;
+      //until not FindNext(FindRec);
+    end; 
+    FindClose(FindRec);
+  end;
 end;
