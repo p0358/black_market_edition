@@ -119,16 +119,11 @@ UIManager::~UIManager()
 
 void UIManager::InitImGui(const fs::path& modsPath)
 {
+    m_gameWindow = FindWindowW(L"Respawn001", L"Titanfall");
+    m_logger->info("Game window = {}", (void*)m_gameWindow);
+
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
-
-    // TODO: Make this a bit more reliable
-    HWND wnd = FindWindowW(L"Respawn001", L"Titanfall");
-    m_logger->info("Game window = {}", (void*)wnd);
-
-    ImGui_ImplWin32_Init(wnd); SPDLOG_LOGGER_TRACE(m_logger, "After ImGui_ImplWin32_Init");
-    //ImGui_ImplDX11_Init(wnd, *ppD3DDevice, *m_ppD3D11DeviceContext);
-    ImGui_ImplDX11_Init(*m_ppD3DDevice, *m_ppD3D11DeviceContext); SPDLOG_LOGGER_TRACE(m_logger, "After ImGui_ImplDX11_Init");
     
     ImGui::StyleColorsLight();
     /*ImGui::StyleColorsDark(); SPDLOG_LOGGER_TRACE(m_logger, "After ImGui::StyleColorsDark");
@@ -444,6 +439,9 @@ void UIManager::PresentHook(IDXGISwapChain* SwapChain, UINT SyncInterval, UINT F
     static bool deviceObjectsInitialised = false;
     if (!deviceObjectsInitialised)
     {
+        ImGui_ImplWin32_Init(m_gameWindow); SPDLOG_LOGGER_TRACE(m_logger, "After ImGui_ImplWin32_Init");
+        ImGui_ImplDX11_Init(*m_ppD3DDevice, *m_ppD3D11DeviceContext); SPDLOG_LOGGER_TRACE(m_logger, "After ImGui_ImplDX11_Init");
+
         ImGui_ImplDX11_CreateDeviceObjects();
         deviceObjectsInitialised = true;
 

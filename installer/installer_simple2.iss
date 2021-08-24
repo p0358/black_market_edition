@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "Black Market Edition"
-#define MyAppVersion "1b5"
+#define MyAppVersion "1b7"
 #define MyAppPublisher "p0358"
 #define MyAppURL "https://titanfall.top/"
 

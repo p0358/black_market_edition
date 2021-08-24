@@ -1,6 +1,6 @@
 #pragma once
 
-#define BME_VERSION "1b6"
+#define BME_VERSION "1b7"
 #define BME_VERSION_LONG "Black Market Edition v" BME_VERSION
 
 #ifdef _DEBUG
@@ -9,6 +9,6 @@
 #ifdef STAGING
 #define BME_CHANNEL "staging"
 #else
-#define BME_CHANNEL "production"
+#define BME_CHANNEL "release"
 #endif
 #endif

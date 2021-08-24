@@ -223,7 +223,7 @@ void Presence::updateRichPresence(bool requestOriginUpdateImmediately)
         if (pilotTrainingStageDesc) {
             activity.SetState(pilotTrainingStageDesc);
             activity.GetParty().GetSize().SetMaxSize(14);
-            activity.GetParty().GetSize().SetCurrentSize(trainingStage);
+            activity.GetParty().GetSize().SetCurrentSize(trainingStage+1);
         }
         else {
             activity.SetState("Solo");

@@ -292,7 +292,6 @@ void __fastcall TTFSDK::RunFrameHook(__int64 a1, double frameTime)
         called = true;
         Updater::drawModalWillUpdaterLaunchAfterGameClose = false;
         m_sourceConsole->InitializeSource();
-        //m_pakManager->PreloadAllPaks();
 
         {
             std::string game_s3_url{ _("bme.titanfall.top/backend/game_s3.php/ver=") };
@@ -308,7 +307,7 @@ void __fastcall TTFSDK::RunFrameHook(__int64 a1, double frameTime)
             if (!Updater::pendingUpdateLaunch)
                 m_engineClient->ClientCmd_Unrestricted("getmotd");
             else
-                m_engineClient->ClientCmd_Unrestricted("motd \"Black Market Edition update is pending! It will be installed after you exit your game.\"");
+                m_engineClient->ClientCmd_Unrestricted("motd \"Black Market Edition update is pending! The installer will be run after you exit your game.\"");
         }
 
 #if 0
@@ -548,11 +547,8 @@ bool SetupSDK()
         // TODO: Make this smarter (automatically pull DLL we need to load from somewhere)
         Util::WaitForModuleHandle(_("engine.dll"));
         Util::WaitForModuleHandle(_("client.dll"));
-        //Util::WaitForModuleHandle("server.dll");
         Util::WaitForModuleHandle(_("vstdlib.dll"));
         Util::WaitForModuleHandle(_("filesystem_stdio.dll"));
-        //Util::WaitForModuleHandle("rtech_game.dll");
-        //Util::WaitForModuleHandle("studiorender.dll");
         Util::WaitForModuleHandle(_("materialsystem_dx11.dll"));
         Util::WaitForModuleHandle(_("vguimatsurface.dll"));
 

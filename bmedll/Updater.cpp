@@ -38,26 +38,6 @@ namespace Updater {
             curl_mime_name(field, "env");
             curl_mime_data(field, GetBMEChannel().c_str(), CURL_ZERO_TERMINATED);
 
-            /*{
-                TFOrigin* origin = SDK().origin;
-                if (origin) {
-                    if (origin->uid)
-                    {
-                        field = curl_mime_addpart(form);
-                        curl_mime_name(field, "originid");
-                        std::stringstream ss; ss << origin->uid;
-                        curl_mime_data(field, ss.str().c_str(), CURL_ZERO_TERMINATED);
-                    }
-
-                    if (origin->playerName && *origin->playerName)
-                    {
-                        field = curl_mime_addpart(form);
-                        curl_mime_name(field, "originname");
-                        curl_mime_data(field, origin->playerName, CURL_ZERO_TERMINATED);
-                    }
-                }
-            }*/
-
             curl_easy_setopt(curl, CURLOPT_URL, "https://bme.titanfall.top/backend/update_check.php");
             curl_easy_setopt(curl, CURLOPT_MIMEPOST, form);
             curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);

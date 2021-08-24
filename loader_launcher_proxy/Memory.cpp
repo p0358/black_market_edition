@@ -83,7 +83,7 @@ void* operator new(std::size_t n)
 
 void operator delete(void* p) throw()
 {
-    printf("free %X\n", p);
+    printf("free %p\n", p);
     //MessageBoxA(0, "free", "free", 0);
     free(p);
 }

@@ -198,7 +198,7 @@ DiscordWrapper::DiscordWrapper(ConCommandManager& conCommandManager)
     core->RunCallbacks();
 
     std::call_once(flag_discord2, [&conCommandManager]() {
-        conCommandManager.RegisterCommand("bme_discord_guild_invite_open", WRAPPED_MEMBER(OpenDiscordInvite), "Open Discord invite to TF Remnant Fleet", FCVAR_DONTRECORD);
+        //conCommandManager.RegisterCommand("bme_discord_guild_invite_open", WRAPPED_MEMBER(OpenDiscordInvite), "Open Discord invite to TF Remnant Fleet", FCVAR_DONTRECORD);
         conCommandManager.RegisterCommand("bme_discord_friends_invite_open", WRAPPED_MEMBER(OpenDiscordFriendsInvite), "Open Discord invite friends dialog", FCVAR_DONTRECORD);
     });
     
@@ -213,13 +213,13 @@ DWORD WINAPI DiscordWrapper::ThreadProc(LPVOID lpThreadParameter)
 
 void DiscordWrapper::OpenDiscordInvite(const CCommand& args)
 {
-    if (!core) return;
-    core->OverlayManager().OpenGuildInvite("Fw9bjMN", [](discord::Result result) {
+    /*if (!core) return;
+    core->OverlayManager().OpenGuildInvite("", [](discord::Result result) {
         std::stringstream ss;
         ss << ((result == discord::Result::Ok) ? "Succeeded" : "Failed")
             << " opening invite!\n";
         SPDLOG_LOGGER_DEBUG(spdlog::get("logger"), "[discord] {}", ss.str().c_str());
-    });
+    });*/
 }
 
 void DiscordWrapper::OpenDiscordFriendsInvite(const CCommand& args)

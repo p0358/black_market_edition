@@ -16,6 +16,7 @@ HMODULE hHookModule;
 
 using CreateInterfaceFn = void* (*)(const char* pName, int* pReturnCode);
 
+// does not seem to be used
 extern "C" _declspec(dllexport) void* __fastcall CreateInterface(const char* pName, int* pReturnCode)
 {
     //AppSystemCreateInterfaceFn(pName, pReturnCode);
@@ -241,7 +242,7 @@ extern "C" _declspec(dllexport) void LauncherMain()
     auto result = ((signed __int64(__fastcall*)(__int64))LauncherMain)(0i64);
 }
 
-// doubt that will help us here though
+// doubt that will help us here (in launcher.dll) though
 extern "C" {
     __declspec(dllexport) DWORD AmdPowerXpressRequestHighPerformance = 0x00000001;
     __declspec(dllexport) DWORD NvOptimusEnablement = 0x00000001;

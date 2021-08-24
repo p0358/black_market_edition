@@ -195,6 +195,7 @@ private:
     ID3D11DeviceContext** m_ppD3D11DeviceContext = nullptr;
     IDXGISwapChain** m_ppSwapChain = nullptr;
     ID3D11RenderTargetView* m_guiRenderTargetView = nullptr;
+    HWND m_gameWindow = nullptr;
 
     //std::map<std::string, std::function<void()>> m_drawCallbacks;
     //std::multimap<std::string, bool*, std::function<void()>> m_drawCallbacks;
