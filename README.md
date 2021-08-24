@@ -1,10 +1,10 @@
 # Black Market Edition
 
-Black Market Edition is a multi-purpose mod for Titanfall game, featuring various quality-of-life changes and improvements.
+Black Market Edition is a multi-purpose community enhancement mod for Titanfall game, featuring various quality-of-life changes and improvements.
 
 ## Installation
 
-Just grab the latest version's installer from the [Releases](https://github.com/p0358/bme_solution/releases) page.
+Just grab the latest version's installer from the [Releases](https://github.com/p0358/bme_solution/releases) page and run it in order to install BME.
 
 Installers are built with Inno Setup using scripts from installer/ folder and they automatically detect game installation folder to which they can unpack the files.
 
@@ -25,6 +25,7 @@ Installers are built with Inno Setup using scripts from installer/ folder and th
 * enable in-game console accessible with `\`` key (enriched with output from Squirrel's print and svc_Print netmessages)
 * execute Squirrel code with `script_client` and `script_ui` console commands
 * when you're a party leader, change default in-game option for leaving from "Leave with Party" to "Leave Solo", to prevent accidentally pulling out your teammates with you when you want to leave alone
+* see raw mouse sensivity value in mouse/keyboard settings
 
 ### Known bugs
 
@@ -35,43 +36,60 @@ Installers are built with Inno Setup using scripts from installer/ folder and th
 ## Screenshots
 
 Main menu:
+
 ![Main Menu](https://github.com/p0358/black_market_edition/raw/master/screenshots/main_menu.png)
 
 Discord rich presence:
+
 ![Discord rich presence](https://github.com/p0358/black_market_edition/raw/master/screenshots/rich_presence.png)
 
 FOV scale settings with extended range and background preview video:
+
 ![FOV scale settings with extended range and background preview video](https://github.com/p0358/black_market_edition/raw/master/screenshots/fov_settings.png)
 
-In-game console during map loading (activate it with `\``):
+In-game console during map loading (activate it with \`):
+
 ![In-game console during map loading](https://github.com/p0358/black_market_edition/raw/master/screenshots/map_loading_with_console.png)
 
 Possibility to edit loadouts mid-match (either with Y on controller or right-click on the loadout with mouse):
+
 ![Possibility to edit loadouts mid-match](https://github.com/p0358/black_market_edition/raw/master/screenshots/loadout_editing_in_game_1.png)
 
 Editing a pilot loadout mid-match:
+
 ![Editing a pilot loadout mid-match](https://github.com/p0358/black_market_edition/raw/master/screenshots/loadout_editing_in_game_2.png)
 
 "RETURN TO BATTLEFIELD" text removed and counter moved to the side to not obstruct the aim view:
+
 !["RETURN TO BATTLEFIELD" text removed and counter moved to the side to not obstruct the aim view](https://github.com/p0358/black_market_edition/raw/master/screenshots/return_to_battlefield.png)
 
 Announcement text made smaller to make it less annoying and obtrusive:
+
 ![Announcement text made smaller to make it less annoying and obtrusive](https://github.com/p0358/black_market_edition/raw/master/screenshots/announcement_size.png)
 
 "Invite friends" button opens a dialog that allows you to select a platform to invite your friends on:
+
 !["Invite friends" dialog](https://github.com/p0358/black_market_edition/raw/master/screenshots/invite_button_platform_selection.png)
 
 Presets in private match that allow to quickly change settings to a predetermined set (in this case for competetive CTF games):
+
 ![Private match presets](https://github.com/p0358/black_market_edition/raw/master/screenshots/private_match_presets.png)
 
 Missing "Apply" button in private match settings, because the settings are now synchronized real-time, which prevents people from overriding each other's settings when they edit them at the same time:
+
 ![Private match settings](https://github.com/p0358/black_market_edition/raw/master/screenshots/private_match_settings.png)
 
 Training can be played in whole or started from any arbitrary stage:
+
 ![Training dialog](https://github.com/p0358/black_market_edition/raw/master/screenshots/training_options_1.png)
 
 Arbitrary training stage selection:
+
 ![Training dialog](https://github.com/p0358/black_market_edition/raw/master/screenshots/training_options_2.png)
+
+Mouse sensitivity value visible in settings:
+
+![Training dialog](https://github.com/p0358/black_market_edition/raw/master/screenshots/mouse_sensitivity.png)
 
 ## Compiling
 
@@ -97,3 +115,5 @@ Black Market Edition makes use of the following third-party libraries:
 | MinHook      | https://github.com/TsudaKageyu/minhook/blob/master/LICENSE.txt       |
 | rapidjson    | https://github.com/Tencent/rapidjson/blob/master/license.txt         |
 | spdlog       | https://github.com/gabime/spdlog/blob/v1.x/LICENSE                   |
+
+TITANFALL™ is a trademark of Respawn Entertainment, LLC.
