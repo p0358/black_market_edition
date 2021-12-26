@@ -2,9 +2,19 @@
 
 Black Market Edition is a multi-purpose community enhancement mod for Titanfall game, featuring various quality-of-life changes and improvements.
 
+**NOTE:** It is NOT yet finished, there are a few chore tasks needed before so, but the work was again put on hold due to game servers being taken down by attackers. However it works as-is for the most part.
+
+Open sourcing this for now regardless, because I slowly worked on it since 2019 and I am not sure if I will ever get a chance to finish it in the current situation.
+
+### TODO things
+
+* rewrite memory allocator code to better support Source's built-in allocator, in order to avoid any and all crashes once and for all
+* replace buggy blackbox and also abandoned Discord GameSDK with open-source and superior older discord-rpc library, add invite functionality to it (open guild invite and open friends invite dialog)
+* add a way to scrape real playercounts from my API to view it in-game since the official player counter was disabled
+
 ## Installation
 
-Just grab the latest version's installer from the [Releases](https://github.com/p0358/bme_solution/releases) page and run it in order to install BME.
+~~Just grab the latest version's installer from the [Releases](https://github.com/p0358/bme_solution/releases) page and run it in order to install BME.~~
 
 Installers are built with Inno Setup using scripts from installer/ folder and they automatically detect game installation folder to which they can unpack the files.
 
