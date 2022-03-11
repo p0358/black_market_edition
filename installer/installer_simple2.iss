@@ -2,9 +2,12 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "Black Market Edition"
-#define MyAppVersion "1b7"
+#define MyAppVersion "1b9"
 #define MyAppPublisher "p0358"
-#define MyAppURL "https://titanfall.top/"
+#define MyAppURL "https://github.com/p0358/black_market_edition"
+
+#define public Dependency_NoExampleSetup
+#include "../thirdparty/InnoDependencyInstaller/CodeDependencies.iss"
 
 [Setup]
 ; NOTE: The value of AppId uniquely identifies this application.
@@ -40,6 +43,8 @@ DirExistsWarning=no
 EnableDirDoesntExistWarning=no
 CloseApplications=force
 CloseApplicationsFilter=*.exe,*.dll,*.chm,*.bik,*.asi,*.log,*.json
+;ArchitecturesAllowed=x64
+ArchitecturesInstallIn64BitMode=x64 arm64 ia64
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
@@ -74,11 +79,20 @@ Source: "{app}\bin\x64_retail\launcher.dll"; DestDir: "{app}\bin\x64_retail"; De
 Source: "source\bin\x64_retail\launcher.dll"; DestDir: "{app}\bin\x64_retail"; Flags: ignoreversion uninsneveruninstall
 
 [InstallDelete]
+; old loaders from beta
 Type: files; Name: "{app}\winmm.dll"
 Type: files; Name: "{app}\bin\x64_retail\winmm.dll"
 Type: files; Name: "{app}\bme\bme.asi"
 
 [Code]
+function InitializeSetup: Boolean;
+begin
+  Dependency_AddVC2015To2022;
+  Result := True;
+end;
+
+
+
 procedure CurPageChanged(CurPageID: Integer);
 begin
   if CurPageID = wpSelectDir then
@@ -118,6 +132,7 @@ begin
   end;
   Result := InstallationPath;
 end;
+
 
 
 // https://stackoverflow.com/questions/31918706/backup-files-and-restore-them-on-uninstall-with-inno-setup
