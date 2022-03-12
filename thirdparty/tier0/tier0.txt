@@ -1,0 +1,1 @@
+lib /def:tier0.def /machine:x64 /out:tier0.lib
