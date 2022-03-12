@@ -1,5 +1,7 @@
 #pragma once
 
+class IMemAlloc;
+
 extern "C"
 {
     IMemAlloc* CreateGlobalMemAlloc();

@@ -205,6 +205,7 @@ extern "C" _declspec(dllexport) void LauncherMain()
 //#define LOAD_LIBRARY(libname) swprintf_s(LibFullPath, L"%s\\" L ## libname, NPath); if (!LoadLibraryW(LibFullPath)) LibraryLoadError(GetLastError(), L ## libname, LibFullPath)
 //#define LOAD_LIBRARY(libname) swprintf_s(LibFullPath, L"%s\\" L ## libname, exePath.c_str()); if (!LoadLibraryW(LibFullPath)) LibraryLoadError(GetLastError(), L ## libname, LibFullPath)
 //#define LOAD_LIBRARY(libname) swprintf_s(LibFullPath, L"" libname); if (!LoadLibraryW(LibFullPath)) LibraryLoadError(GetLastError(), L ## libname, LibFullPath)
+            LOAD_LIBRARY("bin\\x64_retail\\tier0.dll");
             LOAD_LIBRARY("bin\\x64_retail\\engine.dll");
             LOAD_LIBRARY("r1\\bin\\x64_retail\\client.dll");
             LOAD_LIBRARY("bin\\x64_retail\\tier0.dll");

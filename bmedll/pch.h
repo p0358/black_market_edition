@@ -12,6 +12,9 @@ typedef unsigned int _DWORD;
 
 #define NOMINMAX
 
+#include "tier0.h"
+#include "Memory.h"
+
 // w tym miejscu dodaj nagłówki, które mają być wstępnie kompilowane
 #include "framework.h"
 
@@ -50,8 +53,6 @@ typedef unsigned int _DWORD;
 #include <imgui/backends/imgui_impl_dx11.h>
 #include <imgui/backends/imgui_impl_win32.h>
 
-#include "Memory.h"
-#include "tier0.h"
 #include <algorithm>
 #include <functional>
 #include <shared_mutex>
