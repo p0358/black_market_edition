@@ -16,7 +16,7 @@ namespace Updater {
 
 	extern bool isUpdaterDownloadInProgress;
 	extern bool isUpdaterDownloadCancelled;
-	extern float updaterDownloadProgress;
+	extern double updaterDownloadProgress;
 	extern double updaterNowDownloaded;
 	extern double updaterTotalToDownload;
 	extern bool isUpdaterLaunching;

@@ -3,6 +3,8 @@
 #include <iostream>
 #include <functional>
 #include <string>
+#include "tier0.h"
+#include "Memory.h"
 #include "TTFSDK.h"
 #include "CrashReporting.h"
 
@@ -171,6 +173,12 @@ void DoBinaryPatches()
         *((float*)ptr) = 3.85f;
     }
 //#endif
+
+    { // isMMDev
+        void* ptr = (void*)(Util::GetModuleBaseAddress(_("engine.dll")) + 0x229155A);
+        TempReadWrite rw(ptr);
+        *((bool*)ptr) = true;
+    }
 }
 
 void CreateTier0MemAlloc()
@@ -199,7 +207,7 @@ void main()
         logger->info(_("Sentry was{}started"), wasCrashHandlerStarted ? " " : " not ");
     }
 
-    curl_global_init(CURL_GLOBAL_ALL);
+    curl_global_init_mem(CURL_GLOBAL_DEFAULT, internal_malloc, internal_free, internal_realloc, internal_strdup, internal_calloc);
 
     SPDLOG_LOGGER_DEBUG(logger, _("DoBinaryPatches"));
     DoBinaryPatches();

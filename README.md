@@ -8,7 +8,7 @@ Open sourcing this for now regardless, because I slowly worked on it since 2019 
 
 ### TODO things
 
-* rewrite memory allocator code to better support Source's built-in allocator, in order to avoid any and all crashes once and for all
+* ~~rewrite memory allocator code to better support Source's built-in allocator, in order to avoid any and all crashes once and for all~~
 * replace buggy blackbox and also abandoned Discord GameSDK with open-source and superior older discord-rpc library, add invite functionality to it (open guild invite and open friends invite dialog)
 * add a way to scrape real playercounts from my API to view it in-game since the official player counter was disabled
 
@@ -103,11 +103,11 @@ Mouse sensitivity value visible in settings:
 
 ## Compiling
 
-Clone the repo with `git clone --resursive --depth 1 -j8 https://github.com/p0358/black_market_edition.git` and build the solution in VS 2019.
+Clone the repo with `git clone --resursive --depth 1 -j8 https://github.com/p0358/black_market_edition.git` and build the solution in VS 2022.
 
 ### Building an installer
 
-To build an installer for full mod, you need to use the file `installer/installer_simple2.iss` and copy the required files into `installer/source` dir.
+To build an installer for full mod, you need to look into the file `installer/installer_simple2.iss` and copy the required files into `installer/source` dir manually.
 
 Under `source/bme`, copy the compiled `bme.dll` and create an empty file `bme.log`. Also create `bme_channel.txt` with the value `release`. Get `bme.bsp` from latest release in the Releases section (this file contains the filesystem replacement contents, that is scripts and some UI elements, into PakFile as lump 40 in bsp format, which can be easily mounted in the engine). Copy the built `launcher.dll` into `source/bin/x64_retail/`.
 Get [Discord GameSDK](https://dl-game-sdk.discordapp.net/2.5.6/discord_game_sdk.zip) and place its x64 dll file into the root of `source` folder.
@@ -118,12 +118,13 @@ Parts of code from [TTF2SDK by James Wilkinson and Will Donohoe](https://github.
 
 Black Market Edition makes use of the following third-party libraries:
 
-| Package Name | URL                                                                  |
-|--------------|----------------------------------------------------------------------|
-| breakpad     | https://chromium.googlesource.com/breakpad/breakpad/+/master/LICENSE |
-| imgui        | https://github.com/ocornut/imgui/blob/master/LICENSE.txt             |
-| MinHook      | https://github.com/TsudaKageyu/minhook/blob/master/LICENSE.txt       |
-| rapidjson    | https://github.com/Tencent/rapidjson/blob/master/license.txt         |
-| spdlog       | https://github.com/gabime/spdlog/blob/v1.x/LICENSE                   |
+| Package Name  | URL                                                                  |
+|---------------|----------------------------------------------------------------------|
+| sentry-native | https://github.com/getsentry/sentry-native/blob/master/LICENSE       |
+| crashpad      | https://chromium.googlesource.com/crashpad/crashpad/+/master/LICENSE |
+| imgui         | https://github.com/ocornut/imgui/blob/master/LICENSE.txt             |
+| MinHook       | https://github.com/TsudaKageyu/minhook/blob/master/LICENSE.txt       |
+| rapidjson     | https://github.com/Tencent/rapidjson/blob/master/license.txt         |
+| spdlog        | https://github.com/gabime/spdlog/blob/v1.x/LICENSE                   |
 
 TITANFALL™ is a trademark of Respawn Entertainment, LLC.

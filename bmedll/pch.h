@@ -12,9 +12,6 @@ typedef unsigned int _DWORD;
 
 #define NOMINMAX
 
-#include "tier0.h"
-#include "Memory.h"
-
 // w tym miejscu dodaj nagłówki, które mają być wstępnie kompilowane
 #include "framework.h"
 

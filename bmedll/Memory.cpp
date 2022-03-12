@@ -1,5 +1,8 @@
 #include "pch.h"
 
+#include "tier0.h"
+#include "Memory.h"
+
 decltype(IMemAlloc::VTable::Alloc) Alloc;
 decltype(IMemAlloc::VTable::Realloc) Realloc;
 decltype(IMemAlloc::VTable::Free) Free;
@@ -52,6 +55,22 @@ __forceinline int internal_heapchk(void)
     //if (!g_pMemAllocSingleton) g_pMemAllocSingleton = CreateGlobalMemAlloc();
     if (!heapchk) heapchk = g_pMemAllocSingleton->m_vtable->heapchk;
     return heapchk(g_pMemAllocSingleton);
+}
+
+char* internal_strdup(const char* src)
+{
+    char* str;
+    char* p;
+    int len = 0;
+
+    while (src[len])
+        len++;
+    str = reinterpret_cast<char*>(internal_malloc(len + 1));
+    p = str;
+    while (*src)
+        *p++ = *src++;
+    *p = '\0';
+    return str;
 }
 
 ////////////////////////

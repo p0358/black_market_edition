@@ -68,7 +68,7 @@ namespace Updater {
     double updaterTotalToDownload = 1;
     bool isUpdaterDownloadInProgress = false;
     bool isUpdaterDownloadCancelled = false;
-    float updaterDownloadProgress = 0.0f;
+    double updaterDownloadProgress = 0.0f;
 
     size_t write_data(void* ptr, size_t size, size_t nmemb, FILE* stream) {
         size_t written = fwrite(ptr, size, nmemb, stream);
@@ -89,14 +89,14 @@ namespace Updater {
     {
         isUpdaterDownloadInProgress = true;
         isUpdaterDownloadCancelled = false;
-        updaterDownloadProgress = 0.0f;
+        updaterDownloadProgress = 0.0;
 
         CURL* curl;
         FILE* fp;
         CURLcode res;
 
         wchar_t temp[MAX_PATH];
-        if (!GetTempPath(MAX_PATH - 16, temp)) return NULL;
+        if (!GetTempPath(MAX_PATH - 16, temp)) return L""; //return NULL;
         std::wstring outfilename{ temp };
         outfilename += L"bme_updater.exe";
 
@@ -111,7 +111,7 @@ namespace Updater {
             res = curl_easy_perform(curl);
             isUpdaterDownloadInProgress = false;
 
-            if (res != CURLE_OK) return NULL;
+            if (res != CURLE_OK) return L""; //return NULL;
 
             curl_easy_cleanup(curl);
             fclose(fp);
