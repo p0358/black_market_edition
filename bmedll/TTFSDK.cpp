@@ -43,9 +43,36 @@ void test(const CCommand& args)
     throw std::exception();
 }
 
-void test_crash(const CCommand& args)
+void test_crash1(const CCommand& args)
 {
     std::cout << "Oops:" << *((int*)0);
+}
+
+void test_crash2(const CCommand& args)
+{
+    throw std::runtime_error("Test");
+}
+
+void test_crash3(const CCommand& args)
+{
+    throw std::exception("Test");
+}
+
+void test_crash4(const CCommand& args)
+{
+    __try
+    {
+        printf("In __try, about to force exception\n");
+        int x = 5;
+        int y = 0;
+        int* p = &y;
+#pragma warning(suppress: 4723)
+        *p = x / *p;
+    }
+    __finally
+    {
+        printf("In __finally\n");
+    }
 }
 
 const std::string GetThisPath()
@@ -115,6 +142,7 @@ void HostState_Shutdown_Hook() {
     //TerminateProcess(GetCurrentProcess(), 0);
     FreeSDK();
     MH_DisableHook(MH_ALL_HOOKS);
+    sentry_close();
 }
 
 extern void AntiEventCrash_Setup();
@@ -157,7 +185,10 @@ TTFSDK::TTFSDK() :
     CHostState_State_Run.Hook(WRAPPED_MEMBER(RunFrameHook));
 
     m_conCommandManager->RegisterCommand("testtt", test, "Tests", 0);
-    m_conCommandManager->RegisterCommand("test_crash", test_crash, "Crash the engine by throwing an exception", 0);
+    m_conCommandManager->RegisterCommand("test_crash1", test_crash1, "Crash the engine by dereferencing a null pointer", 0);
+    m_conCommandManager->RegisterCommand("test_crash2", test_crash2, "Crash the engine by throwing a runtime error", 0);
+    m_conCommandManager->RegisterCommand("test_crash3", test_crash3, "Crash the engine by throwing an exception", 0);
+    m_conCommandManager->RegisterCommand("test_crash4", test_crash4, "Crash the engine by throwing a SE exception", 0);
     m_conCommandManager->RegisterConVar("bme_version", BME_VERSION, FCVAR_UNLOGGED | FCVAR_DONTRECORD | FCVAR_SERVER_CANNOT_QUERY, "Current BME version");
 
 #if 0
@@ -348,6 +379,35 @@ void __fastcall TTFSDK::RunFrameHook(__int64 a1, double frameTime)
 
     }
 
+    static bool did_set_origin_info_in_sentry = false;
+    if (!did_set_origin_info_in_sentry && origin && origin->uid && origin->playerName && *origin->playerName)
+    {
+        // because it seems playerName isn't populated instantly
+        did_set_origin_info_in_sentry = true;
+        sentry_value_t user = sentry_value_new_object();
+        sentry_value_t origin_ctx = sentry_value_new_object();
+        if (origin->uid)
+        {
+            std::stringstream ss; ss << origin->uid;
+            sentry_value_set_by_key(user, "id", sentry_value_new_string(ss.str().c_str()));
+            sentry_value_set_by_key(origin_ctx, "originid", sentry_value_new_string(ss.str().c_str()));
+        }
+
+        if (origin->playerName && *origin->playerName)
+        {
+            sentry_value_set_by_key(user, "username", sentry_value_new_string(origin->playerName));
+            sentry_value_set_by_key(origin_ctx, "originname", sentry_value_new_string(origin->playerName));
+        }
+
+        if (origin->locale && *origin->locale)
+            sentry_value_set_by_key(origin_ctx, "originlocale", sentry_value_new_string(origin->locale));
+        if (origin->environment && *origin->environment)
+            sentry_value_set_by_key(origin_ctx, "originenvironment", sentry_value_new_string(origin->environment));
+
+        sentry_set_user(user);
+        sentry_set_context("origin", origin_ctx);
+    }
+
     if (Updater::pendingUpdateLaunchMotdChange)
     {
         static uint8_t callCount = 0;
@@ -508,7 +568,13 @@ bool SetupLogger()
 #endif
         //SetupLoggerInternal((basePath / _("bme") / _("bme.log")).string(), ENABLE_WINDOWS_CONSOLE);
         SetupLoggerInternal((basePath / _("bme") / _("bme.log")).string(), strstr(GetCommandLineA(), _("-winconsole")));
-        spdlog::get(_("logger"))->info("Logger has been initialized.");
+
+        auto now = std::chrono::system_clock::now();
+        std::time_t time = std::chrono::system_clock::to_time_t(now);
+
+        spdlog::get(_("logger"))->info("Logger has been initialized at {}.", strtok(std::ctime(&time), "\n"));
+        spdlog::get(_("logger"))->info("Command line: {}", GetCommandLineA());
+
         return true;
     }
     catch (std::exception& ex)

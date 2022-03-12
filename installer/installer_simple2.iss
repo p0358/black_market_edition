@@ -7,7 +7,7 @@
 #define MyAppURL "https://github.com/p0358/black_market_edition"
 
 #define public Dependency_NoExampleSetup
-#include "../thirdparty/InnoDependencyInstaller/CodeDependencies.iss"
+#include "..\thirdparty\InnoDependencyInstaller\CodeDependencies.iss"
 
 [Setup]
 ; NOTE: The value of AppId uniquely identifies this application.
@@ -73,6 +73,7 @@ Source: "source\bme\bme.dll"; DestDir: "{app}\bme"; Flags: ignoreversion
 Source: "source\bme\bme.bsp"; DestDir: "{app}\bme"; Flags: ignoreversion
 Source: "source\bme\bme.log"; DestDir: "{app}\bme"; Flags: ignoreversion onlyifdoesntexist
 Source: "source\bme\bme_channel.txt"; DestDir: "{app}\bme"; Flags: ignoreversion
+Source: "source\bme\crashpad_handler.exe"; DestDir: "{app}\bme"; Flags: ignoreversion
 Source: "source\discord_game_sdk.dll"; DestDir: "{app}"; Flags: ignoreversion onlyifdoesntexist
 Source: "source\r1\media\fov_video_15ms_480x400.bik"; DestDir: "{app}\r1\media"; Flags: ignoreversion onlyifdoesntexist
 Source: "{app}\bin\x64_retail\launcher.dll"; DestDir: "{app}\bin\x64_retail"; DestName: "launcher.org.dll"; Flags: external skipifsourcedoesntexist onlyifdoesntexist uninsneveruninstall

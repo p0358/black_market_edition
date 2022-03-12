@@ -1,157 +1,126 @@
 #include "pch.h"
+#include "CrashReporting.h"
 #include "SigScanning.h"
 
 #ifdef NDEBUG
-#include "client/windows/handler/exception_handler.h"
 #include "_version.h"
 #include "TTFSDK.h"
 
-google_breakpad::ExceptionHandler* g_breakpadHandler;
-LONG(*g_breakpadHandleException)(EXCEPTION_POINTERS* exinfo);
-
+// this sig may be wrong
 SigScanFunc<void*, _se_translator_function> engine_set_se_translator(_("engine.dll"), "\x48\x89\x5C\x24\x00\x57\x48\x83\xEC\x00\x48\x8B\xF9\xE8\x00\x00\x00\x00\x48\x8B\x98\x00\x00\x00\x00", "xxxx?xxxx?xxxx????xxx????");
-
-bool DumpCompleted(const wchar_t* dump_path,
-    const wchar_t* minidump_id,
-    void* context,
-    EXCEPTION_POINTERS* exinfo,
-    MDRawAssertionInfo* assertion,
-    bool succeeded)
-{
-    if (succeeded)
-    {
-        //MessageBox(NULL, L"TEST, on before crash upload", L"Error", MB_OK | MB_ICONERROR);
-        bool upload_ok = false;
-        CURLcode res;
-        {
-            std::wstringstream ss;
-            ss << dump_path << '\\' << minidump_id << ".dmp";
-            std::string filepath = Util::Narrow(ss.str());
-            //MessageBoxA(NULL, filepath.c_str(), "AAA", MB_OK | MB_ICONERROR);
-
-            CURL* curl;
-            //CURLcode res;
-
-            curl_mime* form = NULL;
-            curl_mimepart* field = NULL;
-            //struct curl_slist* headerlist = NULL;
-            //static const char buf[] = "Expect:";
-
-            //curl_global_init(CURL_GLOBAL_ALL);
-
-            curl = curl_easy_init();
-            if (curl) {
-                form = curl_mime_init(curl);
-
-                field = curl_mime_addpart(form);
-                curl_mime_name(field, "upload_file_minidump");
-                curl_mime_filedata(field, filepath.c_str());
-
-                {
-                    field = curl_mime_addpart(form);
-                    curl_mime_name(field, "sentry[release]");
-                    std::stringstream verss; verss << "bme-v" << BME_VERSION;
-                    curl_mime_data(field, verss.str().c_str(), CURL_ZERO_TERMINATED);
-                }
-
-                field = curl_mime_addpart(form);
-                curl_mime_name(field, "sentry[environment]"); // consider adding "dist", especially if you ever report dev reports
-                curl_mime_data(field, GetBMEChannel().c_str(), CURL_ZERO_TERMINATED);
-
-                if (IsSDKReady()) {
-                    TFOrigin* origin = SDK().origin;
-                    if (origin) {
-                        if (origin->uid)
-                        {
-                            field = curl_mime_addpart(form);
-                            curl_mime_name(field, "originid");
-                            std::stringstream ss; ss << origin->uid;
-                            curl_mime_data(field, ss.str().c_str(), CURL_ZERO_TERMINATED);
-                        }
-
-                        if (origin->playerName && *origin->playerName)
-                        {
-                            field = curl_mime_addpart(form);
-                            curl_mime_name(field, "originname");
-                            curl_mime_data(field, origin->playerName, CURL_ZERO_TERMINATED);
-                        }
-                    }
-                }
-
-                curl_easy_setopt(curl, CURLOPT_URL, "https://o487146.ingest.sentry.io/api/5545628/minidump/?sentry_key=45d18041edb24b1f8f25f144d121cff3");
-                curl_easy_setopt(curl, CURLOPT_MIMEPOST, form);
-
-                res = curl_easy_perform(curl);
-
-                //if (res != CURLE_OK)
-                //    fprintf(stderr, "curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
-                upload_ok = res == CURLE_OK;
-
-                curl_easy_cleanup(curl);
-                curl_mime_free(form);
-            }
-        }
-
-
-        if (upload_ok)
-        MessageBox(NULL, L"An error occurred and Titanfall needs to close. A crash dump has been written to the crash_dumps folder and uploaded.", L"Error", MB_OK | MB_ICONERROR);
-        else
-        {
-            //MessageBox(NULL, L"An error occurred and Titanfall needs to close. A crash dump has been written to the crash_dumps folder.", L"Error", MB_OK | MB_ICONERROR);
-            std::wstring cws{ L"An error occurred and Titanfall needs to close. A crash dump has been written to the crash_dumps folder.\n\nUploading it failed with message:\n" };
-            cws += Util::Widen(curl_easy_strerror(res));
-            MessageBox(NULL, cws.c_str(), L"Error", MB_OK | MB_ICONERROR);
-        }
-        //std::string cs{ curl_easy_strerror(res) };
-        //std::wstring cws = Util::Widen(cs);
-        //MessageBox(NULL, cws.c_str(), L"Error", MB_OK | MB_ICONERROR);
-    }
-    else
-    {
-        MessageBox(NULL, L"An error occurred and Titanfall needs to close.", L"Error", MB_OK | MB_ICONERROR);
-    }
-
-    return succeeded;
-}
+FuncStatic<void*, _se_translator_function> engine_set_se_translator2("engine.dll", 0x56BC04);
 
 void TranslatorFunc(unsigned int, struct _EXCEPTION_POINTERS* exinfo)
 {
-    g_breakpadHandleException(exinfo);
-    TerminateProcess(GetCurrentProcess(), 100);
+    sentry_handle_exception(reinterpret_cast<const sentry_ucontext_t*>(exinfo));
 }
 
-bool SetupBreakpad(std::string BasePath)
+LONG WINAPI VectoredExceptionHandler(EXCEPTION_POINTERS* pExceptionInfo)
 {
-    fs::path basePath(BasePath);
-    //fs::path basePath(".");
-    fs::path crashDumpsPath(basePath / _("crash_dumps"));
-    fs::create_directories(crashDumpsPath);
+    const auto& exceptionCode = pExceptionInfo->ExceptionRecord->ExceptionCode;
 
-    g_breakpadHandler = new google_breakpad::ExceptionHandler(
-        crashDumpsPath.wstring(),
-        nullptr,
-        DumpCompleted,
-        nullptr,
-        google_breakpad::ExceptionHandler::HANDLER_ALL
-    );
+    if (exceptionCode != EXCEPTION_ACCESS_VIOLATION && exceptionCode != EXCEPTION_ARRAY_BOUNDS_EXCEEDED &&
+        exceptionCode != EXCEPTION_DATATYPE_MISALIGNMENT && exceptionCode != EXCEPTION_FLT_DENORMAL_OPERAND &&
+        exceptionCode != EXCEPTION_FLT_DIVIDE_BY_ZERO && exceptionCode != EXCEPTION_FLT_INEXACT_RESULT &&
+        exceptionCode != EXCEPTION_FLT_INVALID_OPERATION && exceptionCode != EXCEPTION_FLT_OVERFLOW &&
+        exceptionCode != EXCEPTION_FLT_STACK_CHECK && exceptionCode != EXCEPTION_FLT_UNDERFLOW &&
+        exceptionCode != EXCEPTION_ILLEGAL_INSTRUCTION && exceptionCode != EXCEPTION_IN_PAGE_ERROR &&
+        exceptionCode != EXCEPTION_INT_DIVIDE_BY_ZERO && exceptionCode != EXCEPTION_INT_OVERFLOW &&
+        exceptionCode != EXCEPTION_INVALID_DISPOSITION && exceptionCode != EXCEPTION_NONCONTINUABLE_EXCEPTION &&
+        exceptionCode != EXCEPTION_PRIV_INSTRUCTION && exceptionCode != EXCEPTION_STACK_OVERFLOW)
+        return EXCEPTION_CONTINUE_SEARCH;
 
-    g_breakpadHandleException = SetUnhandledExceptionFilter(nullptr);
-    SetUnhandledExceptionFilter(g_breakpadHandleException);
+    //sentry_ucontext_t ctx{ .exception_ptrs = *pExceptionInfo };
+    //sentry_handle_exception(&ctx);
+    sentry_handle_exception(reinterpret_cast<const sentry_ucontext_t*>(pExceptionInfo));
+    return EXCEPTION_EXECUTE_HANDLER;
+
+    //return EXCEPTION_CONTINUE_SEARCH;
+}
+
+LONG WINAPI UnhandledExceptionHandler(EXCEPTION_POINTERS* exception_pointers)
+{
+    sentry_handle_exception(reinterpret_cast<const sentry_ucontext_t*>(exception_pointers));
+    return EXCEPTION_CONTINUE_SEARCH;
+}
+
+void sentry_logger_spdlog(sentry_level_t level, const char* message, va_list args, void* userdata)
+{
+    // process format
+    char buf[1024]{};
+    vsprintf(buf, message, args);
+
+    auto* logger = (spdlog::logger*)userdata;
+
+    // write to spdlog
+    switch (level) {
+    case SENTRY_LEVEL_DEBUG:
+        logger->debug("[sentry] {}", buf);
+        break;
+    case SENTRY_LEVEL_INFO:
+        logger->info("[sentry] {}", buf);
+        break;
+    case SENTRY_LEVEL_WARNING:
+        logger->warn("[sentry] {}", buf);
+        break;
+    case SENTRY_LEVEL_ERROR:
+        logger->error("[sentry] {}", buf);
+        break;
+    case SENTRY_LEVEL_FATAL:
+        logger->critical("[sentry] {}", buf);
+        break;
+    default:
+        break;
+    }
+}
+
+bool SetupCrashHandler(std::wstring BasePath)
+{
+    sentry_options_t* options = sentry_options_new();
+    sentry_options_set_logger(options, sentry_logger_spdlog, spdlog::get("logger").get());
+    
+    sentry_options_set_release(options, "bme-v" BME_VERSION);
+    sentry_options_set_environment(options, GetBMEChannel().c_str());
+
+    fs::path basePath{ BasePath };
+    fs::path handlerPath{ basePath / "bme" / "crashpad_handler.exe" };
+    fs::path dbPath{ basePath / "bme" / "crashpad" };
+    fs::create_directories(dbPath);
+    sentry_options_set_handler_pathw(options, handlerPath.wstring().c_str());
+    sentry_options_set_database_pathw(options, dbPath.wstring().c_str());
+
+    fs::path logPath{ basePath / "bme" / "bme.log" };
+    sentry_options_add_attachmentw(options, logPath.wstring().c_str());
+
+#ifdef STAGING
+    sentry_options_set_debug(options, 1);
+#endif
+
+    if (strstr(GetCommandLineA(), "-crashhandlernoupload"))
+    {
+        sentry_options_set_sample_rate(options, 0.0);
+        sentry_options_set_traces_sample_rate(options, 0.0);
+    }
+    else
+        sentry_options_set_dsn(options, "https://45d18041edb24b1f8f25f144d121cff3@o487146.ingest.sentry.io/5545628");
+
+    sentry_init(options);
+
+    AddVectoredExceptionHandler(1, &::VectoredExceptionHandler);
 
     return true;
 }
 
 void UpdateSETranslator()
 {
-    if (g_breakpadHandleException != nullptr)
-    {
-        engine_set_se_translator(TranslatorFunc);
-    }
+    SetUnhandledExceptionFilter(&UnhandledExceptionHandler);
+    engine_set_se_translator(TranslatorFunc);
+    engine_set_se_translator2(TranslatorFunc);
 }
 
 #else
 
-bool SetupBreakpad(std::string BasePath)
+bool SetupCrashHandler(std::wstring BasePath)
 {
     return false;
 }

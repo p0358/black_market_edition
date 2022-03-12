@@ -7,6 +7,7 @@
 #include "CrashReporting.h"
 
 HANDLE threadHandle;
+std::chrono::system_clock::time_point g_startTime;
 
 // old
 DWORD WINAPI OnAttach(LPVOID lpThreadParameter)
@@ -172,20 +173,30 @@ void DoBinaryPatches()
 //#endif
 }
 
+void CreateTier0MemAlloc()
+{
+    if (g_pMemAllocSingleton)
+        return; // seems it's already created
+
+    g_pMemAllocSingleton = CreateGlobalMemAlloc();
+}
+
 
 void main()
 {
+    g_startTime = std::chrono::system_clock::now();
+    CreateTier0MemAlloc();
     //if (IsClient()) ShowConsole(); // TODO: disable in production?
     //std::cout << "bme.dll main" << std::endl;
     SetupLogger();
     auto logger = spdlog::get(_("logger"));
 
     if (strstr(GetCommandLineA(), _("-nocrashhandler"))) // CommandLine() not yet ready probably
-        logger->info(_("Breakpad not starting due to -nocrashhandler"));
+        logger->info(_("Sentry not starting due to -nocrashhandler"));
     else
     {
-        auto wasBreakpadStarted = SetupBreakpad(GetThisPath());
-        logger->info(_("Breakpad was{}started"), wasBreakpadStarted ? " " : " not ");
+        auto wasCrashHandlerStarted = SetupCrashHandler(GetThisPathWide());
+        logger->info(_("Sentry was{}started"), wasCrashHandlerStarted ? " " : " not ");
     }
 
     curl_global_init(CURL_GLOBAL_ALL);

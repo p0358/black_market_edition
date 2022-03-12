@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|x64">
@@ -25,20 +25,20 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v142</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v142</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Staging|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v142</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
@@ -84,27 +84,23 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_DEBUG;SPDLOG_DEBUG_ON;SPDLOG_TRACE_ON;CURL_STATICLIB;BMEDLL_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;CURL_STATICLIB;RAPIDJSON_SSE2;SPDLOG_DEBUG_ON;SPDLOG_TRACE_ON;CURL_STATICLIB;BMEDLL_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>..\thirdparty\;..\thirdparty\protobuf\src;..\thirdparty\imgui;..\thirdparty\rapidjson\include;..\thirdparty\curl-7.73.0\builds\libcurl-vc-x64-release-static-ipv6-sspi-schannel\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\thirdparty\;..\thirdparty\protobuf\src;..\thirdparty\imgui;..\thirdparty\rapidjson\include;..\thirdparty\curl-7.74.0\builds\libcurl-vc16-x64-debug-static-ipv6-sspi-schannel\include</AdditionalIncludeDirectories>
       <ForcedIncludeFiles>pch.h;%(ForcedIncludeFiles)</ForcedIncludeFiles>
-      <LanguageStandard>stdcpplatest</LanguageStandard>
+      <LanguageStandard>stdcpp17</LanguageStandard>
       <DisableSpecificWarnings>4996</DisableSpecificWarnings>
-      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
-      <AdditionalLibraryDirectories>..\thirdparty\MinHook;..\thirdparty\curl-7.73.0\builds\libcurl-vc-x64-release-static-ipv6-sspi-schannel\lib;..\thirdparty\discord_game_sdk\lib\x86_64;..\thirdparty\tier0</AdditionalLibraryDirectories>
-      <AdditionalDependencies>discord_game_sdk.dll.lib;libMinHook-x64-v141-md.lib;libcurl_a.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;ws2_32.lib;wldap32.lib;Normaliz.lib;Crypt32.lib;tier0.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\thirdparty\MinHook;..\thirdparty\curl-7.74.0\builds\libcurl-vc16-x64-debug-static-ipv6-sspi-schannel\lib;..\thirdparty\discord_game_sdk\lib\x86_64;..\thirdparty\tier0</AdditionalLibraryDirectories>
+      <AdditionalDependencies>discord_game_sdk.dll.lib;libMinHook-x64-v141-md.lib;libcurl_a_debug.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;ws2_32.lib;wldap32.lib;Normaliz.lib;Crypt32.lib;tier0.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
-    <CustomBuildStep>
-      <Command>cmd /C "copy $(SolutionDir)\x64\Debug\bme.dll $(SolutionDir)\x64\Debug\bme.asi"</Command>
-      <Outputs>$(SolutionDir)\x64\Debug\bme.asi;%(Outputs)</Outputs>
-    </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -112,14 +108,14 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>NDEBUG;RELEASE;CURL_STATICLIB;BMEDLL_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;RELEASE;CURL_STATICLIB;RAPIDJSON_SSE2;BMEDLL_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>..\thirdparty\;..\thirdparty\protobuf\src;..\thirdparty\imgui;..\thirdparty\rapidjson\include;..\thirdparty\breakpad;..\thirdparty\curl-7.73.0\builds\libcurl-vc-x64-release-static-ipv6-sspi-schannel\include</AdditionalIncludeDirectories>
-      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <AdditionalIncludeDirectories>..\thirdparty\;..\thirdparty\protobuf\src;..\thirdparty\imgui;..\thirdparty\rapidjson\include;..\thirdparty\sentry\include;..\thirdparty\curl-7.74.0\builds\libcurl-vc16-x64-release-static-ipv6-sspi-schannel\include</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <DisableSpecificWarnings>4996</DisableSpecificWarnings>
-      <LanguageStandard>stdcpplatest</LanguageStandard>
+      <LanguageStandard>stdcpp17</LanguageStandard>
       <ForcedIncludeFiles>pch.h;%(ForcedIncludeFiles)</ForcedIncludeFiles>
     </ClCompile>
     <Link>
@@ -128,13 +124,10 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
-      <AdditionalDependencies>common.lib;crash_generation_client.lib;exception_handler.lib;discord_game_sdk.dll.lib;libMinHook-x64-v141-md.lib;libcurl_a.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;ws2_32.lib;wldap32.lib;Normaliz.lib;Crypt32.lib;tier0.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>..\thirdparty\breakpad;..\thirdparty\MinHook;..\thirdparty\curl-7.73.0\builds\libcurl-vc-x64-release-static-ipv6-sspi-schannel\lib;..\thirdparty\discord_game_sdk\lib\x86_64;..\thirdparty\tier0</AdditionalLibraryDirectories>
+      <AdditionalDependencies>sentry.lib;crashpad_client.lib;crashpad_util.lib;mini_chromium.lib;libMinHook-x64-v141-md.lib;libcurl_a.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;ws2_32.lib;wldap32.lib;Normaliz.lib;Crypt32.lib;tier0.lib;Winhttp.lib;version.lib;Dbghelp.lib;Advapi32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\thirdparty\sentry\lib;..\thirdparty\MinHook;..\thirdparty\curl-7.74.0\builds\libcurl-vc16-x64-release-static-ipv6-sspi-schannel\lib;..\thirdparty\discord_game_sdk\lib\x86_64;..\thirdparty\tier0</AdditionalLibraryDirectories>
+      <IgnoreSpecificDefaultLibraries>LIBCMTD;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
     </Link>
-    <CustomBuildStep>
-      <Command>cmd /C "copy $(SolutionDir)\x64\Debug\bme.dll $(SolutionDir)\x64\Debug\bme.asi"</Command>
-      <Outputs>$(SolutionDir)\x64\Debug\bme.asi;%(Outputs)</Outputs>
-    </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Staging|x64'">
     <ClCompile>
@@ -142,14 +135,14 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>NDEBUG;STAGING;SPDLOG_DEBUG_ON;CURL_STATICLIB;BMEDLL_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;STAGING;CURL_STATICLIB;RAPIDJSON_SSE2;SPDLOG_DEBUG_ON;BMEDLL_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>..\thirdparty\;..\thirdparty\protobuf\src;..\thirdparty\imgui;..\thirdparty\rapidjson\include;..\thirdparty\breakpad;..\thirdparty\curl-7.73.0\builds\libcurl-vc-x64-release-static-ipv6-sspi-schannel\include</AdditionalIncludeDirectories>
-      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <AdditionalIncludeDirectories>..\thirdparty\;..\thirdparty\protobuf\src;..\thirdparty\imgui;..\thirdparty\rapidjson\include;..\thirdparty\sentry\include;..\thirdparty\curl-7.74.0\builds\libcurl-vc16-x64-release-static-ipv6-sspi-schannel\include</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <DisableSpecificWarnings>4996</DisableSpecificWarnings>
-      <LanguageStandard>stdcpplatest</LanguageStandard>
+      <LanguageStandard>stdcpp17</LanguageStandard>
       <ForcedIncludeFiles>pch.h;%(ForcedIncludeFiles)</ForcedIncludeFiles>
     </ClCompile>
     <Link>
@@ -158,14 +151,10 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
-      <AdditionalDependencies>common.lib;crash_generation_client.lib;exception_handler.lib;discord_game_sdk.dll.lib;libMinHook-x64-v141-md.lib;libcurl_a.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;ws2_32.lib;wldap32.lib;Normaliz.lib;Crypt32.lib;tier0.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>..\thirdparty\breakpad;..\thirdparty\MinHook;..\thirdparty\curl-7.73.0\builds\libcurl-vc-x64-release-static-ipv6-sspi-schannel\lib;..\thirdparty\discord_game_sdk\lib\x86_64;..\thirdparty\tier0</AdditionalLibraryDirectories>
+      <AdditionalDependencies>sentry.lib;crashpad_client.lib;crashpad_util.lib;mini_chromium.lib;discord_game_sdk.dll.lib;libMinHook-x64-v141-md.lib;libcurl_a.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;ws2_32.lib;wldap32.lib;Normaliz.lib;Crypt32.lib;tier0.lib;Winhttp.lib;version.lib;Dbghelp.lib;Advapi32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\thirdparty\sentry\lib;..\thirdparty\MinHook;..\thirdparty\curl-7.74.0\builds\libcurl-vc16-x64-release-static-ipv6-sspi-schannel\lib;..\thirdparty\discord_game_sdk\lib\x86_64;..\thirdparty\tier0</AdditionalLibraryDirectories>
       <IgnoreSpecificDefaultLibraries>LIBCMTD;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
     </Link>
-    <CustomBuildStep>
-      <Command>cmd /C "copy $(SolutionDir)\x64\Debug\bme.dll $(SolutionDir)\x64\Debug\bme.asi"</Command>
-      <Outputs>$(SolutionDir)\x64\Debug\bme.asi;%(Outputs)</Outputs>
-    </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\thirdparty\imgui\backends\imgui_impl_dx11.h" />
