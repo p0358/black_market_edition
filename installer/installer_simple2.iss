@@ -74,16 +74,19 @@ Source: "source\bme\bme.bsp"; DestDir: "{app}\bme"; Flags: ignoreversion
 Source: "source\bme\bme.log"; DestDir: "{app}\bme"; Flags: ignoreversion onlyifdoesntexist
 Source: "source\bme\bme_channel.txt"; DestDir: "{app}\bme"; Flags: ignoreversion
 Source: "source\bme\crashpad_handler.exe"; DestDir: "{app}\bme"; Flags: ignoreversion
-Source: "source\discord_game_sdk.dll"; DestDir: "{app}"; Flags: ignoreversion onlyifdoesntexist
+;Source: "source\discord_game_sdk.dll"; DestDir: "{app}"; Flags: ignoreversion onlyifdoesntexist
 Source: "source\r1\media\fov_video_15ms_480x400.bik"; DestDir: "{app}\r1\media"; Flags: ignoreversion onlyifdoesntexist
 Source: "{app}\bin\x64_retail\launcher.dll"; DestDir: "{app}\bin\x64_retail"; DestName: "launcher.org.dll"; Flags: external skipifsourcedoesntexist onlyifdoesntexist uninsneveruninstall
 Source: "source\bin\x64_retail\launcher.dll"; DestDir: "{app}\bin\x64_retail"; Flags: ignoreversion uninsneveruninstall
+Source: "source\Titanfall_alt.exe"; DestDir: "{app}"; Flags: ignoreversion onlyifdoesntexist
 
 [InstallDelete]
 ; old loaders from beta
 Type: files; Name: "{app}\winmm.dll"
 Type: files; Name: "{app}\bin\x64_retail\winmm.dll"
 Type: files; Name: "{app}\bme\bme.asi"
+; unused anymore
+Type: files; Name: "{app}\source\discord_game_sdk.dll"
 
 [Code]
 function InitializeSetup: Boolean;
