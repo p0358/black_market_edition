@@ -361,20 +361,21 @@ void __fastcall TTFSDK::RunFrameHook(__int64 a1, double frameTime)
             StartPreloading();
         }
 
-        {
-            discord::Activity activity{};
-            activity.SetDetails(_("Main Menu"));
-            activity.SetState(_(BME_VERSION_LONG));
-            activity.GetAssets().SetSmallImage("");
-            activity.GetAssets().SetSmallText("");
-            activity.GetAssets().SetLargeImage(_("titanfall_101"));
-            activity.GetAssets().SetLargeText(_("Titanfall"));
-            activity.SetType(discord::ActivityType::Playing);
+        if (m_discord) {
+            DiscordRichPresence discordPresence;
+            memset(&discordPresence, 0, sizeof(discordPresence));
+            discordPresence.details = "Main Menu";
+            discordPresence.state = BME_VERSION_LONG;
+            discordPresence.largeImageKey = "titanfall_101";
+            discordPresence.largeImageText = "Titanfall";
+            discordPresence.smallImageKey = "";
+            discordPresence.smallImageText = "";
             const auto p1 = std::chrono::system_clock::now();
             const auto p2 = std::chrono::duration_cast<std::chrono::seconds>(
                 p1.time_since_epoch()).count();
-            activity.GetTimestamps().SetStart(p2);
-            m_discord->UpdateActivity(activity);
+            discordPresence.startTimestamp = p2;
+            discordPresence.instance = 0;
+            m_discord->UpdatePresence(&discordPresence);
         }
 
     }
@@ -412,7 +413,7 @@ void __fastcall TTFSDK::RunFrameHook(__int64 a1, double frameTime)
     {
         static uint8_t callCount = 0;
         callCount++;
-        if (callCount >= 95)
+        if (callCount >= 125)
         {
             //SPDLOG_LOGGER_DEBUG(m_logger, "set updater motd");
             m_engineClient->ClientCmd_Unrestricted("motd \"^00FF0000Black Market Edition update is pending! It will be installed after you exit your game.\"");
@@ -421,13 +422,16 @@ void __fastcall TTFSDK::RunFrameHook(__int64 a1, double frameTime)
         }
     }
 
+    if (m_discord)
+        m_discord->UpdateDebouncedPresenceTick();
+
     static uint8_t callCount = 0;
     callCount++;
     if (callCount >= 5)
     {
         callCount = 0;
-        if (m_discord->core)
-            m_discord->core->RunCallbacks();
+        if (m_discord)
+            m_discord->RunCallbacks();
 
     }
 

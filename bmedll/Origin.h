@@ -68,9 +68,9 @@ public:
 	char environment[64]; //0x69E5E9C0 
 	unsigned char isPresenceUpdatePending; //0x38CC 
 	unsigned char N00000FCB; //0x38CD 
-	char presenceString[256]; //0x69E5E9C0 
-	char presenceString2Unused[256]; //0x69E5E9C0 
-	char presenceString3Unused[256]; //0x69E5E9C0 
+	char joinSecret[256]; //0x69E5E9C0 
+	char richPresenceBuffer[256]; //0x69E5E9C0 
+	char presenceBuffer3Unused[256]; //0x69E5E9C0 
 	char pad_0x3BCE[0x2]; //0x3BCE
 
 }; //Size=0x3BD0

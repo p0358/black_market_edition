@@ -38,7 +38,7 @@ bool GetExePathWide(wchar_t* dest, DWORD destSize)
     return length && PathRemoveFileSpecW(dest);
 }
 
-bool Load()
+bool Load(LPSTR lpCmdLine)
 {
     wchar_t exePath[2048];
     wchar_t LibFullPath[2048];
@@ -84,20 +84,23 @@ bool Load()
     LOAD_LIBRARY("bin\\x64_retail\\vguimatsurface.dll");
     LOAD_LIBRARY("bin\\x64_retail\\inputsystem.dll");
 
-    FARPROC Hook_Init = nullptr;
+    if (!strstr(lpCmdLine, "-nobme"))
     {
-        swprintf_s(LibFullPath, L"%s\\bme\\bme.dll", exePath);
-        hHookModule = LoadLibraryExW(LibFullPath, 0, LOAD_WITH_ALTERED_SEARCH_PATH);
-        if (hHookModule) Hook_Init = GetProcAddress(hHookModule, "Init");
-        if (!hHookModule || Hook_Init == nullptr)
+        FARPROC Hook_Init = nullptr;
         {
-            LibraryLoadError(GetLastError(), L"bme.dll", LibFullPath);
-            return false;
+            swprintf_s(LibFullPath, L"%s\\bme\\bme.dll", exePath);
+            hHookModule = LoadLibraryExW(LibFullPath, 0, LOAD_WITH_ALTERED_SEARCH_PATH);
+            if (hHookModule) Hook_Init = GetProcAddress(hHookModule, "Init");
+            if (!hHookModule || Hook_Init == nullptr)
+            {
+                LibraryLoadError(GetLastError(), L"bme.dll", LibFullPath);
+                return false;
+            }
         }
-    }
 
-    //printf("before hook init\n");
-    ((void (*)()) Hook_Init)();
+        //printf("before hook init\n");
+        ((void (*)()) Hook_Init)();
+    }
     return true;
 }
 
@@ -105,7 +108,7 @@ bool Load()
 //extern "C" __declspec(dllexport) int LauncherMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 int __stdcall WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPSTR lpCmdLine, _In_ int nShowCmd)
 {
-    if (!Load())
+    if (!Load(lpCmdLine))
         return 1;
 
     //auto LauncherMain = GetLauncherMain();

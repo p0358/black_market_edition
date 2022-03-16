@@ -98,8 +98,8 @@
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
-      <AdditionalLibraryDirectories>..\thirdparty\MinHook;..\thirdparty\curl-7.74.0\builds\libcurl-vc16-x64-debug-static-ipv6-sspi-schannel\lib;..\thirdparty\discord_game_sdk\lib\x86_64;..\thirdparty\tier0</AdditionalLibraryDirectories>
-      <AdditionalDependencies>discord_game_sdk.dll.lib;libMinHook-x64-v141-md.lib;libcurl_a_debug.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;ws2_32.lib;wldap32.lib;Normaliz.lib;Crypt32.lib;tier0.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\thirdparty\discord-rpc\Debug;..\thirdparty\MinHook;..\thirdparty\curl-7.74.0\builds\libcurl-vc16-x64-debug-static-ipv6-sspi-schannel\lib;..\thirdparty\discord_game_sdk\lib\x86_64;..\thirdparty\tier0</AdditionalLibraryDirectories>
+      <AdditionalDependencies>discord-rpc.lib;libMinHook-x64-v141-md.lib;libcurl_a_debug.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;ws2_32.lib;wldap32.lib;Normaliz.lib;Crypt32.lib;tier0.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -112,7 +112,7 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>..\thirdparty\;..\thirdparty\protobuf\src;..\thirdparty\imgui;..\thirdparty\rapidjson\include;..\thirdparty\sentry\include;..\thirdparty\curl-7.74.0\builds\libcurl-vc16-x64-release-static-ipv6-sspi-schannel\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\thirdparty\;..\thirdparty\protobuf\src;..\thirdparty\discord-rpc\include;..\thirdparty\imgui;..\thirdparty\rapidjson\include;..\thirdparty\sentry\include;..\thirdparty\curl-7.74.0\builds\libcurl-vc16-x64-release-static-ipv6-sspi-schannel\include</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <DisableSpecificWarnings>4996</DisableSpecificWarnings>
       <LanguageStandard>stdcpp17</LanguageStandard>
@@ -124,8 +124,8 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
-      <AdditionalDependencies>sentry.lib;crashpad_client.lib;crashpad_util.lib;mini_chromium.lib;libMinHook-x64-v141-md.lib;libcurl_a.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;ws2_32.lib;wldap32.lib;Normaliz.lib;Crypt32.lib;tier0.lib;Winhttp.lib;version.lib;Dbghelp.lib;Advapi32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>..\thirdparty\sentry\lib;..\thirdparty\MinHook;..\thirdparty\curl-7.74.0\builds\libcurl-vc16-x64-release-static-ipv6-sspi-schannel\lib;..\thirdparty\discord_game_sdk\lib\x86_64;..\thirdparty\tier0</AdditionalLibraryDirectories>
+      <AdditionalDependencies>sentry.lib;crashpad_client.lib;crashpad_util.lib;mini_chromium.lib;discord-rpc.lib;libMinHook-x64-v141-md.lib;libcurl_a.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;ws2_32.lib;wldap32.lib;Normaliz.lib;Crypt32.lib;tier0.lib;Winhttp.lib;version.lib;Dbghelp.lib;Advapi32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\thirdparty\discord-rpc\Release;..\thirdparty\sentry\lib;..\thirdparty\MinHook;..\thirdparty\curl-7.74.0\builds\libcurl-vc16-x64-release-static-ipv6-sspi-schannel\lib;..\thirdparty\discord_game_sdk\lib\x86_64;..\thirdparty\tier0</AdditionalLibraryDirectories>
       <IgnoreSpecificDefaultLibraries>LIBCMTD;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
     </Link>
   </ItemDefinitionGroup>
@@ -139,7 +139,7 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>..\thirdparty\;..\thirdparty\protobuf\src;..\thirdparty\imgui;..\thirdparty\rapidjson\include;..\thirdparty\sentry\include;..\thirdparty\curl-7.74.0\builds\libcurl-vc16-x64-release-static-ipv6-sspi-schannel\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\thirdparty\;..\thirdparty\protobuf\src;..\thirdparty\discord-rpc\include;..\thirdparty\imgui;..\thirdparty\rapidjson\include;..\thirdparty\sentry\include;..\thirdparty\curl-7.74.0\builds\libcurl-vc16-x64-release-static-ipv6-sspi-schannel\include</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <DisableSpecificWarnings>4996</DisableSpecificWarnings>
       <LanguageStandard>stdcpp17</LanguageStandard>
@@ -151,8 +151,8 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
-      <AdditionalDependencies>sentry.lib;crashpad_client.lib;crashpad_util.lib;mini_chromium.lib;discord_game_sdk.dll.lib;libMinHook-x64-v141-md.lib;libcurl_a.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;ws2_32.lib;wldap32.lib;Normaliz.lib;Crypt32.lib;tier0.lib;Winhttp.lib;version.lib;Dbghelp.lib;Advapi32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>..\thirdparty\sentry\lib;..\thirdparty\MinHook;..\thirdparty\curl-7.74.0\builds\libcurl-vc16-x64-release-static-ipv6-sspi-schannel\lib;..\thirdparty\discord_game_sdk\lib\x86_64;..\thirdparty\tier0</AdditionalLibraryDirectories>
+      <AdditionalDependencies>sentry.lib;crashpad_client.lib;crashpad_util.lib;mini_chromium.lib;discord-rpc.lib;libMinHook-x64-v141-md.lib;libcurl_a.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;ws2_32.lib;wldap32.lib;Normaliz.lib;Crypt32.lib;tier0.lib;Winhttp.lib;version.lib;Dbghelp.lib;Advapi32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\thirdparty\discord-rpc\Release;..\thirdparty\sentry\lib;..\thirdparty\MinHook;..\thirdparty\curl-7.74.0\builds\libcurl-vc16-x64-release-static-ipv6-sspi-schannel\lib;..\thirdparty\discord_game_sdk\lib\x86_64;..\thirdparty\tier0</AdditionalLibraryDirectories>
       <IgnoreSpecificDefaultLibraries>LIBCMTD;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
     </Link>
   </ItemDefinitionGroup>
@@ -209,23 +209,6 @@
     <ClInclude Include="CrashReporting.h" />
     <ClInclude Include="DelayedFunc.h" />
     <ClInclude Include="Discord.h" />
-    <ClInclude Include="discord\achievement_manager.h" />
-    <ClInclude Include="discord\activity_manager.h" />
-    <ClInclude Include="discord\application_manager.h" />
-    <ClInclude Include="discord\core.h" />
-    <ClInclude Include="discord\discord.h" />
-    <ClInclude Include="discord\event.h" />
-    <ClInclude Include="discord\ffi.h" />
-    <ClInclude Include="discord\image_manager.h" />
-    <ClInclude Include="discord\lobby_manager.h" />
-    <ClInclude Include="discord\network_manager.h" />
-    <ClInclude Include="discord\overlay_manager.h" />
-    <ClInclude Include="discord\relationship_manager.h" />
-    <ClInclude Include="discord\storage_manager.h" />
-    <ClInclude Include="discord\store_manager.h" />
-    <ClInclude Include="discord\types.h" />
-    <ClInclude Include="discord\user_manager.h" />
-    <ClInclude Include="discord\voice_manager.h" />
     <ClInclude Include="FilesystemContents.h" />
     <ClInclude Include="FileSystemManager.h" />
     <ClInclude Include="framework.h" />
@@ -266,20 +249,6 @@
     <ClCompile Include="Console.cpp" />
     <ClCompile Include="CrashReporting.cpp" />
     <ClCompile Include="Discord.cpp" />
-    <ClCompile Include="discord\achievement_manager.cpp" />
-    <ClCompile Include="discord\activity_manager.cpp" />
-    <ClCompile Include="discord\application_manager.cpp" />
-    <ClCompile Include="discord\core.cpp" />
-    <ClCompile Include="discord\image_manager.cpp" />
-    <ClCompile Include="discord\lobby_manager.cpp" />
-    <ClCompile Include="discord\network_manager.cpp" />
-    <ClCompile Include="discord\overlay_manager.cpp" />
-    <ClCompile Include="discord\relationship_manager.cpp" />
-    <ClCompile Include="discord\storage_manager.cpp" />
-    <ClCompile Include="discord\store_manager.cpp" />
-    <ClCompile Include="discord\types.cpp" />
-    <ClCompile Include="discord\user_manager.cpp" />
-    <ClCompile Include="discord\voice_manager.cpp" />
     <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="FileSystemManager.cpp" />
     <ClCompile Include="Memory.cpp" />

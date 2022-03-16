@@ -15,7 +15,7 @@ Presence& PresenceGlob()
 
 #define WRAPPED_MEMBER(name) MemberWrapper<decltype(&Presence::##name), &Presence::##name, decltype(&PresenceGlob), &PresenceGlob>::Call
 
-int timestamp()
+int64_t timestamp()
 {
     const auto p1 = std::chrono::system_clock::now();
 
@@ -112,16 +112,16 @@ void Presence::updateRichPresenceLoading(bool requestOriginUpdateImmediately) {
     strncpy(richPresenceBuffer, "Loading...", 1024);
     strncpy(richPresenceBufferInGame, "Loading...", 256);
 
-    discord::Activity activity{};
-    activity.SetType(discord::ActivityType::Playing);
-    activity.SetDetails("Loading...");
-    activity.SetState(BME_VERSION_LONG);
-    /*activity.GetAssets().SetSmallImage("");
-    activity.GetAssets().SetSmallText("");*/
-    activity.GetAssets().SetLargeImage("titanfall_101");
-    activity.GetAssets().SetLargeText("Titanfall");
-    SDK().GetDiscord().UpdateActivity(activity);
+    DiscordRichPresence discordPresence;
+    memset(&discordPresence, 0, sizeof(discordPresence));
+    discordPresence.details = "Loading...";
+    discordPresence.state = BME_VERSION_LONG;
+    discordPresence.largeImageKey = "titanfall_101";
+    discordPresence.largeImageText = "Titanfall";
+    discordPresence.instance = 0;
 
+    SDK().GetDiscord().presenceUpdatePendingDebounceThresholdMs = 0;
+    SDK().GetDiscord().UpdatePresence(&discordPresence);
 
     if (requestOriginUpdateImmediately) {
         requestOriginPresenceUpdate();
@@ -141,30 +141,36 @@ void Presence::updateRichPresenceLoadingWithMap(const char* map, bool requestOri
     strncpy(richPresenceBuffer, ss.str().c_str(), 1024);
     strncpy(richPresenceBufferInGame, ss.str().c_str(), 256);
 
-    discord::Activity activity{};
-    activity.SetType(discord::ActivityType::Playing);
-    activity.SetDetails("Loading...");
-    activity.SetState(BME_VERSION_LONG);
-    /*activity.GetAssets().SetSmallImage("");
-    activity.GetAssets().SetSmallText("");*/
+    DiscordRichPresence discordPresence;
+    memset(&discordPresence, 0, sizeof(discordPresence));
+    discordPresence.details = "Loading...";
+    discordPresence.state = BME_VERSION_LONG;
+    discordPresence.instance = 0;
 
     if (std::strcmp(map, "mp_npe") != 0) // it doesn't update the team to IMC correctly there
     {
         if (*teamNum == 2) {
-            activity.GetAssets().SetSmallImage("team_imc");
-            activity.GetAssets().SetSmallText("IMC");
+            discordPresence.smallImageKey = "team_imc";
+            discordPresence.smallImageText = "IMC";
         }
         else if (*teamNum == 3) {
-            activity.GetAssets().SetSmallImage("team_mil");
-            activity.GetAssets().SetSmallText("Militia");
+            discordPresence.smallImageKey = "team_mil";
+            discordPresence.smallImageText = "Militia";
         }
     }
     
     std::stringstream largeimagess; largeimagess << map << "_widescreen";
-    activity.GetAssets().SetLargeImage(largeimagess.str().c_str());
-    activity.GetAssets().SetLargeText(getDisplayMapName(map));
+    //activity.GetAssets().SetLargeImage(largeimagess.str().c_str());
+    //activity.GetAssets().SetLargeText(getDisplayMapName(map));
 
-    SDK().GetDiscord().UpdateActivity(activity);
+    std::string largeimagestr = largeimagess.str();
+    discordPresence.largeImageKey = largeimagestr.c_str();
+    discordPresence.largeImageText = getDisplayMapName(map);
+
+    SPDLOG_LOGGER_DEBUG(m_logger, "Presence updateRichPresenceLoadingWithMap largeImageKey:{}, largeImageText:{}", largeimagess.str().c_str(), getDisplayMapName(map));
+
+    SDK().GetDiscord().presenceUpdatePendingDebounceThresholdMs = 0;
+    SDK().GetDiscord().UpdatePresence(&discordPresence);
 
     if (requestOriginUpdateImmediately) {
         requestOriginPresenceUpdate();
@@ -174,9 +180,20 @@ void Presence::updateRichPresenceLoadingWithMap(const char* map, bool requestOri
 
 void Presence::updateRichPresence(bool requestOriginUpdateImmediately)
 {
+    SPDLOG_LOGGER_DEBUG(m_logger, "Presence updateRichPresence");
+    std::lock_guard<std::mutex> guard(updateRichPresenceMutex);
+
+    DiscordRichPresence discordPresence;
+    memset(&discordPresence, 0, sizeof(discordPresence));
+
+    SDK().GetDiscord().presenceUpdatePendingDebounceThresholdMs = 500;
+
     std::stringstream ss;
-    discord::Activity activity{};
-    activity.SetType(discord::ActivityType::Playing);
+    std::stringstream ss_state;
+    std::string str_state;
+    std::stringstream ss_largeimage;
+    std::string str_largeimage;
+    std::string str_joinSecret;
 
     if (lastMap && strcmp(lastMap, map) != 0)
     {
@@ -202,13 +219,13 @@ void Presence::updateRichPresence(bool requestOriginUpdateImmediately)
         || !*(char*)map // or we're not on any map
         ) {
 
+        SDK().GetDiscord().presenceUpdatePendingDebounceThresholdMs = 2000;
+
         ss << "Main menu";
-        activity.SetDetails("Main Menu");
-        activity.SetState(BME_VERSION_LONG);
-        /*activity.GetAssets().SetSmallImage("");
-        activity.GetAssets().SetSmallText("");*/
-        activity.GetAssets().SetLargeImage("titanfall_101");
-        activity.GetAssets().SetLargeText("Titanfall");
+        discordPresence.details = "Main Menu";
+        discordPresence.state = BME_VERSION_LONG;
+        discordPresence.largeImageKey = "titanfall_101";
+        discordPresence.largeImageText = "Titanfall";
         gameStartTime = timestamp(); // also a hack, because "main menu" is set for a short while while changing lobbies
         gameEndTime = INT_MIN;
         gameEndTime2 = INT_MIN;
@@ -218,70 +235,75 @@ void Presence::updateRichPresence(bool requestOriginUpdateImmediately)
     }
     else if (strcmp(map, "mp_npe") == 0 || *isConnectedAndInLobby == 2) {
         ss << "Training"; // IMC
-        activity.SetDetails("Pilot Training");
+        discordPresence.details = "Pilot Training (solo)";
         const char* pilotTrainingStageDesc = Presence::getDisplayNameForTrainingResumeChoice(trainingStage);
         if (pilotTrainingStageDesc) {
-            activity.SetState(pilotTrainingStageDesc);
-            activity.GetParty().GetSize().SetMaxSize(14);
-            activity.GetParty().GetSize().SetCurrentSize(trainingStage+1);
+            discordPresence.state = pilotTrainingStageDesc;
+            discordPresence.partyMax = 14;
+            discordPresence.partySize = trainingStage + 1;
         }
         else {
-            activity.SetState("Solo");
-            activity.GetParty().GetSize().SetMaxSize(1);
-            activity.GetParty().GetSize().SetCurrentSize(1);
+            discordPresence.state = "Solo";
+            discordPresence.partyMax = 1;
+            discordPresence.partySize = 1;
         }
-        activity.GetAssets().SetSmallImage("team_imc");
-        activity.GetAssets().SetSmallText("IMC");
-        activity.GetAssets().SetLargeImage("mp_npe_widescreen");
-        activity.GetAssets().SetLargeText("Pilot Training Map");
+        discordPresence.smallImageKey = "team_imc";
+        discordPresence.smallImageText = "IMC";
+        discordPresence.largeImageKey = "mp_npe_widescreen";
+        discordPresence.largeImageText = "Pilot Training Map";
     }
     else if (std::strcmp(map, "mp_lobby") == 0 && *isPrivateLobby) {
         ss << "Private lobby";
-        //activity.SetDetails("Private lobby");
-        activity.SetState("Private lobby");
-        activity.GetAssets().SetLargeImage("mp_lobby_widescreen");
-        activity.GetAssets().SetLargeText("Lobby");
-        activity.GetParty().GetSize().SetMaxSize(std::max(playerCount, 6));
-        activity.GetParty().GetSize().SetCurrentSize(playerCount);
-        activity.GetParty().SetId(serverIPAndPortBufferInGame);
+        discordPresence.state = "Private lobby";
+        discordPresence.largeImageKey = "mp_lobby_widescreen";
+        discordPresence.largeImageText = "Lobby";
+        discordPresence.partyMax = std::max(playerCount, 6);
+        discordPresence.partySize = playerCount;
+        discordPresence.partyId = serverIPAndPortBufferInGame;
         if (playerCount < 6)
-            activity.GetSecrets().SetJoin(getJoinSecret().c_str());
+        {
+            str_joinSecret = getJoinSecret();
+            discordPresence.joinSecret = str_joinSecret.c_str();
+        }
     }
     else if (std::strcmp(match_playlist, "private_match") == 0 && std::strcmp(map, "mp_lobby") == 0) { // meh..........
         ss << "Private match lobby";
-        activity.SetDetails("Private Match");
-        activity.SetState("In lobby");
+        discordPresence.details = "Private Match";
+        discordPresence.state = "In lobby";
         if (*teamNum == 2) {
-            activity.GetAssets().SetSmallImage("team_imc");
-            activity.GetAssets().SetSmallText("IMC");
+            discordPresence.smallImageKey = "team_imc";
+            discordPresence.smallImageText = "IMC";
         }
         else if (*teamNum == 3) {
-            activity.GetAssets().SetSmallImage("team_mil");
-            activity.GetAssets().SetSmallText("Militia");
+            discordPresence.smallImageKey = "team_mil";
+            discordPresence.smallImageText = "Militia";
         }
-        activity.GetAssets().SetLargeImage("mp_lobby_widescreen");
-        activity.GetAssets().SetLargeText("Lobby");
-        activity.GetParty().GetSize().SetMaxSize(*maxplayers);
-        activity.GetParty().GetSize().SetCurrentSize(playerCount);
-        activity.GetParty().SetId(serverIPAndPortBufferInGame);
+        discordPresence.largeImageKey = "mp_lobby_widescreen";
+        discordPresence.largeImageText = "Lobby";
+        discordPresence.partyMax = *maxplayers;
+        discordPresence.partySize = playerCount;
+        discordPresence.partyId = serverIPAndPortBufferInGame;
         if (playerCount < *maxplayers)
-            activity.GetSecrets().SetJoin(getJoinSecret().c_str());
+        {
+            str_joinSecret = getJoinSecret();
+            discordPresence.joinSecret = str_joinSecret.c_str();
+        }
     }
     else {
-        activity.SetDetails(getDisplayPlaylistName(match_playlist));
+        discordPresence.details = getDisplayPlaylistName(match_playlist);
         if (std::strcmp(map, "mp_lobby") == 0) {
             ss << "In lobby"; // seems we cannot tell the kind of lobby...
-            activity.SetState("In lobby");
+            discordPresence.state = "In lobby";
             if (std::strcmp(match_playlist, "campaign_carousel") == 0) {
                 if (*teamNum == 2) 
-                    activity.GetAssets().SetLargeImage("menu_background_imc");
+                    discordPresence.largeImageKey = "menu_background_imc";
                 else if (*teamNum == 3)
-                    activity.GetAssets().SetLargeImage("menu_background_militia");
+                    discordPresence.largeImageKey = "menu_background_militia";
             }
             else {
-                activity.GetAssets().SetLargeImage("mp_lobby_widescreen");
+                discordPresence.largeImageKey = "mp_lobby_widescreen";
             }
-            activity.GetAssets().SetLargeText("Lobby");
+            discordPresence.largeImageText = "Lobby";
         }
         else {
             ss << getDisplayPlaylistName(match_playlist) << " on " << getDisplayMapName(map);
@@ -292,67 +314,74 @@ void Presence::updateRichPresence(bool requestOriginUpdateImmediately)
                 // standard texts
                 switch (gameState)
                 {
-                case WaitingForCustomStart: activity.SetState("Waiting"); break;
-                case WaitingForPlayers: activity.SetState("Waiting for players"); break;
-                //case Prematch: activity.SetState("Prematch"); break;
-                case SuddenDeath: activity.SetState("Sudden Death"); break;
-                case SwitchingSides: activity.SetState("Switching sides"); break;
-                case Epilogue: activity.SetState("Epilogue"); break;
-                case Postmatch: activity.SetState("Postmatch"); break;
+                case WaitingForCustomStart: discordPresence.state = "Waiting"; break;
+                case WaitingForPlayers: discordPresence.state = "Waiting for players"; break;
+                //case Prematch: discordPresence.state = "Prematch"; break;
+                case SuddenDeath: discordPresence.state = "Sudden Death"; break;
+                case SwitchingSides: discordPresence.state = "Switching sides"; break;
+                case Epilogue: discordPresence.state = "Epilogue"; break;
+                case Postmatch: discordPresence.state = "Postmatch"; break;
                 default: {
-                    if (isRoundBased && roundNumber > 0) {
-                        std::stringstream ssround;
-                        ssround << "Round " << roundNumber;
-                        //if (maxRounds && std::strcmp(gamemode_cvar->GetString(), "mfdp") == 0) ssround << "/" << maxRounds; // I think only MFDP has predictable amount of max rounds (besides FD)
-                        activity.SetState(ssround.str().c_str());
+                    // TODO: check if we really need to increment the round number
+                    if (std::strcmp(gamemode_cvar->GetString(), "coop") == 0 && roundNumber > /*0*/-1) {
+                        auto rn = roundNumber; if (gameState == Playing) rn++;
+                        ss_state << "Wave " << roundNumber;
+                        if (maxRounds) ss_state << "/" << maxRounds;
+                        str_state = ss_state.str();
+                        discordPresence.state = str_state.c_str();
                     }
-                    else if (std::strcmp(gamemode_cvar->GetString(), "coop") == 0 && roundNumber > 0) {
-                        std::stringstream ssround;
-                        ssround << "Wave " << roundNumber;
-                        if (maxRounds) ssround << "/" << maxRounds;
-                        activity.SetState(ssround.str().c_str());
+                    else if (isRoundBased && roundNumber > /*0*/-1) {
+                        auto rn = roundNumber; if (gameState == Playing) rn++;
+                        ss_state << "Round " << roundNumber;
+                        //if (maxRounds && std::strcmp(gamemode_cvar->GetString(), "mfdp") == 0) ssround << "/" << maxRounds; // I think only MFDP has predictable amount of max rounds (besides FD)
+                        str_state = ss_state.str();
+                        discordPresence.state = str_state.c_str();
                     }
                     else if (isSwitchSidesBased)
                     {
                         if (!switchedSides)
-                            activity.SetState("First half");
+                            discordPresence.state = "First half";
                         else
-                            activity.SetState("Second half");
+                            discordPresence.state = "Second half";
 
                     }
-                    else activity.SetState("Playing"); // just playing
+                    else discordPresence.state = "Playing"; // just playing
                 }
                 }
 
             }
             else if (std::strcmp(match_playlist, "campaign_carousel") == 0 && getDisplayCampaignMissionNameForMapName(map))
             {
-                activity.SetState(getDisplayCampaignMissionNameForMapName(map));
+                discordPresence.state = getDisplayCampaignMissionNameForMapName(map);
             }
             else {
                 // display the precise gamemode, as it's different from playlist name
-                activity.SetState(getDisplayPlaylistName(gamemode_cvar->GetString()));
+                discordPresence.state = getDisplayPlaylistName(gamemode_cvar->GetString());
             }
 
-            std::stringstream largeimagess; largeimagess << map << "_widescreen";
-            activity.GetAssets().SetLargeImage(largeimagess.str().c_str());
-            activity.GetAssets().SetLargeText(getDisplayMapName(map));
+            ss_largeimage << map << "_widescreen";
+            str_largeimage = ss_largeimage.str();
+            discordPresence.largeImageKey = str_largeimage.c_str();
+            discordPresence.largeImageText = getDisplayMapName(map);
         }
 
         if (*teamNum == 2) {
-            activity.GetAssets().SetSmallImage("team_imc");
-            activity.GetAssets().SetSmallText("IMC");
+            discordPresence.smallImageKey = "team_imc";
+            discordPresence.smallImageText = "IMC";
         }
         else if (*teamNum == 3) {
-            activity.GetAssets().SetSmallImage("team_mil");
-            activity.GetAssets().SetSmallText("Militia");
+            discordPresence.smallImageKey = "team_mil";
+            discordPresence.smallImageText = "Militia";
         }
 
-        activity.GetParty().GetSize().SetMaxSize(*maxplayers);
-        activity.GetParty().GetSize().SetCurrentSize(playerCount);
-        activity.GetParty().SetId(serverIPAndPortBufferInGame);
+        discordPresence.partyMax = *maxplayers;
+        discordPresence.partySize = playerCount;
+        discordPresence.partyId = serverIPAndPortBufferInGame;
         if (playerCount < *maxplayers)
-            activity.GetSecrets().SetJoin(getJoinSecret().c_str());
+        {
+            str_joinSecret = getJoinSecret();
+            discordPresence.joinSecret = str_joinSecret.c_str();
+        }
 
     }
 
@@ -360,21 +389,22 @@ void Presence::updateRichPresence(bool requestOriginUpdateImmediately)
     {
         if (gameEndTime != INT_MIN)
         {
-            activity.GetTimestamps().SetEnd(gameEndTime);
+            discordPresence.endTimestamp = gameEndTime;
         }
         else if (gameEndTime2 != INT_MIN)
         {
-            activity.GetTimestamps().SetEnd(gameEndTime2);
+            discordPresence.endTimestamp = gameEndTime2;
         }
         else {
-            activity.GetTimestamps().SetStart(gameStartTime);
+            discordPresence.startTimestamp = gameStartTime;
         }
     }
     
     strncpy(richPresenceBuffer, ss.str().c_str(), 1024);
     bool wasPresenceStringChanged = std::strcmp(richPresenceBuffer, richPresenceBufferInGame) != 0;
     strncpy(richPresenceBufferInGame, ss.str().c_str(), 256);
-    SDK().GetDiscord().UpdateActivity(activity);
+
+    SDK().GetDiscord().UpdatePresence(&discordPresence);
 
     if (requestOriginUpdateImmediately && wasPresenceStringChanged) {
         requestOriginPresenceUpdate();

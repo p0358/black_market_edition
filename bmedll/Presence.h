@@ -28,6 +28,7 @@ class Presence
 {
 private:
     std::shared_ptr<spdlog::logger> m_logger;
+    std::mutex updateRichPresenceMutex;
 public:
     const char* emptyString = "";
     char presenceBuffer[1024];
@@ -51,9 +52,9 @@ public:
     bool didOriginOfflineKickAlready;
     int trainingStage;
     int playerCount;
-    int gameStartTime;
-    int gameEndTime;
-    int gameEndTime2;
+    int64_t gameStartTime;
+    int64_t gameEndTime;
+    int64_t gameEndTime2;
     int gameState;
     bool switchedSides;
     bool isSwitchSidesBased;

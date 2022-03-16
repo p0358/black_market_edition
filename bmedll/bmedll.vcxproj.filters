@@ -19,12 +19,6 @@
     <Filter Include="Pliki nagłówkowe\thirdparty">
       <UniqueIdentifier>{e2761bba-7065-44ac-b27c-91fe8c1907e0}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Pliki źródłowe\discord">
-      <UniqueIdentifier>{691dc9b3-3a18-48f4-820a-f8823441ebb3}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Pliki nagłówkowe\discord">
-      <UniqueIdentifier>{5d9fb6f8-3b0d-4700-a6d3-2e808428f990}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Pliki źródłowe\imgui">
       <UniqueIdentifier>{38b58fd1-89cb-4907-9e86-33c662cc8582}</UniqueIdentifier>
     </Filter>
@@ -192,57 +186,6 @@
     <ClInclude Include="..\thirdparty\xorstr.hpp">
       <Filter>Pliki nagłówkowe\thirdparty</Filter>
     </ClInclude>
-    <ClInclude Include="discord\event.h">
-      <Filter>Pliki nagłówkowe\discord</Filter>
-    </ClInclude>
-    <ClInclude Include="discord\ffi.h">
-      <Filter>Pliki nagłówkowe\discord</Filter>
-    </ClInclude>
-    <ClInclude Include="discord\image_manager.h">
-      <Filter>Pliki nagłówkowe\discord</Filter>
-    </ClInclude>
-    <ClInclude Include="discord\lobby_manager.h">
-      <Filter>Pliki nagłówkowe\discord</Filter>
-    </ClInclude>
-    <ClInclude Include="discord\network_manager.h">
-      <Filter>Pliki nagłówkowe\discord</Filter>
-    </ClInclude>
-    <ClInclude Include="discord\overlay_manager.h">
-      <Filter>Pliki nagłówkowe\discord</Filter>
-    </ClInclude>
-    <ClInclude Include="discord\relationship_manager.h">
-      <Filter>Pliki nagłówkowe\discord</Filter>
-    </ClInclude>
-    <ClInclude Include="discord\storage_manager.h">
-      <Filter>Pliki nagłówkowe\discord</Filter>
-    </ClInclude>
-    <ClInclude Include="discord\store_manager.h">
-      <Filter>Pliki nagłówkowe\discord</Filter>
-    </ClInclude>
-    <ClInclude Include="discord\types.h">
-      <Filter>Pliki nagłówkowe\discord</Filter>
-    </ClInclude>
-    <ClInclude Include="discord\user_manager.h">
-      <Filter>Pliki nagłówkowe\discord</Filter>
-    </ClInclude>
-    <ClInclude Include="discord\voice_manager.h">
-      <Filter>Pliki nagłówkowe\discord</Filter>
-    </ClInclude>
-    <ClInclude Include="discord\achievement_manager.h">
-      <Filter>Pliki nagłówkowe\discord</Filter>
-    </ClInclude>
-    <ClInclude Include="discord\activity_manager.h">
-      <Filter>Pliki nagłówkowe\discord</Filter>
-    </ClInclude>
-    <ClInclude Include="discord\application_manager.h">
-      <Filter>Pliki nagłówkowe\discord</Filter>
-    </ClInclude>
-    <ClInclude Include="discord\core.h">
-      <Filter>Pliki nagłówkowe\discord</Filter>
-    </ClInclude>
-    <ClInclude Include="discord\discord.h">
-      <Filter>Pliki nagłówkowe\discord</Filter>
-    </ClInclude>
     <ClInclude Include="Discord.h">
       <Filter>Pliki nagłówkowe</Filter>
     </ClInclude>
@@ -346,48 +289,6 @@
     </ClCompile>
     <ClCompile Include="CrashReporting.cpp">
       <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
-    <ClCompile Include="discord\lobby_manager.cpp">
-      <Filter>Pliki źródłowe\discord</Filter>
-    </ClCompile>
-    <ClCompile Include="discord\network_manager.cpp">
-      <Filter>Pliki źródłowe\discord</Filter>
-    </ClCompile>
-    <ClCompile Include="discord\overlay_manager.cpp">
-      <Filter>Pliki źródłowe\discord</Filter>
-    </ClCompile>
-    <ClCompile Include="discord\relationship_manager.cpp">
-      <Filter>Pliki źródłowe\discord</Filter>
-    </ClCompile>
-    <ClCompile Include="discord\storage_manager.cpp">
-      <Filter>Pliki źródłowe\discord</Filter>
-    </ClCompile>
-    <ClCompile Include="discord\store_manager.cpp">
-      <Filter>Pliki źródłowe\discord</Filter>
-    </ClCompile>
-    <ClCompile Include="discord\types.cpp">
-      <Filter>Pliki źródłowe\discord</Filter>
-    </ClCompile>
-    <ClCompile Include="discord\user_manager.cpp">
-      <Filter>Pliki źródłowe\discord</Filter>
-    </ClCompile>
-    <ClCompile Include="discord\voice_manager.cpp">
-      <Filter>Pliki źródłowe\discord</Filter>
-    </ClCompile>
-    <ClCompile Include="discord\achievement_manager.cpp">
-      <Filter>Pliki źródłowe\discord</Filter>
-    </ClCompile>
-    <ClCompile Include="discord\activity_manager.cpp">
-      <Filter>Pliki źródłowe\discord</Filter>
-    </ClCompile>
-    <ClCompile Include="discord\application_manager.cpp">
-      <Filter>Pliki źródłowe\discord</Filter>
-    </ClCompile>
-    <ClCompile Include="discord\core.cpp">
-      <Filter>Pliki źródłowe\discord</Filter>
-    </ClCompile>
-    <ClCompile Include="discord\image_manager.cpp">
-      <Filter>Pliki źródłowe\discord</Filter>
     </ClCompile>
     <ClCompile Include="Discord.cpp">
       <Filter>Pliki źródłowe</Filter>

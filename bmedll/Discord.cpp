@@ -1,11 +1,12 @@
 #include "pch.h"
-#include "Discord.h"
-#include "discord/discord.h"
 #include <iostream>
 #include "TTFSDK.h"
 #include "Presence.h"
 #include "Chat.h"
 #include "ConVar.h"
+#include "_version.h"
+
+short presenceUpdatePendingDebounceThresholdMs = 1500;
 
 DiscordWrapper& DiscordWrap()
 {
@@ -15,13 +16,6 @@ DiscordWrapper& DiscordWrap()
 #define WRAPPED_MEMBER(name) MemberWrapper<decltype(&DiscordWrapper::##name), &DiscordWrapper::##name, decltype(&DiscordWrap), &DiscordWrap>::Call
 
 std::once_flag flag_discord1, flag_discord2;
-
-const std::string GetThisExecutablePath()
-{
-    WCHAR result[MAX_PATH];
-    DWORD length = GetModuleFileNameW(NULL, result, MAX_PATH);
-    return Util::Narrow(result);
-}
 
 void bme_discord_reinit(const CCommand& args)
 {
@@ -36,117 +30,45 @@ void bme_discord_reinit(const CCommand& args)
 
 DiscordWrapper::DiscordWrapper(ConCommandManager& conCommandManager)
 {
-    //DiscordState state{};
-    //DiscordState state = state;
-    auto logger = spdlog::get("logger");
-    logger->info("Discord init start");
-    //std::cout << "a";
+    auto startTime = std::chrono::system_clock::now();
+    m_logger = spdlog::get("logger");
+    m_logger->info("Discord init start");
 
-    this->isDiscordInitialized = false;
+    //this->isDiscordInitialized = false;
     this->isDiscordReady = false;
-    //discord::Core* core{};
-    discord::Core* core;
-    //this->core = core;
-    auto result = discord::Core::Create(444356071880917002, DiscordCreateFlags_NoRequireDiscord, &core); //std::cout << "b";
+    this->presenceUpdatePendingDebounceThresholdMs = 1500;
 
-    this->core.reset(core);
+    memset(&user, 0, sizeof(user));
+    memset(&lastPresence, 0, sizeof(lastPresence));
 
-    std::call_once(flag_discord1, [&conCommandManager, &core]() {
+    DiscordEventHandlers handlers;
+    memset(&handlers, 0, sizeof(handlers));
+    handlers.ready = WRAPPED_MEMBER(handleDiscordReady);
+    handlers.disconnected = WRAPPED_MEMBER(handleDiscordDisconnected);
+    handlers.errored = WRAPPED_MEMBER(handleDiscordError);
+    handlers.joinGame = WRAPPED_MEMBER(handleDiscordJoin);
+    handlers.spectateGame = WRAPPED_MEMBER(handleDiscordSpectate);
+    handlers.joinRequest = WRAPPED_MEMBER(handleDiscordJoinRequest);
+    Discord_Initialize("444356071880917002", &handlers, 1, NULL);
+
+    std::call_once(flag_discord1, [&conCommandManager]() {
         // TODO: not ideal, cause reinitialization won't modify the below cvar
-        conCommandManager.RegisterConVar("bme_is_discord_initialized", !core ? "0" : "1", FCVAR_DONTRECORD | FCVAR_SERVER_CANNOT_QUERY, "Is updated with whether Discord was successfully initialized");
+        conCommandManager.RegisterConVar("bme_is_discord_initialized", /*!core ? "0" :*/ "1", FCVAR_DONTRECORD | FCVAR_SERVER_CANNOT_QUERY, "Is updated with whether Discord was successfully initialized");
         conCommandManager.RegisterCommand("bme_discord_reinit", bme_discord_reinit, "Reinit Discord (deinitialize and reinitialize again)", 0);
+
+        DiscordRichPresence discordPresence;
+        memset(&discordPresence, 0, sizeof(discordPresence));
+        discordPresence.details = "Launching game...";
+        discordPresence.state = BME_VERSION_LONG;
+        discordPresence.largeImageKey = "titanfall_101";
+        discordPresence.largeImageText = "Titanfall";
+        discordPresence.smallImageKey = "";
+        discordPresence.smallImageText = "";
+        discordPresence.instance = 0;
+        Discord_UpdatePresence(&discordPresence);
     });
-    
-    if (!core) {
-        logger->warn("Failed to instantiate discord core! (err {})", static_cast<int>(result));
-        return;
-    } //std::cout << "c";
 
-    isDiscordInitialized = result == discord::Result::Ok;
-
-    core->SetLogHook(
-        discord::LogLevel::Debug, [](discord::LogLevel level, const char* message) {
-            if (!IsSDKReady()) return;
-            //std::cerr << "Log(" << static_cast<uint32_t>(level) << "): " << message << "\n";
-            spdlog::get("logger")->info("[discord] {}", message);
-        }); //std::cout << "d";
-
-
-    //core->UserManager().OnCurrentUserUpdate.Connect([&state]() {
-    core->UserManager().OnCurrentUserUpdate.Connect([this]() {
-        if (!IsSDKReady()) return;
-        this->isDiscordReady = true;
-        //static discord::User user;
-        //this->core->UserManager().GetCurrentUser(&user);
-        //currentUser.reset(&user);
-        this->core->UserManager().GetCurrentUser(&currentUser);
-        //currentUser = std::make_shared<discord::User>(user);
-
-        //std::cout << "Current user updated: " << state.currentUser.GetUsername() << "#"
-        //    << state.currentUser.GetDiscriminator() << "\n";
-        spdlog::get("logger")->info("[discord] Current user updated: {}#{}", currentUser.GetUsername(), currentUser.GetDiscriminator());
-
-        /*state.core->UserManager().GetUser(130050050968518656,
-            [](discord::Result result, discord::User const& user) {
-                if (result == discord::Result::Ok) {
-                    std::cout << "Get " << user.GetUsername() << "\n";
-                }
-                else {
-                    std::cout << "Failed to get David!\n";
-                }
-        });*/
-
-    }); //std::cout << "e";
-
-    //core->ActivityManager().RegisterSteam(1454890);
-    core->ActivityManager().RegisterCommand(GetThisExecutablePath().c_str()); // TODO: check if that works
-    //std::cout << "f";
-
-    /*discord::Activity activity{};
-    activity.SetDetails("Fruit Tarts");
-    activity.SetState("Pop Snacks");
-    activity.GetAssets().SetSmallImage("the");
-    activity.GetAssets().SetSmallText("i mage");
-    activity.GetAssets().SetLargeImage("the");
-    activity.GetAssets().SetLargeText("u mage");
-    activity.SetType(discord::ActivityType::Playing);
-    core->ActivityManager().UpdateActivity(activity, [](discord::Result result) {
-        std::cout << ((result == discord::Result::Ok) ? "Succeeded" : "Failed")
-            << " updating activity!\n";
-        });*/
-
-    /*discord::Activity activity{};
-    activity.SetDetails("Fruit Tarts");
-    activity.SetState("Pop Snacks");
-    activity.GetAssets().SetSmallImage("the");
-    activity.GetAssets().SetSmallText("i mage");
-    activity.GetAssets().SetLargeImage("the");
-    activity.GetAssets().SetLargeText("u mage");
-    activity.SetType(discord::ActivityType::Playing);
-    core->ActivityManager().UpdateActivity(activity, [](discord::Result result) {
-        std::stringstream ss;
-        ss << ((result == discord::Result::Ok) ? "Succeeded" : "Failed")
-            << " updating activity!\n";
-        spdlog::get("logger")->debug("[discord] {}", ss.str().c_str());
-    });*/
-    /*logger->debug(_("Discord on before first activity update"));
-
-    discord::Activity activity{};
-    activity.SetDetails("Launching game...");
-    activity.SetState("Black Market Edition");
-    activity.GetAssets().SetSmallImage("");
-    activity.GetAssets().SetSmallText("");
-    activity.GetAssets().SetLargeImage("titanfall_101");
-    activity.GetAssets().SetLargeText("Titanfall");
-    activity.SetType(discord::ActivityType::Playing);
-    core->ActivityManager().UpdateActivity(activity, [](discord::Result result) {
-        std::stringstream ss;
-        ss << ((result == discord::Result::Ok) ? "Succeeded" : "Failed")
-            << " updating activity!\n";
-        spdlog::get("logger")->debug("[discord] {}", ss.str().c_str());
-    });*/
-
-    core->ActivityManager().OnActivityJoin.Connect([this](const char* secret) {
+    /*core->ActivityManager().OnActivityJoin.Connect([this](const char* secret) {
         if (!IsSDKReady()) return;
         bool suc = SDK().GetPresence().joinGameWithDiscordJoinSecret((char*)secret);
         spdlog::get("logger")->info("[discord] OnActivityJoin secret:{} isSuccess:{}", secret, suc);
@@ -160,10 +82,10 @@ DiscordWrapper::DiscordWrapper(ConCommandManager& conCommandManager)
             cmd << ' ' << data.uid;
             spdlog::get("logger")->info("[discord] Joining game of origin user ID: {}", data.uid);
             SDK().GetEngineClient()->ClientCmd_Unrestricted(cmd.str().c_str());
-        }*/
-    });
+        }* /
+    });*/
 
-    core->ActivityManager().OnActivityJoinRequest.Connect([this](const discord::User& user) {
+    /*core->ActivityManager().OnActivityJoinRequest.Connect([this](const discord::User& user) {
         if (!IsSDKReady()) return;
         // Fires when a user asks to join the current user's game.
         spdlog::get("logger")->info("[discord] OnActivityJoinRequest {}{} {}", user.GetUsername(), user.GetDiscriminator(), user.GetId());
@@ -176,9 +98,12 @@ DiscordWrapper::DiscordWrapper(ConCommandManager& conCommandManager)
                 Chat::showChatLineEasy(_(" asked to join your game. You can accept this request in Discord."), 0xFFFFFFFF);
             }
         }
-    });
+    });*/
 
-    core->ActivityManager().OnActivityInvite.Connect([this](discord::ActivityActionType actionType, const discord::User& user, const discord::Activity& activity) {
+    // TODO TODO TODO:
+    // TODO TODO TODO: THIS NOT SUPPORTED BY DISCORD-RPC??????????
+    // TODO TODO TODO:
+    /*core->ActivityManager().OnActivityInvite.Connect([this](discord::ActivityActionType actionType, const discord::User& user, const discord::Activity& activity) {
         if (!IsSDKReady()) return;
         // Fires when the user receives a join or spectate invite.
         spdlog::get("logger")->info("[discord] OnActivityInvite type:{} {}{} {}", actionType, user.GetUsername(), user.GetDiscriminator(), user.GetId());
@@ -191,49 +116,85 @@ DiscordWrapper::DiscordWrapper(ConCommandManager& conCommandManager)
                 Chat::showChatLineEasy(_(" invited you to join their game. You can accept this invite in Discord."), 0xFFFFFFFF);
             }
         }
-    });
+    });*/
 
 
-    SPDLOG_LOGGER_DEBUG(logger, _("Discord on before first RunCallbacks"));
-    core->RunCallbacks();
+    SPDLOG_LOGGER_DEBUG(m_logger, _("Discord on before first RunCallbacks"));
+    Discord_RunCallbacks();
 
     std::call_once(flag_discord2, [&conCommandManager]() {
-        //conCommandManager.RegisterCommand("bme_discord_guild_invite_open", WRAPPED_MEMBER(OpenDiscordInvite), "Open Discord invite to TF Remnant Fleet", FCVAR_DONTRECORD);
+        conCommandManager.RegisterCommand("bme_discord_guild_invite_open", WRAPPED_MEMBER(OpenDiscordGuildInvite), "Open Discord invite to Harmony", FCVAR_DONTRECORD);
         conCommandManager.RegisterCommand("bme_discord_friends_invite_open", WRAPPED_MEMBER(OpenDiscordFriendsInvite), "Open Discord invite friends dialog", FCVAR_DONTRECORD);
     });
+
+    presenceUpdatePendingSince = std::chrono::system_clock::now();
+    presenceUpdatePending = false;
     
-    logger->info(_("Discord init end"));
-    
+    m_logger->info(_("Discord init end - {} ms"), std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - startTime).count());
 }
 
-DWORD WINAPI DiscordWrapper::ThreadProc(LPVOID lpThreadParameter)
+void DiscordWrapper::handleDiscordReady(const DiscordUser* connectedUser)
 {
-    return 0;
+    isDiscordReady = true;
+    m_logger->info("[discord] Connected to user: {}#{}", connectedUser->username, connectedUser->discriminator);
+    strcpy_s(user.userId, connectedUser->userId);
+    strcpy_s(user.username, connectedUser->username);
+    strcpy_s(user.discriminator, connectedUser->discriminator);
+    strcpy_s(user.avatar, connectedUser->avatar);
 }
 
-void DiscordWrapper::OpenDiscordInvite(const CCommand& args)
+void DiscordWrapper::handleDiscordDisconnected(int errcode, const char* message)
 {
-    /*if (!core) return;
-    core->OverlayManager().OpenGuildInvite("", [](discord::Result result) {
-        std::stringstream ss;
-        ss << ((result == discord::Result::Ok) ? "Succeeded" : "Failed")
-            << " opening invite!\n";
-        SPDLOG_LOGGER_DEBUG(spdlog::get("logger"), "[discord] {}", ss.str().c_str());
-    });*/
+    isDiscordReady = false;
+    m_logger->warn("[discord] disconnected {}: {}", errcode, message);
+}
+
+void DiscordWrapper::handleDiscordError(int errcode, const char* message)
+{
+    m_logger->error("[discord] {}: {}", errcode, message);
+}
+
+void DiscordWrapper::handleDiscordJoin(const char* secret)
+{
+    m_logger->info("[discord] before join = secret:{}", secret);
+    bool suc = SDK().GetPresence().joinGameWithDiscordJoinSecret((char*)secret);
+    m_logger->info("[discord] join = secret:{} isSuccess:{}", secret, suc); // OnActivityJoin
+}
+
+void DiscordWrapper::handleDiscordSpectate(const char* secret)
+{
+    m_logger->warn("[discord] spectate (not implemented): {}", secret);
+}
+
+void DiscordWrapper::handleDiscordJoinRequest(const DiscordUser* request)
+{
+    // Fires when a user asks to join the current user's game.
+    m_logger->info("[discord] OnActivityJoinRequest {}#{} ({})", request->username, request->discriminator, request->userId);
+    {
+        const char* map = SDK().GetPresence().map;
+        if (map && *map && std::strcmp(map, "mp_lobby") == 0)
+        {
+            Chat::showChatLineEasy(_("\n[Discord] "), 0xFF7289DA);
+            Chat::showChatLineEasy(request->username, 0xFFDDDDDD);
+            Chat::showChatLineEasy(_(" asked to join your game. You can accept this request in Discord."), 0xFFFFFFFF);
+        }
+    }
+    //Discord_Respond(request->userId, response); // response = DISCORD_REPLY_YES / _NO
+}
+
+void DiscordWrapper::OpenDiscordGuildInvite(const CCommand& args)
+{
+    if (!isDiscordReady) return;
+    Discord_OpenGuildInvite("VsYvaQ4UcZ");
 }
 
 void DiscordWrapper::OpenDiscordFriendsInvite(const CCommand& args)
 {
-    if (!core) return;
-    core->OverlayManager().OpenActivityInvite(discord::ActivityActionType::Join, [](discord::Result result) {
-        std::stringstream ss;
-        ss << ((result == discord::Result::Ok) ? "Succeeded" : "Failed")
-            << " opening activity invite dialog!\n";
-        SPDLOG_LOGGER_DEBUG(spdlog::get("logger"), "[discord] {}", ss.str().c_str());
-    });
+    if (!isDiscordReady) return;
+    Discord_OpenActivityInvite(DISCORD_ACTIVITY_ACTION_TYPE_JOIN);
 }
 
-void DiscordWrapper::UpdateActivity(discord::Activity activity) {
+/*void DiscordWrapper::UpdateActivity(discord::Activity activity) {
     if (!core) return;
     core->ActivityManager().UpdateActivity(activity, [activity](discord::Result result) {
         if (!IsSDKReady()) return;
@@ -253,11 +214,163 @@ void DiscordWrapper::UpdateActivity(discord::Activity activity) {
         if (bme_is_discord_joinable)
             bme_is_discord_joinable->SetValueString(isDiscordJoinable ? "1" : "0");
     });
+}*/
+
+bool DiscordWrapper::UpdatePresence(const DiscordRichPresence* presence)
+{
+    std::lock_guard<std::mutex> guard(UpdatePresenceMutex);
+
+    bool isChanged =
+        (presence->state /*&& *lastPresence.state*/ && strcmp(presence->state, lastPresence.state) != 0)
+        || (presence->details != nullptr /*&& *lastPresence.details*/ && strcmp(presence->details, lastPresence.details) != 0)
+        || presence->startTimestamp != lastPresence.startTimestamp
+        || presence->endTimestamp != lastPresence.endTimestamp
+        || (presence->largeImageKey != nullptr && strcmp(presence->largeImageKey, lastPresence.largeImageKey) != 0)
+        || (presence->largeImageText != nullptr && strcmp(presence->largeImageText, lastPresence.largeImageText) != 0)
+        || (presence->smallImageKey != nullptr && strcmp(presence->smallImageKey, lastPresence.smallImageKey) != 0)
+        || (presence->smallImageText != nullptr && strcmp(presence->smallImageText, lastPresence.smallImageText) != 0)
+        || (presence->partyId != nullptr && strcmp(presence->partyId, lastPresence.partyId) != 0)
+        || presence->partySize != lastPresence.partySize
+        || presence->partyMax != lastPresence.partyMax
+        || presence->partyPrivacy != lastPresence.partyPrivacy
+        || (presence->matchSecret != nullptr && strcmp(presence->matchSecret, lastPresence.matchSecret) != 0)
+        || (presence->joinSecret != nullptr && strcmp(presence->joinSecret, lastPresence.joinSecret) != 0)
+        || (presence->spectateSecret != nullptr && strcmp(presence->spectateSecret, lastPresence.spectateSecret) != 0)
+        || presence->instance != lastPresence.instance;
+
+
+    if (!isChanged) { SPDLOG_LOGGER_DEBUG(m_logger, "[discord] Did not update presence, because it was identical to the last one"); return false; }
+
+
+
+    if (presence->state != nullptr /*&& *presence->state*/)
+        strcpy_s(lastPresence.state, presence->state);
+    else
+        memset(lastPresence.state, 0, 128);
+
+    if (presence->details != nullptr)
+        strcpy_s(lastPresence.details, presence->details);
+    else
+        memset(lastPresence.details, 0, 128);
+
+    lastPresence.startTimestamp = presence->startTimestamp;
+
+    lastPresence.endTimestamp = presence->endTimestamp;
+
+    if (presence->largeImageKey != nullptr)
+        strcpy_s(lastPresence.largeImageKey, presence->largeImageKey);
+    else
+        memset(lastPresence.largeImageKey, 0, 32);
+
+    if (presence->largeImageText != nullptr)
+        strcpy_s(lastPresence.largeImageText, presence->largeImageText);
+    else
+        memset(lastPresence.largeImageText, 0, 128);
+
+    if (presence->smallImageKey != nullptr)
+        strcpy_s(lastPresence.smallImageKey, presence->smallImageKey);
+    else
+        memset(lastPresence.smallImageKey, 0, 32);
+
+    if (presence->smallImageText != nullptr)
+        strcpy_s(lastPresence.smallImageText, presence->smallImageText);
+    else
+        memset(lastPresence.smallImageText, 0, 128);
+
+    if (presence->partyId != nullptr)
+        strcpy_s(lastPresence.partyId, presence->partyId);
+    else
+        memset(lastPresence.partyId, 0, 128);
+
+
+
+    lastPresence.partySize = presence->partySize;
+    lastPresence.partyMax = presence->partyMax;
+    lastPresence.partyPrivacy = presence->partyPrivacy;
+    if (presence->matchSecret != nullptr)
+        strcpy_s(lastPresence.matchSecret, presence->matchSecret);
+    else
+        memset(lastPresence.matchSecret, 0, 128);
+    if (presence->joinSecret != nullptr)
+        strcpy_s(lastPresence.joinSecret, presence->joinSecret);
+    else
+        memset(lastPresence.joinSecret, 0, 128);
+    if (presence->spectateSecret != nullptr)
+        strcpy_s(lastPresence.spectateSecret, presence->spectateSecret);
+    else
+        memset(lastPresence.spectateSecret, 0, 128);
+
+    // let's debounce the update
+    presenceUpdatePendingSince = std::chrono::system_clock::now();
+    presenceUpdatePending = true;
+
+    /*DiscordRichPresence discordPresenceCopy;
+    memset(&discordPresenceCopy, 0, sizeof(discordPresenceCopy));
+    discordPresenceCopy.state = lastPresence.state;
+    discordPresenceCopy.details = lastPresence.details;
+    discordPresenceCopy.startTimestamp = lastPresence.startTimestamp;
+    discordPresenceCopy.endTimestamp = lastPresence.endTimestamp;
+    discordPresenceCopy.largeImageKey = lastPresence.largeImageKey;
+    discordPresenceCopy.largeImageText = lastPresence.largeImageText;
+    discordPresenceCopy.smallImageKey = lastPresence.smallImageKey;
+    discordPresenceCopy.smallImageText = lastPresence.smallImageText;
+    discordPresenceCopy.partyId = lastPresence.partyId;
+    discordPresenceCopy.partySize = lastPresence.partySize;
+    discordPresenceCopy.partyMax = lastPresence.partyMax;
+    discordPresenceCopy.partyPrivacy = lastPresence.partyPrivacy;
+    discordPresenceCopy.matchSecret = lastPresence.matchSecret;
+    discordPresenceCopy.joinSecret = lastPresence.joinSecret;
+    discordPresenceCopy.spectateSecret = lastPresence.spectateSecret;
+    Discord_UpdatePresence(&discordPresenceCopy);*/
+
+    return true;
+}
+
+void DiscordWrapper::UpdateDebouncedPresenceTick()
+{
+    if (presenceUpdatePending
+        && std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - presenceUpdatePendingSince).count()
+            > presenceUpdatePendingDebounceThresholdMs)
+    {
+        std::lock_guard<std::mutex> guard(UpdatePresenceMutex);
+        presenceUpdatePending = false;
+
+        DiscordRichPresence discordPresenceCopy;
+        memset(&discordPresenceCopy, 0, sizeof(discordPresenceCopy));
+        discordPresenceCopy.state = lastPresence.state;
+        discordPresenceCopy.details = lastPresence.details;
+        discordPresenceCopy.startTimestamp = lastPresence.startTimestamp;
+        discordPresenceCopy.endTimestamp = lastPresence.endTimestamp;
+        discordPresenceCopy.largeImageKey = lastPresence.largeImageKey;
+        discordPresenceCopy.largeImageText = lastPresence.largeImageText;
+        discordPresenceCopy.smallImageKey = lastPresence.smallImageKey;
+        discordPresenceCopy.smallImageText = lastPresence.smallImageText;
+        discordPresenceCopy.partyId = lastPresence.partyId;
+        discordPresenceCopy.partySize = lastPresence.partySize;
+        discordPresenceCopy.partyMax = lastPresence.partyMax;
+        discordPresenceCopy.partyPrivacy = lastPresence.partyPrivacy;
+        discordPresenceCopy.matchSecret = lastPresence.matchSecret;
+        discordPresenceCopy.joinSecret = lastPresence.joinSecret;
+        discordPresenceCopy.spectateSecret = lastPresence.spectateSecret;
+        Discord_UpdatePresence(&discordPresenceCopy);
+
+        bool isDiscordJoinable = discordPresenceCopy.joinSecret && discordPresenceCopy.joinSecret[0];
+        SDK().GetPresence().isDiscordJoinable = isDiscordJoinable;
+        static ConVar* bme_is_discord_joinable = SDK().GetVstdlibCvar()->FindVar("bme_is_discord_joinable");
+        if (bme_is_discord_joinable)
+            bme_is_discord_joinable->SetValueString(isDiscordJoinable ? "1" : "0");
+
+        m_logger->debug("[discord] Updated presence. Joinable: {}", isDiscordJoinable ? "yes" : "no");
+    }
+}
+
+void DiscordWrapper::RunCallbacks()
+{
+    Discord_RunCallbacks();
 }
 
 DiscordWrapper::~DiscordWrapper()
 {
     SPDLOG_LOGGER_DEBUG(spdlog::get(_("logger")), "DiscordWrapper destructor");
-    //currentUser.reset();
-    core.reset();
+    Discord_Shutdown();
 }
