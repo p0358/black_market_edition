@@ -29,6 +29,116 @@ bool __fastcall SVC_Print_Process_Hook(__int64 a1) // processing of received SVC
 }
 //
 
+//
+// awkward place to hook this tbh
+#define CMDSTR_ADD_EXECUTION_MARKER "[$&*,`]"
+HookedFuncStatic<__int64 __fastcall, unsigned int, __int64, int, int> Cmd_ExecuteCommand("engine.dll", 0x105240);
+__int64 __fastcall Cmd_ExecuteCommand_Hook(unsigned int a1, __int64 a2, int src, int nClientSlot)
+{
+
+    // okay so what we do here is
+    // we let the original exec and check the result and some internal conditions
+    // in order to detect if a command was supressed by FCVAR_SERVER_CAN_EXECUTE limitation.
+    // If server command execution limitation is enabled, g_iFilterCommandsByServerCanExecute is gonna be > 0 for commands
+    // that do come from server and don't have FCVAR_SERVER_CAN_EXECUTE flag.
+    // Now the function checks if it's an engine ConCommand, if it's a script command it gets passed through (VERIFY BECAUSE MAYBE NOT XD after all ret=0!!!!!!).
+    // Problem? Most cvars that server executes don't have that flag enabled, because it was never enforced in Respawn engine.
+    // So we disable the limitation for now, but keep the logging function here just in case we decide to re-enable it; it works.
+    // Now, if we wanna enable it, we should 
+
+    // Current list of registered concommands that the server may try to execute (may not be complete, but seems to be...):
+    // -remote_view
+    // stop_transition_videos_fadeout
+    // connectwithtoken
+
+    // Also in CBaseClientState::InternalProcessStringCmd there's an exemption for "Connect" command with HLTV,
+    // and there it adds the limitation execution marker otherwise. Seems to be the best place to add more command exceptions,
+    // easier than trying to apply the flag to every concommand...
+    // also, that `if (pCommand)` kind of check we do below, we should probably use it in there to check if
+    // it's a script concommand (ie not registered in engine), and in this case let it through...
+
+    auto ret = Cmd_ExecuteCommand(a1, a2, src, nClientSlot);
+    if (ret == 0) {
+        // just trying to rewind the logic from decompilation to see if command rejection reason was what we want to log
+
+        if (!*(_DWORD*)a2)
+            return ret;
+
+        const char* v9 = "";
+        if (*(int*)a2 > 0)
+            v9 = *(const CHAR**)(a2 + 1040);
+
+        static auto logger = spdlog::get("logger");
+        static auto& cmd_source = *(int*)(Util::GetModuleBaseAddress("engine.dll") + 0x2EB6AC0);
+        static auto& cmd_clientslot = *(int*)(Util::GetModuleBaseAddress("engine.dll") + 0x2EB6AC0);
+        logger->debug("[aaa] v9:{}, a2:{}, strcmp:{}, b1:{}, b2:{}, b3:{}, g:{}, h:{}, p:{}", v9, a2, strcmp(v9, CMDSTR_ADD_EXECUTION_MARKER),
+            cmd_source != src, cmd_clientslot != nClientSlot, cmd_source != src || cmd_clientslot != nClientSlot,
+            *(int*)(Util::GetModuleBaseAddress("engine.dll") + 0x2EB6AC4),
+            ((bool(*)())(Util::GetModuleBaseAddress("engine.dll") + 0x130400))(),
+            (*(__int64(__fastcall**)(__int64, const CHAR*))(*(_QWORD*)(*(__int64*)(Util::GetModuleBaseAddress("engine.dll") + 0x318A638)) + 112i64))(*(__int64*)(Util::GetModuleBaseAddress("engine.dll") + 0x318A638), v9)
+            //,!(*(unsigned __int8(__fastcall**)(__int64, __int64))(*(_QWORD*)((*(__int64(__fastcall**)(__int64, const CHAR*))(*(_QWORD*)(*(__int64*)(Util::GetModuleBaseAddress("engine.dll") + 0x318A638)) + 112i64))(*(__int64*)(Util::GetModuleBaseAddress("engine.dll") + 0x318A638), v9)) + 16i64))((*(__int64(__fastcall**)(__int64, const CHAR*))(*(_QWORD*)(*(__int64*)(Util::GetModuleBaseAddress("engine.dll") + 0x318A638)) + 112i64))(*(__int64*)(Util::GetModuleBaseAddress("engine.dll") + 0x318A638), v9), 0x10000000i64)
+            );
+
+        if (strcmp(v9, CMDSTR_ADD_EXECUTION_MARKER) == 0)
+        {
+            if (*(_DWORD*)a2 != 3)
+                logger->warn("WARNING: INVALID EXECUTION MARKER.");
+            return ret;
+        }
+
+        //static auto& cmd_source = *(int*)(Util::GetModuleBaseAddress("engine.dll") + 0x2EB6AC0);
+        //static auto& cmd_clientslot = *(int*)(Util::GetModuleBaseAddress("engine.dll") + 0x2EB6AC0);
+        if (cmd_source != src /* || cmd_clientslot != nClientSlot*/)
+            return ret;
+
+        //logger->warn("Cmd_ExecuteCommand failed executing command: {}", v9);
+        static auto& g_pCVar = *(__int64*)(Util::GetModuleBaseAddress("engine.dll") + 0x318A638);
+        auto pCommand = (*(__int64(__fastcall**)(__int64, const CHAR*))(*(_QWORD*)g_pCVar + 112i64))(g_pCVar, v9);// const ConCommandBase *pCommand = g_pCVar->FindCommandBase( command[ 0 ] );
+        static auto& g_iFilterCommandsByServerCanExecute = *(int*)(Util::GetModuleBaseAddress("engine.dll") + 0x2EB6AC4);
+        static auto Host_IsSinglePlayerGame = (bool(*)())(Util::GetModuleBaseAddress("engine.dll") + 0x130400);
+        if (!Host_IsSinglePlayerGame() && g_iFilterCommandsByServerCanExecute > 0 && pCommand)
+        {
+            if (!(*(unsigned __int8(__fastcall**)(__int64, __int64))(*(_QWORD*)pCommand + 16i64))(pCommand, 0x10000000i64))// !pCommand->IsFlagSet( FCVAR_SERVER_CAN_EXECUTE )
+                logger->warn("FCVAR_SERVER_CAN_EXECUTE prevented server running command: {} (src:{})", v9, src); // v9 is not pCommand->GetName, but maybe it'll do...
+        }
+    }
+    return ret;
+}
+//
+
+//
+HookedFuncStatic<bool __fastcall, __int64, __int64, bool> CBaseClientState_InternalProcessStringCmd("engine.dll", 0x22DD0);
+bool __fastcall CBaseClientState__InternalProcessStringCmd_Hook(__int64 thisptr, __int64 msg, bool bIsHLTV) {
+    //signed int v10[260];
+    //unsigned __int8* v11 = nullptr;
+
+    auto ret = CBaseClientState_InternalProcessStringCmd(thisptr, msg, bIsHLTV);
+
+    /*static auto& g_pCVar = *(__int64*)(Util::GetModuleBaseAddress("engine.dll") + 0x318A638);
+    static auto& m_State_dword_182966168 = *(int*)(Util::GetModuleBaseAddress("engine.dll") + 0x2966168);
+    if (m_State_dword_182966168 >= 2) return true; // ignore for listenserver
+
+    static auto CCommand_constructor = (__int64(__fastcall *)(__int64))(Util::GetModuleBaseAddress("engine.dll") + 0x4806B0);
+    static auto CCommand_Tokenize = (char(__fastcall *)(signed int*, const void*))(Util::GetModuleBaseAddress("engine.dll") + 0x4812D0);
+    CCommand_constructor((__int64)v10);
+    CCommand_Tokenize(v10, *(const void**)(msg + 32));
+    auto argc = v10[0];*/
+
+    auto fullStr = *(const char**)(msg + 32);
+    /*auto pCommand = (*(__int64(__fastcall**)(__int64, const CHAR*))(*(_QWORD*)g_pCVar + 112i64))(g_pCVar, (const char*)v11);
+    auto isRestricted = pCommand && !(*(unsigned __int8(__fastcall**)(__int64, __int64))(*(_QWORD*)pCommand + 16i64))(pCommand, 0x10000000i64);*/
+    static auto logger = spdlog::get("logger");
+
+    /*if (isRestricted)
+        logger->warn("[StringCmd] {} (no FCVAR_SERVER_CAN_EXECUTE)", fullStr);
+    else*/
+        logger->info("[StringCmd] {}", fullStr);
+    
+
+    return ret;
+}
+//
+
 SourceConsole::SourceConsole(ConCommandManager& conCommandManager, spdlog::level::level_enum level) :
     //m_gameConsole(_("client.dll"), _("GameConsole004"))
     m_gameConsole("client.dll", "GameConsole004")
@@ -46,6 +156,8 @@ SourceConsole::SourceConsole(ConCommandManager& conCommandManager, spdlog::level
     conCommandManager.RegisterCommand("clear", WRAPPED_MEMBER(ClearConsoleCommand), "Clears the console", 0);
 
     SVC_Print_Process.Hook(SVC_Print_Process_Hook);
+    //Cmd_ExecuteCommand.Hook(Cmd_ExecuteCommand_Hook); // disable for now
+    CBaseClientState_InternalProcessStringCmd.Hook(CBaseClientState__InternalProcessStringCmd_Hook);
 }
 
 void SourceConsole::InitializeSource()

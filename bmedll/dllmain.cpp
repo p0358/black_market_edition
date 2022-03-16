@@ -121,10 +121,24 @@ char __fastcall CSourceAppSystemGroup_PreInit(__int64 a1) //
     return res;
 }
 
+typedef __int64(__fastcall* sub_1802C4220_type)(int a1);
+sub_1802C4220_type sub_1802C4220_org;
+__int64 __fastcall sub_1802C4220(int a1)
+{
+ 
+    static auto sub_1800E8E80 = (__int64(__fastcall*)(int))(Util::GetModuleBaseAddress("client.dll") + 0xE8E80);
+    __int64 v1 = sub_1800E8E80(a1);
+    if (!v1) return 0; // lack of this check was crashing in original game!!!
+    return (*(__int64(__fastcall**)(__int64))(*(_QWORD*)v1 + 1664i64))(v1);
+}
+
 void DoMiscHooks()
 {
     DWORD64 launcherdllBaseAddress = Util::GetModuleBaseAddress("launcher.org.dll");
+    if (!launcherdllBaseAddress) launcherdllBaseAddress = Util::GetModuleBaseAddress("launcher.dll");
+    DWORD64 clientdllBaseAddress = Util::GetModuleBaseAddress("client.dll");
     CreateMiscHook(launcherdllBaseAddress, 0x6B8E0, &CSourceAppSystemGroup_PreInit, reinterpret_cast<LPVOID*>(&CSourceAppSystemGroup_PreInit_org));
+    CreateMiscHook(clientdllBaseAddress, 0x2C4220, &sub_1802C4220, reinterpret_cast<LPVOID*>(&sub_1802C4220_org));
 }
 
 void DoBinaryPatches()
@@ -179,6 +193,18 @@ void DoBinaryPatches()
         TempReadWrite rw(ptr);
         *((bool*)ptr) = true;
     }
+
+    // disabled for now, see comment in SourceConsole.cpp in Cmd_ExecuteCommand_Hook
+    /*if (!strstr(GetCommandLineA(), "-norestrictservercommands"))
+    {
+        // default is m_bRestrictServerCommands=true, don't let it be set to false
+        // this is the easiest way that at the same time allows m_bRestrictClientCommands to be false
+        void* ptr = (void*)(Util::GetModuleBaseAddress(_("engine.dll")) + 0x19C516);
+        TempReadWrite rw(ptr);
+        memset(ptr, 0x90, 0x19C523 - 0x19C516);
+    }*/
+    // engine.dll+797070+193C4 = restrict server commands bool
+    // engine.dll+797070+193C5 = restrict client commands bool
 }
 
 void CreateTier0MemAlloc()
