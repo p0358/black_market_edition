@@ -132,13 +132,28 @@ __int64 __fastcall sub_1802C4220(int a1)
     return (*(__int64(__fastcall**)(__int64))(*(_QWORD*)v1 + 1664i64))(v1);
 }
 
+typedef bool(__fastcall* Base_CmdKeyValues_ReadFromBuffer_type)(__int64, __int64);
+Base_CmdKeyValues_ReadFromBuffer_type Base_CmdKeyValues_ReadFromBuffer_org;
+bool __fastcall Base_CmdKeyValues_ReadFromBuffer(__int64 a1, __int64 a2)
+{
+    // what's wrong with CLC_CmdKeyValues and SVC_CmdKeyValues?
+    // - unchecked bounds
+    // - "OnPlayerAward" gets forwarded to everyone
+    // - this is a Portal leftover that doesn't seem to ever get used by Titanfall
+    auto logger = spdlog::get("logger");
+    if (logger) logger->warn("Base_CmdKeyValues::ReadFromBuffer was called. This network message should never be used.");
+    return false; // always block this message and drop the packet by returning false
+}
+
 void DoMiscHooks()
 {
     DWORD64 launcherdllBaseAddress = Util::GetModuleBaseAddress("launcher.org.dll");
     if (!launcherdllBaseAddress) launcherdllBaseAddress = Util::GetModuleBaseAddress("launcher.dll");
     DWORD64 clientdllBaseAddress = Util::GetModuleBaseAddress("client.dll");
+    DWORD64 enginedllBaseAddress = Util::GetModuleBaseAddress("engine.dll");
     CreateMiscHook(launcherdllBaseAddress, 0x6B8E0, &CSourceAppSystemGroup_PreInit, reinterpret_cast<LPVOID*>(&CSourceAppSystemGroup_PreInit_org));
     CreateMiscHook(clientdllBaseAddress, 0x2C4220, &sub_1802C4220, reinterpret_cast<LPVOID*>(&sub_1802C4220_org));
+    CreateMiscHook(enginedllBaseAddress, 0x203250, &Base_CmdKeyValues_ReadFromBuffer, reinterpret_cast<LPVOID*>(&Base_CmdKeyValues_ReadFromBuffer_org));
 }
 
 void DoBinaryPatches()
