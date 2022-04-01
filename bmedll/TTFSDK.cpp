@@ -35,6 +35,7 @@ bool IsSDKReady()
 //HookedSigScanFunc<void, double, float> _Host_RunFrame("engine.dll", "\x48\x8B\xC4\x48\x89\x58\x10\x48\x89\x68\x18\x48\x89\x70\x20\xF3\x0F\x11\x40\x08", "xxxxxx??????????xxx?");
 HookedFuncStatic<void __fastcall, __int64, double> CHostState_State_Run("engine.dll", 0x14B300);
 HookedFuncStatic<void> HostState_Shutdown("engine.dll", 0x14B810);
+HookedFuncStatic<void __fastcall, double> getMotd("engine.dll", 0x1B340);
 
 void test(const CCommand& args)
 {
@@ -137,12 +138,39 @@ void HostState_Shutdown_Hook() {
     ////FreeSDK();
     //HostState_Shutdown.Unhook();
     //func();
+    if (&g_SDK->GetDiscord() != nullptr)
+        Discord_Shutdown();
     HostState_Shutdown();
     //MH_Uninitialize();
     //TerminateProcess(GetCurrentProcess(), 0);
     FreeSDK();
     MH_DisableHook(MH_ALL_HOOKS);
     sentry_close();
+}
+
+void __fastcall getMotd_Hook(double a1)
+{
+    if (!IsSDKReady())
+    {
+        getMotd(a1);
+        return;
+    }
+    static auto qword_18210FEA8 = *(uint64_t*)(Util::GetModuleBaseAddress("engine.dll") + 0x210FEA8);
+    static auto& staticfile_hostname = *(const char**)(qword_18210FEA8 + 72);
+
+    static std::string game_s3_url{ "bme.titanfall.top/backend/game_s3.php/ver=" BME_VERSION "/chan=" };
+    static bool firstTimeCalled = true;
+    if (firstTimeCalled)
+    {
+        game_s3_url += GetBMEChannel();
+        game_s3_url += "/";
+        firstTimeCalled = false;
+    }
+
+    auto staticfile_hostname_old = staticfile_hostname;
+    staticfile_hostname = game_s3_url.c_str();
+    getMotd(a1);
+    staticfile_hostname = staticfile_hostname_old;
 }
 
 extern void AntiEventCrash_Setup();
@@ -219,7 +247,7 @@ TTFSDK::TTFSDK() :
 
     this->origin = (TFOrigin*)(Util::GetModuleBaseAddress(_("engine.dll")) + 0x2ECB770);
 
-    {
+    /*{
         std::string game_s3_url{ _("bme.titanfall.top/backend/game_s3.php/ver=") };
         game_s3_url += BME_VERSION;
         game_s3_url += _("/chan=");
@@ -230,6 +258,10 @@ TTFSDK::TTFSDK() :
         //ConVar* staticfile_hostname = m_vstdlibCvar->FindVar("staticfile_hostname");
         //staticfile_hostname->SetValueString(game_s3_url.c_str());
         m_engineClient->ClientCmd_Unrestricted(cmd.c_str());
+    }*/
+    if (!strstr(GetCommandLineA(), "-bmeoffline"))
+    {
+        getMotd.Hook(getMotd_Hook);
     }
 
     AntiEventCrash_Setup();
@@ -325,7 +357,7 @@ void __fastcall TTFSDK::RunFrameHook(__int64 a1, double frameTime)
         m_sourceConsole->InitializeSource();
 
         {
-            std::string game_s3_url{ _("bme.titanfall.top/backend/game_s3.php/ver=") };
+            /*std::string game_s3_url{_("bme.titanfall.top/backend/game_s3.php/ver=")};
             game_s3_url += BME_VERSION;
             game_s3_url += _("/chan=");
             game_s3_url += GetBMEChannel();
@@ -337,8 +369,9 @@ void __fastcall TTFSDK::RunFrameHook(__int64 a1, double frameTime)
             m_engineClient->ClientCmd_Unrestricted(cmd.c_str());
             if (!Updater::pendingUpdateLaunch)
                 m_engineClient->ClientCmd_Unrestricted("getmotd");
-            else
-                m_engineClient->ClientCmd_Unrestricted("motd \"Black Market Edition update is pending! The installer will be run after you exit your game.\"");
+            else*/
+            if (Updater::pendingUpdateLaunch)
+                m_engineClient->ClientCmd_Unrestricted("motd \"Black Market Edition update is pending! The installer will be started after you exit your game.\"");
         }
 
 #if 0
@@ -599,7 +632,8 @@ bool SetupSDK()
     // Separate try catch because these are required for logging to work
     //if (!SetupLogger()) return false;
 
-    Updater::CheckForUpdates();
+    if (!strstr(GetCommandLineA(), "-bmenoupdates") && !strstr(GetCommandLineA(), "-bmeoffline"))
+        Updater::CheckForUpdates();
 
     try
     {

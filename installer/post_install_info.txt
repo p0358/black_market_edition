@@ -1,4 +1,5 @@
 Thank you for installing Black Market Edition!
 
 Open Titanfall as you normally do and enjoy!
-The mod will automatically update when you start the game, once any updates are available.
+
+The mod will automatically check for updates when you start the game, once any updates are available (you can disable it with -bmenoupdates or -bmeoffline command line switches if you wish).

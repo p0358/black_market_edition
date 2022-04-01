@@ -96,7 +96,7 @@ bool SetupCrashHandler(std::wstring BasePath)
     sentry_options_set_debug(options, 1);
 #endif
 
-    if (strstr(GetCommandLineA(), "-crashhandlernoupload"))
+    if (strstr(GetCommandLineA(), "-crashhandlernoupload") || strstr(GetCommandLineA(), "-bmeoffline"))
     {
         sentry_options_set_sample_rate(options, 0.0);
         sentry_options_set_traces_sample_rate(options, 0.0);

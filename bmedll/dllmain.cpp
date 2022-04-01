@@ -145,6 +145,13 @@ bool __fastcall Base_CmdKeyValues_ReadFromBuffer(__int64 a1, __int64 a2)
     return false; // always block this message and drop the packet by returning false
 }
 
+// in theory the below should work, in practice it causes some language field to be empty somewhere and cause "file corruption" error message...
+/*typedef char* (__fastcall* filterLanguage_type)(const char*, char*, size_t);
+filterLanguage_type filterLanguage_engine_org;
+filterLanguage_type filterLanguage_client_org;
+char* __fastcall filterLanguage_engine(const char* Src, char* Dst, size_t Size) { strncpy_s(Dst, 64, Src, Size); return Dst; }
+char* __fastcall filterLanguage_client(const char* Src, char* Dst, size_t Size) { strncpy_s(Dst, 64, Src, Size); return Dst; }*/
+
 void DoMiscHooks()
 {
     DWORD64 launcherdllBaseAddress = Util::GetModuleBaseAddress("launcher.org.dll");
@@ -154,6 +161,8 @@ void DoMiscHooks()
     CreateMiscHook(launcherdllBaseAddress, 0x6B8E0, &CSourceAppSystemGroup_PreInit, reinterpret_cast<LPVOID*>(&CSourceAppSystemGroup_PreInit_org));
     CreateMiscHook(clientdllBaseAddress, 0x2C4220, &sub_1802C4220, reinterpret_cast<LPVOID*>(&sub_1802C4220_org));
     CreateMiscHook(enginedllBaseAddress, 0x203250, &Base_CmdKeyValues_ReadFromBuffer, reinterpret_cast<LPVOID*>(&Base_CmdKeyValues_ReadFromBuffer_org));
+    //CreateMiscHook(enginedllBaseAddress, 0x489050, &filterLanguage_engine, reinterpret_cast<LPVOID*>(&filterLanguage_engine_org));
+    //CreateMiscHook(clientdllBaseAddress, 0x67D6D0, &filterLanguage_client, reinterpret_cast<LPVOID*>(&filterLanguage_client_org));
 }
 
 void DoBinaryPatches()
@@ -207,6 +216,11 @@ void DoBinaryPatches()
         void* ptr = (void*)(Util::GetModuleBaseAddress(_("engine.dll")) + 0x229155A);
         TempReadWrite rw(ptr);
         *((bool*)ptr) = true;
+    }
+    { // retn here so we don't break the above accidentally
+        void* ptr = (void*)(Util::GetModuleBaseAddress(_("engine.dll")) + 0x57740);
+        TempReadWrite rw(ptr);
+        *((unsigned char*)ptr) = 0xC3;
     }
 
     // disabled for now, see comment in SourceConsole.cpp in Cmd_ExecuteCommand_Hook

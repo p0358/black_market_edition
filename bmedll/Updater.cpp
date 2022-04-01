@@ -39,6 +39,7 @@ namespace Updater {
             curl_mime_data(field, GetBMEChannel().c_str(), CURL_ZERO_TERMINATED);
 
             curl_easy_setopt(curl, CURLOPT_URL, "https://bme.titanfall.top/backend/update_check.php");
+            curl_easy_setopt(curl, CURLOPT_USERAGENT, "BME/" BME_VERSION);
             curl_easy_setopt(curl, CURLOPT_MIMEPOST, form);
             curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
             curl_easy_setopt(curl, CURLOPT_WRITEDATA, &readBuffer);

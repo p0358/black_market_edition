@@ -49,6 +49,7 @@ const char* Presence::getDisplayMapName(const char* map)
     else if (std::strcmp(map, "mp_zone_18") == 0) return "Zone 18";
     else if (std::strcmp(map, "mp_airbase") == 0) return "Airbase";
     else if (std::strcmp(map, "mp_boneyard") == 0) return "Boneyard";
+    else if (std::strcmp(map, "mp_rise") == 0) return "Rise";
     //else return std::string(map).substr(3, strlen(map) - 3).c_str();
     else return map + 3;
 }
