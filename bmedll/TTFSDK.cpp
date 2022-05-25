@@ -269,61 +269,17 @@ TTFSDK::TTFSDK() :
 }
 
 
-FileSystemManager& TTFSDK::GetFSManager()
-{
-    return *m_fsManager;
-}
-
-ConCommandManager& TTFSDK::GetConCommandManager()
-{
-    return *m_conCommandManager;
-}
-
-SquirrelManager& TTFSDK::GetSQManager()
-{
-    return *m_sqManager;
-}
-
-UIManager& TTFSDK::GetUIManager()
-{
-    return *m_uiManager;
-}
-
-SourceConsole& TTFSDK::GetSourceConsole()
-{
-    return *m_sourceConsole;
-}
-
-BMEGUI& TTFSDK::GetBMEGUI()
-{
-    return *m_bmegui;
-
-}
-
-DiscordWrapper& TTFSDK::GetDiscord()
-{
-    return *m_discord;
-}
-
-Presence& TTFSDK::GetPresence()
-{
-    return *m_presence;
-}
-
-SourceInterface<IVEngineClient>& TTFSDK::GetEngineClient()
-{
-    return m_engineClient;
-}
-
-SourceInterface<ICvar>& TTFSDK::GetVstdlibCvar()
-{
-    return m_vstdlibCvar;
-}
-
-SourceInterface<IInputSystem>& TTFSDK::GetInputSystem()
-{
-    return m_inputSystem;
-}
+FileSystemManager& TTFSDK::GetFSManager() { return *m_fsManager; }
+ConCommandManager& TTFSDK::GetConCommandManager() { return *m_conCommandManager; }
+SquirrelManager& TTFSDK::GetSQManager() { return *m_sqManager; }
+UIManager& TTFSDK::GetUIManager() { return *m_uiManager; }
+SourceConsole& TTFSDK::GetSourceConsole() { return *m_sourceConsole; }
+BMEGUI& TTFSDK::GetBMEGUI() { return *m_bmegui; }
+DiscordWrapper& TTFSDK::GetDiscord() { return *m_discord; }
+Presence& TTFSDK::GetPresence() {return *m_presence; }
+SourceInterface<IVEngineClient>& TTFSDK::GetEngineClient() { return m_engineClient; }
+SourceInterface<ICvar>& TTFSDK::GetVstdlibCvar() { return m_vstdlibCvar; }
+SourceInterface<IInputSystem>& TTFSDK::GetInputSystem() { return m_inputSystem; }
 
 //void TTFSDK::RunFrameHook(double absTime, float frameTime)
 void __fastcall TTFSDK::RunFrameHook(__int64 a1, double frameTime)
@@ -491,7 +447,7 @@ void TTFSDK::ReinitDiscord()
 
 TTFSDK::~TTFSDK()
 {
-    SPDLOG_LOGGER_DEBUG(spdlog::get(_("logger")), "TTFSDK destructor");
+    SPDLOG_DEBUG("TTFSDK destructor");
     // TODO: Reorder these
     //m_sqManager.reset();
     m_presence.reset();
@@ -504,14 +460,14 @@ TTFSDK::~TTFSDK()
     //m_pakManager.reset();
     //m_modManager.reset();
     // TODO: Add anything i've missed here
-    SPDLOG_LOGGER_DEBUG(spdlog::get(_("logger")), "TTFSDK destructor finishing");
+    SPDLOG_DEBUG("TTFSDK destructor finishing");
     //_Host_RunFrame.Unhook();
     CHostState_State_Run.Unhook();
 
     //MH_Uninitialize();
 
     curl_global_cleanup();
-    SPDLOG_LOGGER_DEBUG(spdlog::get(_("logger")), "TTFSDK destructor finished");
+    SPDLOG_DEBUG("TTFSDK destructor finished");
 }
 
 class flushed_file_sink_mt : public spdlog::sinks::sink
@@ -584,6 +540,7 @@ void SetupLoggerInternal(const std::string& filename, bool enableWindowsConsole)
     }
 
     spdlog::register_logger(logger);
+    spdlog::set_default_logger(logger);
 }
 
 bool SetupLogger()
@@ -677,8 +634,10 @@ bool SetupSDK()
     catch (std::exception& ex)
     {
         std::string message = fmt::format("Failed to initialise Black Market Edition: {}", ex.what());
+        MessageBoxA(NULL, message.c_str(), "Error", MB_OK | MB_ICONERROR);
         spdlog::get(_("logger"))->critical(message);
-        MessageBox(NULL, Util::Widen(message).c_str(), L"Error", MB_OK | MB_ICONERROR);
+        //MessageBox(NULL, Util::Widen(message).c_str(), L"Error", MB_OK | MB_ICONERROR);
+        throw;
         return false;
     }
 }

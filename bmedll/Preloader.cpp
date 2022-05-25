@@ -1,4 +1,5 @@
 #include "Util.h"
+#include "tier0.h"
 
 size_t writeFunction(void* ptr, size_t size, size_t nmemb, std::string* data) {
     data->append((char*)ptr, size * nmemb);
@@ -167,6 +168,9 @@ DWORD WINAPI precachePdef(PVOID pThreadParameter) {
 
 void StartPreloading()
 {
-    CreateThread(0, 0, precachePlaylists, 0, 0, NULL);
-    CreateThread(0, 0, precachePdef, 0, 0, NULL);
+    if (!CommandLine()->CheckParm("-nopreload"))
+    {
+        CreateThread(0, 0, precachePlaylists, 0, 0, NULL);
+        CreateThread(0, 0, precachePdef, 0, 0, NULL);
+    }
 }

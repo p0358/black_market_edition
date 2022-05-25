@@ -41,7 +41,7 @@ __int64 __fastcall GameEvent_Process_Hook(__int64 thisptr) {
         //static auto buf_seektobit = (buf_seektobit_t)signature::find_pattern("engine", "48 89 5C 24 ? 4C 8B D2");
         buf_seektobit(chanbuf, datain_written);// FIXING YAY!!!
 
-        // TODO: check if this doesn't get shown multiple times
+        // TODO: check if this doesn't get shown multiple times (it does)
         if (*SDK().GetPresence().isConnectedAndInLobby == 1)
         {
             Chat::showChatLineEasy("\n[BME] ", 0xFFFF00FF);
@@ -51,6 +51,7 @@ __int64 __fastcall GameEvent_Process_Hook(__int64 thisptr) {
         {
             // TODO: obituary print
         }
+        spdlog::info("[BME] A crash was prevented.");
     }
 
     return ret;
@@ -61,7 +62,10 @@ char __fastcall ProcessMessages_Hook(__int64 thisptr, __int64 buf, __int64 a3, _
 
     global_msg_buf = buf;
 
-    return ProcessMessages(thisptr, buf, a3, a4);
+    auto ret = ProcessMessages(thisptr, buf, a3, a4);
+
+    if (!ret) spdlog::get("logger")->warn("[CNetChan::ProcessMessages] failure");
+    return ret;
 }
 
 void AntiEventCrash_Setup()

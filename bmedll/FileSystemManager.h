@@ -23,7 +23,7 @@ private:
     bool m_blockingRemoveAllMapSearchPaths;
 
     void CacheMapVPKs();
-    bool ShouldReplaceFile(const std::string& path);
+    bool ShouldReplaceFile(const std::string_view& path);
 
 public:
     FileSystemManager(const std::string& basePath, ConCommandManager& conCommandManager);

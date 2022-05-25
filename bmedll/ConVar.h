@@ -15,6 +15,23 @@ public:
 	{
 		return *(const char**)((size_t)this + 72);
 	}
+	unsigned int GetInt()
+	{
+		return *(unsigned int*)((size_t)this + 92);
+	}
+
+	const char** GetStringPtr()
+	{
+		return (const char**)((size_t)this + 72);
+	}
+	unsigned int* GetIntPtr()
+	{
+		return (unsigned int*)((size_t)this + 92);
+	}
+	unsigned int& GetIntRef()
+	{
+		return *(unsigned int*)((size_t)this + 92);
+	}
 };
 
 class ConVar2

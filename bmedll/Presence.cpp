@@ -50,6 +50,7 @@ const char* Presence::getDisplayMapName(const char* map)
     else if (std::strcmp(map, "mp_airbase") == 0) return "Airbase";
     else if (std::strcmp(map, "mp_boneyard") == 0) return "Boneyard";
     else if (std::strcmp(map, "mp_rise") == 0) return "Rise";
+    else if (std::strcmp(map, "mp_training_ground") == 0) return "Training Ground";
     //else return std::string(map).substr(3, strlen(map) - 3).c_str();
     else return map + 3;
 }
@@ -420,7 +421,13 @@ std::string Presence::getJoinSecret()
     std::stringstream ss;
     //ss << sessionIDBufferInGame;
     ss << presenceBuffer;
-    ss << "|" << SDK().origin->uid;
+    static auto uid = SDK().origin->uid;
+    if (!uid)
+    {
+        auto* platform_user_id = SDK().GetVstdlibCvar()->FindVar("platform_user_id");
+        uid = std::stoull(platform_user_id->GetString());
+    }
+    ss << "|" << uid;
     return ss.str();
 }
 

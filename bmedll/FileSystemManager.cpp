@@ -15,7 +15,7 @@
 
 #ifdef READ_FROM_BSP
 #include "FilesystemContents.h"
-std::set<std::string> fileSystemContentsSet{ FILES_COMMA_SEPARATED };
+std::unordered_set<std::string> fileSystemContentsSet{ FILES_COMMA_SEPARATED };
 //std::set<std::string> fileSystemContentsBlockedFromCacheSet{};
 #endif
 
@@ -301,7 +301,7 @@ FileHandle_t FileSystemManager::ReadFileFromVPKHook(VPKData* vpkInfo, __int32* b
     FileHandle_t result = ReadFileFromVPK(vpkInfo, b, filename);
     /////SPDLOG_LOGGER_TRACE(m_logger, "ReadFileFromVPK: vpk = {}, file = {}, result = {}", vpkInfo->path, filename, *b);
 
-    if (*b != -1)
+    /*if (*b != -1)
     {
         std::string strVPK(vpkInfo->path);
         std::smatch m;
@@ -310,7 +310,7 @@ FileHandle_t FileSystemManager::ReadFileFromVPKHook(VPKData* vpkInfo, __int32* b
         {
             m_lastMapReadFrom = m[1];
         }
-    }
+    }*/
 
     return result;
 }
@@ -422,7 +422,7 @@ std::string FileSystemManager::ReadOriginalFile(const char* path, const char* pa
     return ss.str();
 }
 
-bool FileSystemManager::ShouldReplaceFile(const std::string& path)
+bool FileSystemManager::ShouldReplaceFile(const std::string_view& path)
 {
     //return false;
     if (m_requestingOriginalFile)
@@ -431,7 +431,9 @@ bool FileSystemManager::ShouldReplaceFile(const std::string& path)
     }
 
 #ifdef READ_FROM_BSP
-    char* p = (char*)path.c_str();
+    //char* p = (char*)path.data();
+    std::string copy{ path };
+    char* p = (char*)copy.c_str();
     Util::FixSlashes(p, '/');
     if (fileSystemContentsSet.find(p) != fileSystemContentsSet.end())
         return true;

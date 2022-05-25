@@ -111,4 +111,5 @@ namespace Util
     std::vector<std::string> Split(const std::string& s, char delim);
     std::string RemoveChar(std::string str, char c);
     std::string GetLastErrorAsString();
+    std::string vformat(const char* format, va_list args);
 }

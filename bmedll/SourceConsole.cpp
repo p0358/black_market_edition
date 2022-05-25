@@ -252,6 +252,7 @@ SourceConsoleSink::SourceConsoleSink(SourceConsole* console)
 
 void SourceConsoleSink::sink_it_(const spdlog::details::log_msg& msg)
 {
+    if (!IsSDKReady()) return;
     //fmt::memory_buf_t formatted;
     /*spdlog::memory_buf_t formatted;
     base_sink::formatter_->format(msg, formatted);
