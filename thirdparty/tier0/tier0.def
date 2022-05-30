@@ -29,6 +29,7 @@ MemFreeScratch
 Msg
 Plat_Alloc
 Plat_Free
+Plat_FloatTime
 Plat_MSTime
 Plat_Realloc
 Plat_SetToolMode

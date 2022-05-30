@@ -40,6 +40,18 @@ class ConVar2
 	unsigned char               unknown[0x90];
 };
 
+class ConVarRef
+{
+public:
+	ConVar* cvar;
+	ConVarRef(const char* name);
+	~ConVarRef() = default;
+	ConVar* operator->()
+	{
+		return cvar;
+	}
+};
+
 
 
 //-----------------------------------------------------------------------------

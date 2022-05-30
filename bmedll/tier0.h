@@ -46,6 +46,7 @@ extern "C"
     bool ThreadInMainThread();
 	ICommandLine* CommandLine();
 	__int64 Error(const char* psz, ...);
+	double Plat_FloatTime();
 }
 
 /*HMODULE hTier0Module;

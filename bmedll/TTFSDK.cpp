@@ -625,6 +625,7 @@ bool SetupSDK()
 
         SPDLOG_LOGGER_DEBUG(spdlog::get(_("logger")), _("Before actual SDK init."));
         g_SDK = std::make_unique<TTFSDK>();
+        extern void HitchAlert_Setup(); HitchAlert_Setup();
         g_isSDKInitialized = true;
         SPDLOG_LOGGER_DEBUG(spdlog::get(_("logger")), _("After actual SDK init."));
 

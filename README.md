@@ -32,6 +32,7 @@ Installers are built with Inno Setup using scripts from installer/ folder and th
 * see raw mouse sensivity value in mouse/keyboard settings
 * start private matches alone by yourself
 * see who's in a party with whom in public matchmaking
+* hitch alerts to indicate various connection problems analogous to what Titanfall 2 and Apex have
 
 ### Known bugs
 

@@ -65,3 +65,10 @@ ConCommandManager::~ConCommandManager()
     if (!g_isShuttingDown)
         UnregisterAllCommands();
 }
+
+ConVarRef::ConVarRef(const char* name)
+{
+    cvar = SDK().GetVstdlibCvar()->FindVar(name);
+    if (!cvar)
+        spdlog::error("ConVarRef {} does not point to an existing cvar", name);
+}

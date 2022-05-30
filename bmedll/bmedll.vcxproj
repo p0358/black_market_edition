@@ -219,6 +219,7 @@
     <ClInclude Include="ISurface.h" />
     <ClInclude Include="IVEngineClient.h" />
     <ClInclude Include="Memory.h" />
+    <ClInclude Include="MemoryAddress.h" />
     <ClInclude Include="ModuleScan.h" />
     <ClInclude Include="Origin.h" />
     <ClInclude Include="pch.h" />
@@ -251,6 +252,7 @@
     <ClCompile Include="Discord.cpp" />
     <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="FileSystemManager.cpp" />
+    <ClCompile Include="HitchAlert.cpp" />
     <ClCompile Include="Memory.cpp" />
     <ClCompile Include="ModuleScan.cpp" />
     <ClCompile Include="pch.cpp">
