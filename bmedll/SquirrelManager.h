@@ -204,7 +204,7 @@ struct SQFuncRegistrationInternal {
 	const char* argNamesText; //0x0030 
 
 	__int64 UnkSeemsToAlwaysBe32; //0x0038 
-	char pad_0x0040[0x28]; //0x0040 // CUtlVector of parameter types, can't be arsed to reverse this
+	char pad_0x0040[0x20]; //0x0040 // CUtlVector of parameter types, can't be arsed to reverse this
 	void* pfnBinding; //0x0068 
 	void* pFunction; //0x0070 
 	__int64 flags; //0x0078 // if it's 2, then the CUtlVector mentioned above will not be used
