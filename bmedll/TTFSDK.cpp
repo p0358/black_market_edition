@@ -145,7 +145,9 @@ void HostState_Shutdown_Hook() {
     //TerminateProcess(GetCurrentProcess(), 0);
     FreeSDK();
     MH_DisableHook(MH_ALL_HOOKS);
+#ifdef NDEBUG
     sentry_close();
+#endif
 }
 
 void __fastcall getMotd_Hook(double a1)
@@ -344,6 +346,8 @@ void __fastcall TTFSDK::RunFrameHook(__int64 a1, double frameTime)
             *((float*)ptr) = 2.5f;
         }
 #endif
+        auto* net_showdrop = SDK().GetVstdlibCvar()->FindVar("net_showdrop");
+        *(int*)((uint64_t)net_showdrop + 40) &= ~FCVAR_DEVELOPMENTONLY;
 
         {
             extern void StartPreloading();
@@ -369,6 +373,7 @@ void __fastcall TTFSDK::RunFrameHook(__int64 a1, double frameTime)
 
     }
 
+#ifdef NDEBUG
     static bool did_set_origin_info_in_sentry = false;
     if (!did_set_origin_info_in_sentry && origin && origin->uid && origin->playerName && *origin->playerName)
     {
@@ -397,6 +402,7 @@ void __fastcall TTFSDK::RunFrameHook(__int64 a1, double frameTime)
         sentry_set_user(user);
         sentry_set_context("origin", origin_ctx);
     }
+#endif
 
     if (Updater::pendingUpdateLaunchMotdChange)
     {

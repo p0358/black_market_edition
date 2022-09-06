@@ -152,6 +152,122 @@ filterLanguage_type filterLanguage_client_org;
 char* __fastcall filterLanguage_engine(const char* Src, char* Dst, size_t Size) { strncpy_s(Dst, 64, Src, Size); return Dst; }
 char* __fastcall filterLanguage_client(const char* Src, char* Dst, size_t Size) { strncpy_s(Dst, 64, Src, Size); return Dst; }*/
 
+typedef int (*GENERICINTCONSTCHARPTRVALISTFUNCTION) (const char* a1, ...);
+GENERICINTCONSTCHARPTRVALISTFUNCTION sub_180022610_org;
+int sub_180022610(const char* a1, ...) // or const char*
+{
+    va_list va; 
+    va_start(va, a1);
+    char buffer[256];
+    vsnprintf(buffer, 256, a1, va);
+    spdlog::get("logger")->debug("[netdebug] {}", buffer);
+    va_end(va);
+    return 0;
+}
+
+typedef bool(__fastcall* INetMessage_WriteToBuffer_type)(__int64 msg, __int64 buffer);
+INetMessage_WriteToBuffer_type INetMessage_WriteToBuffer_org;
+bool __fastcall INetMessage_WriteToBuffer(__int64 msg, __int64 buffer)
+{
+    auto msgid = (*(__int64(__fastcall**)(__int64))(*(_QWORD*)msg + 64i64))(msg);
+    auto toString = (*(char*(__fastcall**)(__int64))(*(_QWORD*)msg + 64i64 + 32))(msg);
+    spdlog::get("logger")->debug("[INetMessage::WriteToBuffer] [id:{}] {}", msgid, toString);
+    return INetMessage_WriteToBuffer_org(msg, buffer);
+}
+
+typedef bool(__fastcall* ReadUBitLong_probably_for_netmsg_type_6bits__sub_1801F6C20_type)(int* a1, __int64 a2);
+ReadUBitLong_probably_for_netmsg_type_6bits__sub_1801F6C20_type ReadUBitLong_probably_for_netmsg_type_6bits__sub_1801F6C20_org;
+bool __fastcall ReadUBitLong_probably_for_netmsg_type_6bits__sub_1801F6C20(int* a1, __int64 a2)
+{
+    auto ret = ReadUBitLong_probably_for_netmsg_type_6bits__sub_1801F6C20_org(a1, a2);
+    spdlog::get("logger")->debug("[reading net message] id:{} => {}", *a1, ret);
+    return ret;
+}
+
+typedef bool(__fastcall* CBaseClientState_ConnectionCrashed_type)(__int64 a1, __int64 a2);
+CBaseClientState_ConnectionCrashed_type CBaseClientState_ConnectionCrashed_org;
+__int64 __fastcall CBaseClientState_ConnectionCrashed(__int64 a1, __int64 a2)
+{
+    spdlog::get("logger")->warn("[CBaseClientState::ConnectionCrashed] {}", (char*)a2);
+    return CBaseClientState_ConnectionCrashed_org(a1, a2);
+}
+
+typedef void (*Con_NXPrintf_type)(__int64 a1, const char* fmt, ...);
+Con_NXPrintf_type Con_NXPrintf_org;
+void Con_NXPrintf(__int64 a1, const char* fmt, ...)
+{
+    va_list args;
+    va_start(args, fmt);
+    spdlog::get("logger")->warn("[Con_NXPrintf] {}", Util::vformat(fmt, args));
+    va_end(args);
+    // no original call as it's nullsub
+}
+
+/*typedef char(__fastcall* CNetChan_ProcessMessages_type)(__int64* a1, __int64 a2);
+CNetChan_ProcessMessages_type CNetChan_ProcessMessages_org;
+char __fastcall CNetChan_ProcessMessages(__int64* a1, __int64 a2)
+{
+    auto ret = CNetChan_ProcessMessages_org(a1, a2);
+    
+    return ret;
+}*/
+
+bool g_droppedPacketFlag = false;
+typedef void netpacket_t;
+typedef void netadr_t;
+typedef __int64(__fastcall* CNetChan_ProcessPacketHeader_type)(_DWORD* thisptr, netpacket_t* packet);
+CNetChan_ProcessPacketHeader_type CNetChan_ProcessPacketHeader_org;
+__int64 __fastcall CNetChan_ProcessPacketHeader(_DWORD* thisptr, netpacket_t* packet)
+{
+    static auto& net_showdrop = SDK().GetVstdlibCvar()->FindVar("net_showdrop")->GetIntRef();
+    auto& m_nInSequenceNr = thisptr[4];
+    auto m_nInSequenceNr_before = m_nInSequenceNr;
+    auto ret = CNetChan_ProcessPacketHeader_org(thisptr, packet);
+    if (net_showdrop)
+    {
+        auto* remote_address = (netadr_t*)(((__int64)thisptr) + 228);
+        static auto netadr_t_ToString = (char*(__fastcall*)(netadr_t* thisptr, bool baseOnly))(Util::GetModuleBaseAddress("engine.dll") + 0x4885B0);
+        if (ret == 0xFFFFFFFFi64) [[unlikely]]
+        {
+            // actually gotta read sequence nr from raw packet, since sequence number won't be set in object if the func returned early with -1
+            //auto sequence = *(int*)(packet->data);
+            //auto sequence = *(int*)((size_t)packet + 0x28); // offset should be correct, but raw packet data is probably encrypted......
+            // ^ too lazy to wrap bf_read for now...
+            // it can also earlier return -1 due to back checksum, but packet checksumming enablement is hardcoded to 0
+            //spdlog::info("ret = -1, m_nInSequenceNr={}, m_nInSequenceNr_before={}, sequence={}", m_nInSequenceNr, m_nInSequenceNr_before, sequence);
+            /*if (sequence <= m_nInSequenceNr_before)
+            {
+                spdlog::info("{}:{} packet {} at {}", netadr_t_ToString(remote_address, 0),
+                    sequence == m_nInSequenceNr_before ? "duplicate" : "out of order",
+                    sequence, m_nInSequenceNr_before);
+            }*/
+            spdlog::info("{}:duplicate or out of order packet after {}", netadr_t_ToString(remote_address, 0), m_nInSequenceNr_before);
+        }
+        else
+        {
+            auto sequence = m_nInSequenceNr; // read it from current object, since it was set at the end of the func to the value read from packet
+            auto& m_PacketDrop = thisptr[4009]; // m_PacketDrop = sequence - (m_nInSequenceNr_before + nChoked + 1);
+            if (m_PacketDrop > 0) [[unlikely]]
+            {
+                spdlog::info("{}:Dropped {} packets at {}", netadr_t_ToString(remote_address, 0), m_PacketDrop, sequence);
+            }
+        }
+    }
+    auto& m_PacketDrop = thisptr[4009];
+    if (ret == 0xFFFFFFFFi64 || m_PacketDrop > 0) [[unlikely]]
+        g_droppedPacketFlag = true;
+    return ret;
+}
+
+typedef _QWORD*(__fastcall* sub_18017E140_type)(_QWORD*, __int64, char*);
+sub_18017E140_type sub_18017E140_org;
+_QWORD* __fastcall sub_18017E140(_QWORD* a1, __int64 a2, char* a3)
+{
+    auto ret = sub_18017E140_org(a1, a2, a3);
+    *(bool*)(a1[77] + 1011) = true; // enable Unicode input in CBaseHudChatEntry
+    return ret;
+}
+
 void DoMiscHooks()
 {
     DWORD64 launcherdllBaseAddress = Util::GetModuleBaseAddress("launcher.org.dll");
@@ -163,6 +279,13 @@ void DoMiscHooks()
     CreateMiscHook(enginedllBaseAddress, 0x203250, &Base_CmdKeyValues_ReadFromBuffer, reinterpret_cast<LPVOID*>(&Base_CmdKeyValues_ReadFromBuffer_org));
     //CreateMiscHook(enginedllBaseAddress, 0x489050, &filterLanguage_engine, reinterpret_cast<LPVOID*>(&filterLanguage_engine_org));
     //CreateMiscHook(clientdllBaseAddress, 0x67D6D0, &filterLanguage_client, reinterpret_cast<LPVOID*>(&filterLanguage_client_org));
+    CreateMiscHook(enginedllBaseAddress, 0x22610, &sub_180022610, reinterpret_cast<LPVOID*>(&sub_180022610_org));
+    ////CreateMiscHook(enginedllBaseAddress, 0x1F6B90, &INetMessage_WriteToBuffer, reinterpret_cast<LPVOID*>(&INetMessage_WriteToBuffer_org));
+    ////CreateMiscHook(enginedllBaseAddress, 0x1F6C20, &ReadUBitLong_probably_for_netmsg_type_6bits__sub_1801F6C20, reinterpret_cast<LPVOID*>(&ReadUBitLong_probably_for_netmsg_type_6bits__sub_1801F6C20_org));
+    CreateMiscHook(enginedllBaseAddress, 0x22C70, &CBaseClientState_ConnectionCrashed, reinterpret_cast<LPVOID*>(&CBaseClientState_ConnectionCrashed_org));
+    CreateMiscHook(enginedllBaseAddress, 0x34390, &Con_NXPrintf, reinterpret_cast<LPVOID*>(&Con_NXPrintf_org));
+    CreateMiscHook(enginedllBaseAddress, 0x1E73C0, &CNetChan_ProcessPacketHeader, reinterpret_cast<LPVOID*>(&CNetChan_ProcessPacketHeader_org));
+    CreateMiscHook(clientdllBaseAddress, 0x17E140, &sub_18017E140, reinterpret_cast<LPVOID*>(&sub_18017E140_org));
 }
 
 void DoBinaryPatches()
@@ -234,6 +357,11 @@ void DoBinaryPatches()
     }*/
     // engine.dll+797070+193C4 = restrict server commands bool
     // engine.dll+797070+193C5 = restrict client commands bool
+    { // client received net message - use ToString rather than GetName
+        void* ptr = (void*)(Util::GetModuleBaseAddress(_("engine.dll")) + 0x1E559A);
+        TempReadWrite rw(ptr);
+        *(unsigned char*)ptr = 0x60;
+    }
 }
 
 void CreateTier0MemAlloc()

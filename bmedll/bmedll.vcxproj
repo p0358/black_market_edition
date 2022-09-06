@@ -88,7 +88,7 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>..\thirdparty\;..\thirdparty\protobuf\src;..\thirdparty\imgui;..\thirdparty\rapidjson\include;..\thirdparty\curl-7.74.0\builds\libcurl-vc16-x64-debug-static-ipv6-sspi-schannel\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\thirdparty\;..\thirdparty\protobuf\src;..\thirdparty\discord-rpc\include;..\thirdparty\imgui;..\thirdparty\rapidjson\include;..\thirdparty\curl-7.74.0\builds\libcurl-vc16-x64-debug-static-ipv6-sspi-schannel\include</AdditionalIncludeDirectories>
       <ForcedIncludeFiles>pch.h;%(ForcedIncludeFiles)</ForcedIncludeFiles>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <DisableSpecificWarnings>4996</DisableSpecificWarnings>
