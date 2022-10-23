@@ -167,9 +167,9 @@ SQInteger SquirrelManager::BasePrintHook(HSQUIRRELVM v)
         va_start(vl, s);
         ScriptContext context = (ScriptContext)-1;
         auto sqmg = SQManager();
-        if (*sqmg.m_ppClientVM != nullptr && (v == (*sqmg.m_ppClientVM)->sqvm || (_ss(v) == _ss((*sqmg.m_ppClientVM)->sqvm)))) context = SCRIPT_CONTEXT_CLIENT;
-        else if (*sqmg.m_ppUIVM != nullptr && (v == (*sqmg.m_ppUIVM)->sqvm || (_ss(v) == _ss((*sqmg.m_ppUIVM)->sqvm)))) context = SCRIPT_CONTEXT_UI;
-        //else if (*sqmg.m_ppServerVM != nullptr && (v == (*sqmg.m_ppServerVM)->sqvm || (_ss(v) == _ss((*sqmg.m_ppServerVM)->sqvm)))) context = SCRIPT_CONTEXT_SERVER;
+        if (sqmg.m_ppClientVM != nullptr && *sqmg.m_ppClientVM != nullptr && (v == (*sqmg.m_ppClientVM)->sqvm || (_ss(v) == _ss((*sqmg.m_ppClientVM)->sqvm)))) context = SCRIPT_CONTEXT_CLIENT;
+        else if (sqmg.m_ppUIVM != nullptr && *sqmg.m_ppUIVM != nullptr && (v == (*sqmg.m_ppUIVM)->sqvm || (_ss(v) == _ss((*sqmg.m_ppUIVM)->sqvm)))) context = SCRIPT_CONTEXT_UI;
+        //else if (sqmg.m_ppServerVM != nullptr && *sqmg.m_ppServerVM != nullptr && (v == (*sqmg.m_ppServerVM)->sqvm || (_ss(v) == _ss((*sqmg.m_ppServerVM)->sqvm)))) context = SCRIPT_CONTEXT_SERVER;
         sqmg.PrintFunc(v, Util::GetContextName(context), s, vl);
         va_end(vl);
     };
@@ -201,7 +201,7 @@ void SquirrelManager::PrintFunc(HSQUIRRELVM v, const SQChar* source, const SQCha
 
 HSQUIRRELVM SquirrelManager::GetServerSQVM()
 {
-    if (*m_ppServerVM != nullptr)
+    if (m_ppServerVM != nullptr && *m_ppServerVM != nullptr)
     {
         return (*m_ppServerVM)->sqvm;
     }
@@ -211,7 +211,7 @@ HSQUIRRELVM SquirrelManager::GetServerSQVM()
 
 HSQUIRRELVM SquirrelManager::GetClientSQVM()
 {
-    if (*m_ppClientVM != nullptr)
+    if (m_ppClientVM != nullptr && *m_ppClientVM != nullptr)
     {
         return (*m_ppClientVM)->sqvm;
     }
@@ -221,7 +221,7 @@ HSQUIRRELVM SquirrelManager::GetClientSQVM()
 
 HSQUIRRELVM SquirrelManager::GetUISQVM()
 {
-    if (*m_ppUIVM != nullptr)
+    if (m_ppUIVM != nullptr && *m_ppUIVM != nullptr)
     {
         return (*m_ppUIVM)->sqvm;
     }
@@ -232,9 +232,9 @@ HSQUIRRELVM SquirrelManager::GetUISQVM()
 const char* SquirrelManager::GetContextNameFromHSQUIRRELVMPointer(HSQUIRRELVM v)
 {
     ScriptContext context = (ScriptContext)-1;
-    if (*m_ppClientVM != nullptr && (v == (*m_ppClientVM)->sqvm || (_ss(v) == _ss((*m_ppClientVM)->sqvm)))) context = SCRIPT_CONTEXT_CLIENT;
-    else if (*m_ppUIVM != nullptr && (v == (*m_ppUIVM)->sqvm || (_ss(v) == _ss((*m_ppUIVM)->sqvm)))) context = SCRIPT_CONTEXT_UI;
-    else if (*m_ppServerVM != nullptr && (v == (*m_ppServerVM)->sqvm || (_ss(v) == _ss((*m_ppServerVM)->sqvm)))) context = SCRIPT_CONTEXT_SERVER;
+    if (m_ppClientVM != nullptr && *m_ppClientVM != nullptr && (v == (*m_ppClientVM)->sqvm || (_ss(v) == _ss((*m_ppClientVM)->sqvm)))) context = SCRIPT_CONTEXT_CLIENT;
+    else if (m_ppUIVM != nullptr && *m_ppUIVM != nullptr && (v == (*m_ppUIVM)->sqvm || (_ss(v) == _ss((*m_ppUIVM)->sqvm)))) context = SCRIPT_CONTEXT_UI;
+    //else if (m_ppServerVM != nullptr && *m_ppServerVM != nullptr && (v == (*m_ppServerVM)->sqvm || (_ss(v) == _ss((*m_ppServerVM)->sqvm)))) context = SCRIPT_CONTEXT_SERVER;
     return Util::GetContextName(context);
 }
 
