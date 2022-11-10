@@ -175,6 +175,39 @@ void __fastcall getMotd_Hook(double a1)
     staticfile_hostname = staticfile_hostname_old;
 }
 
+void GetCvarCC(const CCommand& args)
+{
+    if (args.ArgC() < 2)
+    {
+        spdlog::info("Usage: get_cvar <cvar_name>");
+        return;
+    }
+    auto cvar = SDK().GetVstdlibCvar()->FindVar(args.Arg(1));
+    if (!cvar)
+    {
+        spdlog::info("Cvar does not exist!");
+        return;
+    }
+    spdlog::info("Cvar value: {}", cvar->GetString());
+}
+
+void SetCvarCC(const CCommand& args)
+{
+    if (args.ArgC() < 3)
+    {
+        spdlog::info("Usage: set_cvar <cvar_name> <cvar_value>");
+        return;
+    }
+    auto cvar = SDK().GetVstdlibCvar()->FindVar(args.Arg(1));
+    if (!cvar)
+    {
+        spdlog::info("Cvar does not exist!");
+        return;
+    }
+    cvar->SetValueString(args.Arg(2));
+    spdlog::info("Cvar value: {}", cvar->GetString());
+}
+
 extern void AntiEventCrash_Setup();
 
 TTFSDK::TTFSDK() :
@@ -219,7 +252,10 @@ TTFSDK::TTFSDK() :
     m_conCommandManager->RegisterCommand("test_crash2", test_crash2, "Crash the engine by throwing a runtime error", 0);
     m_conCommandManager->RegisterCommand("test_crash3", test_crash3, "Crash the engine by throwing an exception", 0);
     m_conCommandManager->RegisterCommand("test_crash4", test_crash4, "Crash the engine by throwing a SE exception", 0);
+    m_conCommandManager->RegisterCommand("get_cvar", GetCvarCC, "Print cvar's value", 0);
+    m_conCommandManager->RegisterCommand("set_cvar", SetCvarCC, "Set cvar to value", 0);
     m_conCommandManager->RegisterConVar("bme_version", BME_VERSION, FCVAR_UNLOGGED | FCVAR_DONTRECORD | FCVAR_SERVER_CANNOT_QUERY, "Current BME version");
+    m_conCommandManager->RegisterConVar("cl_nocmdrate", "0", FCVAR_DONTRECORD, "Do not limit command packet rate by cl_cmdrate, instead allow dispatching one packet after every move command (so after every client frame)");
 
 #if 0
     /*{ // patch the restriction "Can't send client command; not connected to a server" of ClientCommand in script

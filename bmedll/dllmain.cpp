@@ -11,6 +11,8 @@
 HANDLE threadHandle;
 std::chrono::system_clock::time_point g_startTime;
 
+extern FuncStaticWithType<void* (__cdecl*)()> get_cl;
+
 // old
 DWORD WINAPI OnAttach(LPVOID lpThreadParameter)
 {
@@ -268,6 +270,24 @@ _QWORD* __fastcall sub_18017E140(_QWORD* a1, __int64 a2, char* a3)
     return ret;
 }
 
+typedef void(__fastcall* CL_Move_type)(size_t, bool);
+CL_Move_type CL_Move_org;
+void __fastcall CL_Move(size_t unk, bool bFinalTick)
+{
+    CL_Move_org(unk, bFinalTick);
+
+    auto cl = get_cl();
+    unsigned int& baseLocalClient__m_nSignonState = *((_DWORD*)cl + 29);
+    double& cl_m_dblNextCmdTime = *((double*)cl + 15);
+    static double& net_time = *(double*)(Util::GetModuleBaseAddress("engine.dll") + 0x30EF1C0);
+    static auto& move_one_cmd_per_client_frame = SDK().GetVstdlibCvar()->FindVar("move_one_cmd_per_client_frame")->GetIntRef();
+    static auto& cl_nocmdrate = SDK().GetVstdlibCvar()->FindVar("cl_nocmdrate")->GetIntRef();
+
+    bool cl_isActive = baseLocalClient__m_nSignonState == 8;
+    if (cl_isActive && move_one_cmd_per_client_frame && cl_nocmdrate)
+        cl_m_dblNextCmdTime = net_time - DBL_EPSILON;
+}
+
 void DoMiscHooks()
 {
     DWORD64 launcherdllBaseAddress = Util::GetModuleBaseAddress("launcher.org.dll");
@@ -286,6 +306,7 @@ void DoMiscHooks()
     CreateMiscHook(enginedllBaseAddress, 0x34390, &Con_NXPrintf, reinterpret_cast<LPVOID*>(&Con_NXPrintf_org));
     CreateMiscHook(enginedllBaseAddress, 0x1E73C0, &CNetChan_ProcessPacketHeader, reinterpret_cast<LPVOID*>(&CNetChan_ProcessPacketHeader_org));
     CreateMiscHook(clientdllBaseAddress, 0x17E140, &sub_18017E140, reinterpret_cast<LPVOID*>(&sub_18017E140_org));
+    CreateMiscHook(enginedllBaseAddress, 0x59DE0, &CL_Move, reinterpret_cast<LPVOID*>(&CL_Move_org));
 }
 
 void DoBinaryPatches()
@@ -361,6 +382,13 @@ void DoBinaryPatches()
         void* ptr = (void*)(Util::GetModuleBaseAddress(_("engine.dll")) + 0x1E559A);
         TempReadWrite rw(ptr);
         *(unsigned char*)ptr = 0x60;
+    }
+    { // SecurityPatch: prevent server plugin DLL loading
+        void* ptr = (void*)(Util::GetModuleBaseAddress(_("engine.dll")) + 0xF3F40);
+        TempReadWrite rw(ptr);
+        *((unsigned char*)ptr) = 0x32;
+        *(unsigned char*)((uint64_t)ptr + 1) = 0xC0;
+        *(unsigned char*)((uint64_t)ptr + 2) = 0xC3;
     }
 }
 
