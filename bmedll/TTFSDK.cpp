@@ -575,6 +575,35 @@ bool SetupLogger()
         spdlog::get(_("logger"))->info("Logger has been initialized at {}.", strtok(std::ctime(&time), "\n"));
         spdlog::get(_("logger"))->info("Command line: {}", GetCommandLineA());
 
+        {
+            // Log WINE version if running under WINE
+            HMODULE hntdll;
+            typedef const char* (CDECL* wine_get_version_t)();
+            typedef const char* (CDECL* wine_get_build_id_t)();
+            typedef void (CDECL* wine_get_host_version_t)(const char** sysname, const char** release);
+            wine_get_version_t wine_get_version;
+            wine_get_build_id_t wine_get_build_id;
+            wine_get_host_version_t wine_get_host_version;
+            if ((hntdll = GetModuleHandleA("ntdll.dll")) && (wine_get_version = reinterpret_cast<wine_get_version_t>(GetProcAddress(hntdll, "wine_get_version"))))
+            {
+                spdlog::info("WINE version: {}", wine_get_version()); // example: 7.11
+                if (wine_get_build_id = reinterpret_cast<wine_get_build_id_t>(GetProcAddress(hntdll, "wine_get_build_id")))
+                    spdlog::info("WINE build: {}", wine_get_build_id()); // example: wine-7.11
+                if (wine_get_host_version = reinterpret_cast<wine_get_host_version_t>(GetProcAddress(hntdll, "wine_get_host_version")))
+                {
+                    const char* sysname; // example: Linux
+                    const char* release; // example: 5.16.20-2-MANJARO
+                    wine_get_host_version(&sysname, &release);
+                    spdlog::info("Sysname: {} | Release: {}", sysname, release);
+                }
+            }
+        }
+        {
+#ifdef _DEBUG
+            spdlog::warn("Running a DEBUG build. Debug builds are untested and unsupported. Their usage may cause unforeseen random issues with the game, which you should not expect the TFORevive developers to look into.");
+#endif
+        }
+
         return true;
     }
     catch (std::exception& ex)
