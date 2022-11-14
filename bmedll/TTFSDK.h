@@ -36,6 +36,7 @@ private:
     //std::unique_ptr<IcepickMenu> m_icepickMenu;
 
     std::list<std::shared_ptr<IFrameTask>> m_frameTasks;
+    std::recursive_mutex m_frameTasksLock;
     std::shared_ptr<DelayedFuncTask> m_delayedFuncTask;
 
     //SourceInterface<IVEngineServer> m_engineServer;

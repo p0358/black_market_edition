@@ -331,15 +331,19 @@ void __fastcall TTFSDK::RunFrameHook(__int64 a1, double frameTime)
         translatorUpdated = true;
     }
 
-    for (const auto& frameTask : m_frameTasks)
     {
-        frameTask->RunFrame();
-    }
+        std::lock_guard<std::recursive_mutex> l(m_frameTasksLock);
 
-    m_frameTasks.erase(std::remove_if(m_frameTasks.begin(), m_frameTasks.end(), [](const std::shared_ptr<IFrameTask>& t)
+        for (const auto& frameTask : m_frameTasks)
         {
-            return t->IsFinished();
-        }), m_frameTasks.end());
+            frameTask->RunFrame();
+        }
+
+        m_frameTasks.erase(std::remove_if(m_frameTasks.begin(), m_frameTasks.end(), [](const std::shared_ptr<IFrameTask>& t)
+            {
+                return t->IsFinished();
+            }), m_frameTasks.end());
+    }
 
     static bool called = false;
     if (!called)
@@ -473,6 +477,7 @@ void __fastcall TTFSDK::RunFrameHook(__int64 a1, double frameTime)
 
 void TTFSDK::AddFrameTask(std::shared_ptr<IFrameTask> task)
 {
+    std::lock_guard<std::recursive_mutex> l(m_frameTasksLock);
     m_frameTasks.push_back(std::move(task));
 }
 
