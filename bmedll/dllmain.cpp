@@ -288,6 +288,22 @@ void __fastcall CL_Move(size_t unk, bool bFinalTick)
         cl_m_dblNextCmdTime = net_time - DBL_EPSILON;
 }
 
+typedef __int64(__fastcall* COM_ExplainDisconnection_TYPE)(bool a1, const char* fmt, ...);
+COM_ExplainDisconnection_TYPE COM_ExplainDisconnection_org;
+__int64 __fastcall COM_ExplainDisconnection(bool a1, const char* fmt, ...)
+{
+    std::stringstream ss;
+    char buffer[1024];
+    va_list args;
+    va_start(args, fmt);
+    vsprintf_s(buffer, fmt, args);
+    va_end(args);
+
+    ss << "COM_ExplainDisconnection: " << (char*)buffer;
+    spdlog::info(ss.str().c_str());
+    return COM_ExplainDisconnection_org(a1, buffer);
+}
+
 void DoMiscHooks()
 {
     DWORD64 launcherdllBaseAddress = Util::GetModuleBaseAddress("launcher.org.dll");
@@ -307,6 +323,7 @@ void DoMiscHooks()
     CreateMiscHook(enginedllBaseAddress, 0x1E73C0, &CNetChan_ProcessPacketHeader, reinterpret_cast<LPVOID*>(&CNetChan_ProcessPacketHeader_org));
     CreateMiscHook(clientdllBaseAddress, 0x17E140, &sub_18017E140, reinterpret_cast<LPVOID*>(&sub_18017E140_org));
     CreateMiscHook(enginedllBaseAddress, 0x59DE0, &CL_Move, reinterpret_cast<LPVOID*>(&CL_Move_org));
+    CreateMiscHook(enginedllBaseAddress, 0x117240, &COM_ExplainDisconnection, reinterpret_cast<LPVOID*>(&COM_ExplainDisconnection_org));
 }
 
 void DoBinaryPatches()

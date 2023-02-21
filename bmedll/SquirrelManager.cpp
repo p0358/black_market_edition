@@ -133,6 +133,19 @@ __int64 __fastcall SQFuncBindingFn(__int64(__fastcall* a1)(_QWORD), __int64 a2, 
     return result;
 }
 
+HookedFuncStatic<bool, void*> FatalScriptError("launcher.org.dll", 0x39CD0);
+bool __fastcall FatalScriptError_Hook(void* a1)
+{
+    static const char* script_error = (const char*)(Util::GetModuleBaseAddress("launcher.org.dll") + 0x117D40);
+    if (IsSDKReady())
+    {
+        auto logger = spdlog::get("logger");
+        logger->error("SCRIPT ERROR:\n{}\n\n", script_error);
+    }
+    else printf("\nSCRIPT ERROR:\n%s\n\n", script_error);
+    return FatalScriptError(a1);
+}
+
 SquirrelManager::SquirrelManager(ConCommandManager& conCommandManager)
 {
     m_logger = spdlog::get("logger");
@@ -147,6 +160,7 @@ SquirrelManager::SquirrelManager(ConCommandManager& conCommandManager)
     //RunServerInitCallbacks.Hook(WRAPPED_MEMBER(RunServerInitCallbacksHook));
     if (IsClient()) RunClientInitCallbacks.Hook(WRAPPED_MEMBER(RunClientInitCallbacksHook));
     if (IsClient()) RunUIInitCallbacks.Hook(WRAPPED_MEMBER(RunUIInitCallbacksHook));
+    FatalScriptError.Hook(FatalScriptError_Hook);
 
     // Add concommands to run server, client and UI code
     //conCommandManager.RegisterCommand("script_server", WRAPPED_MEMBER(RunServerCommand), "Execute Squirrel code in server context", 0);
@@ -416,7 +430,7 @@ void SquirrelManager::RegisterFunction(R1SquirrelVM* vm, SQFuncRegistration& reg
 R1SquirrelVM* SquirrelManager::CreateNewVMHook(int64_t a1, int always_2, ScriptContext context)
 {
     R1SquirrelVM* vm = CreateNewVM(a1, always_2, context);
-    SPDLOG_LOGGER_TRACE(m_logger, "CreateNewVM ({}): {}", Util::GetContextName(context), (void*)vm);
+    SPDLOG_LOGGER_DEBUG(m_logger, "CreateNewVM ({}): {}", Util::GetContextName(context), (void*)vm);
     for (auto& reg : m_funcsToRegister)
     {
         if (reg.GetContext() == context)

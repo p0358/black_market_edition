@@ -11,6 +11,7 @@ private:
     std::shared_ptr<spdlog::logger> m_logger;
     SourceInterface<IFileSystem> m_engineFileSystem;
     fs::path m_basePath;
+    fs::path m_bspPath;
     fs::path m_compiledPath;
     fs::path m_dumpPath;
     fs::path m_modsPath;

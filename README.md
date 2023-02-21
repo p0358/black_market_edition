@@ -32,7 +32,9 @@ Installers are built with Inno Setup using scripts from installer/ folder and th
 * see raw mouse sensivity value in mouse/keyboard settings
 * start private matches alone by yourself
 * see who's in a party with whom in public matchmaking
-* hitch alerts to indicate various connection problems analogous to what Titanfall 2 and Apex have
+* hitch alerts to indicate various connection problems analogous to what Titanfall 2 and Apex have (for example: "OUT OF SNAPSHOTS", "NET CHOKED")
+* separate launcher exe that alleviates issues when Origin acts up and refuses to launch the game otherwise
+* enables Unicode input in text chat (so you can type non-English characters; note: font used for some game locales cannot display many non-Latin characters)
 
 ### Known bugs
 
@@ -100,7 +102,7 @@ Mouse sensitivity value visible in settings:
 
 ## Compiling
 
-Clone the repo with `git clone --resursive --depth 1 -j8 https://github.com/p0358/black_market_edition.git` and build the solution in VS 2022.
+Clone the repo with `git clone --recursive --depth 1 -j8 https://github.com/p0358/black_market_edition.git` and build the solution in VS 2022 (use Staging or Release configuration, Debug is not supported).
 
 ### Building an installer
 

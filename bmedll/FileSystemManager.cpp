@@ -80,12 +80,15 @@ FileSystemManager::FileSystemManager(const std::string& basePath, ConCommandMana
     }
 
     m_logger->info("Base path: {}", m_basePath.string());
+    m_bspPath = m_basePath / "bme" / "bme.bsp";
     //m_compiledPath = m_basePath / "compiled_assets";
     m_compiledPath = m_basePath / "r1_modsrc";
     m_dumpPath = m_basePath / "assets_dump";
     m_modsPath = m_basePath / "mods";
     m_savesPath = m_basePath / "saves";
     m_spawnlistsPath = m_basePath / "spawnlists";
+    if (!fs::exists(m_bspPath))
+        m_logger->error("bsp file does not exist at: {}", m_bspPath.string().c_str());
 
     m_requestingOriginalFile = false;
     m_blockingRemoveAllMapSearchPaths = false;
@@ -183,7 +186,7 @@ void FileSystemManager::AddSearchPathHook(IFileSystem* fileSystem, const char* p
 [19:53:18] [thread 27944] [trace] IFileSystem::AddSearchPath: path = ., pathID = MAIN, addType = 1
     */
 
-    SPDLOG_LOGGER_TRACE(m_logger, "IFileSystem::AddSearchPath: path = {}, pathID = {}, addType = {}", pPath, pathID != nullptr ? pathID : "", addType);
+    m_logger->debug("IFileSystem::AddSearchPath: path = {}, pathID = {}, addType = {}", pPath, pathID != nullptr ? pathID : "", addType);
 
     // Add the path as intended
     IFileSystem_AddSearchPath(fileSystem, pPath, pathID, addType);
@@ -201,8 +204,8 @@ void FileSystemManager::AddSearchPathHook(IFileSystem* fileSystem, const char* p
     //IFileSystem_AddSearchPath(fileSystem, "maps/mp_bme.bsp", "GAME", PATH_ADD_TO_HEAD);
     //IFileSystem_AddSearchPath(fileSystem, "maps/mp_bme.bsp", "MAIN", PATH_ADD_TO_HEAD);
     m_blockingRemoveAllMapSearchPaths = true;
-    IFileSystem_AddSearchPath(fileSystem, (m_basePath / "bme/bme.bsp").string().c_str(), "GAME", PATH_ADD_TO_HEAD);
-    IFileSystem_AddSearchPath(fileSystem, (m_basePath / "bme/bme.bsp").string().c_str(), "MAIN", PATH_ADD_TO_HEAD);
+    IFileSystem_AddSearchPath(fileSystem, m_bspPath.string().c_str(), "GAME", PATH_ADD_TO_HEAD);
+    IFileSystem_AddSearchPath(fileSystem, m_bspPath.string().c_str(), "MAIN", PATH_ADD_TO_HEAD);
     m_blockingRemoveAllMapSearchPaths = false;
 #else
 #ifdef READ_FROM_VPK
@@ -217,7 +220,7 @@ void FileSystemManager::AddSearchPathHook(IFileSystem* fileSystem, const char* p
 
 void FileSystemManager::AddVPKFileHook(IFileSystem* fileSystem, char const* pBasename, SearchPathAdd_t addType, __int64 a1, __int64 a2, __int64 a3)
 {
-    SPDLOG_LOGGER_TRACE(m_logger, "IFileSystem::AddVPKFile: {} {} {} {} {}", pBasename, addType, a1, a2, a3);
+    m_logger->debug("IFileSystem::AddVPKFile: {} {} {} {} {}", pBasename, addType, a1, a2, a3);
     // IFileSystem::AddVPKFile: 16426288 vpk/client_mp_common.bsp.pak000
     // IFileSystem::AddVPKFile: vpk/client_mp_common.bsp.pak000 12233712 140716965429248 1 140717081273089
     // IFileSystem::AddVPKFile: vpk/client_mp_common.bsp.pak000 18524032 140716965429248 1 140717081273089
@@ -318,7 +321,7 @@ FileHandle_t FileSystemManager::ReadFileFromVPKHook(VPKData* vpkInfo, __int32* b
 // TODO: If we have mounted other VPKs and we unload the DLL, should we unmount them?
 VPKData* FileSystemManager::MountVPKHook(IFileSystem* fileSystem, const char* vpkPath)
 {
-    //SPDLOG_LOGGER_TRACE(m_logger, "IFileSystem::MountVPK: vpkPath = {}", vpkPath);
+    //m_logger->debug("IFileSystem::MountVPK: vpkPath = {}", vpkPath); // spams while in main menu???
     // When a level is loaded, the VPK for the map is mounted, so we'll mount every
     // other map's VPK at the same time.
     // TODO: This might be better moved to a hook on the function that actually loads up the map?
@@ -337,8 +340,8 @@ VPKData* FileSystemManager::MountVPKHook(IFileSystem* fileSystem, const char* vp
         //IFileSystem_AddSearchPath(fileSystem, "maps/mp_bme.bsp", "GAME", PATH_ADD_TO_HEAD);
         //IFileSystem_AddSearchPath(fileSystem, "maps/mp_bme.bsp", "MAIN", PATH_ADD_TO_HEAD);
         m_blockingRemoveAllMapSearchPaths = true;
-        IFileSystem_AddSearchPath(fileSystem, (m_basePath / "bme/bme.bsp").string().c_str(), "GAME", PATH_ADD_TO_HEAD);
-        IFileSystem_AddSearchPath(fileSystem, (m_basePath / "bme/bme.bsp").string().c_str(), "MAIN", PATH_ADD_TO_HEAD);
+        IFileSystem_AddSearchPath(fileSystem, m_bspPath.string().c_str(), "GAME", PATH_ADD_TO_HEAD);
+        IFileSystem_AddSearchPath(fileSystem, m_bspPath.string().c_str(), "MAIN", PATH_ADD_TO_HEAD);
         m_blockingRemoveAllMapSearchPaths = false;
         didAddAlready = true;
     }
