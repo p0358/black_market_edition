@@ -11,49 +11,49 @@ decltype(IMemAlloc::VTable::DumpStats) DumpStats;
 decltype(IMemAlloc::VTable::heapchk) heapchk;
 
 __forceinline void* internal_malloc(size_t size) {
-    //if (!g_pMemAllocSingleton) g_pMemAllocSingleton = CreateGlobalMemAlloc();
-    if (!Alloc) Alloc = g_pMemAllocSingleton->m_vtable->Alloc;
+    if (!g_pMemAllocSingleton) [[unlikely]] g_pMemAllocSingleton = CreateGlobalMemAlloc();
+    if (!Alloc) [[unlikely]] Alloc = g_pMemAllocSingleton->m_vtable->Alloc;
     return Alloc(g_pMemAllocSingleton, size);
 }
 
 __forceinline void internal_free(void* p) {
-    //if (!g_pMemAllocSingleton) g_pMemAllocSingleton = CreateGlobalMemAlloc();
-    if (!Free) Free = g_pMemAllocSingleton->m_vtable->Free;
+    if (!g_pMemAllocSingleton) [[unlikely]] g_pMemAllocSingleton = CreateGlobalMemAlloc();
+    if (!Free) [[unlikely]] Free = g_pMemAllocSingleton->m_vtable->Free;
     return Free(g_pMemAllocSingleton, p);
 }
 
 __forceinline void* internal_calloc(size_t n, size_t size) {
-    //if (!g_pMemAllocSingleton) g_pMemAllocSingleton = CreateGlobalMemAlloc();
-    if (!Alloc) Alloc = g_pMemAllocSingleton->m_vtable->Alloc;
+    if (!g_pMemAllocSingleton) [[unlikely]] g_pMemAllocSingleton = CreateGlobalMemAlloc();
+    if (!Alloc) [[unlikely]] Alloc = g_pMemAllocSingleton->m_vtable->Alloc;
     void* p = Alloc(g_pMemAllocSingleton, n * size);
     memset(p, 0, n * size);
     return p;
 }
 
 __forceinline void* internal_realloc(void* old_ptr, size_t size) {
-    //if (!g_pMemAllocSingleton) g_pMemAllocSingleton = CreateGlobalMemAlloc();
-    if (!Realloc) Realloc = g_pMemAllocSingleton->m_vtable->Realloc;
+    if (!g_pMemAllocSingleton) [[unlikely]] g_pMemAllocSingleton = CreateGlobalMemAlloc();
+    if (!Realloc) [[unlikely]] Realloc = g_pMemAllocSingleton->m_vtable->Realloc;
     return Realloc(g_pMemAllocSingleton, old_ptr, size);
 }
 
 __forceinline size_t internal_getsize(void* p)
 {
-    //if (!g_pMemAllocSingleton) g_pMemAllocSingleton = CreateGlobalMemAlloc();
-    if (!GetSize) GetSize = g_pMemAllocSingleton->m_vtable->GetSize;
+    if (!g_pMemAllocSingleton) [[unlikely]] g_pMemAllocSingleton = CreateGlobalMemAlloc();
+    if (!GetSize) [[unlikely]] GetSize = g_pMemAllocSingleton->m_vtable->GetSize;
     return GetSize(g_pMemAllocSingleton, p);
 }
 
 __forceinline void internal_dumpstats(void)
 {
-    //if (!g_pMemAllocSingleton) g_pMemAllocSingleton = CreateGlobalMemAlloc();
-    if (!DumpStats) DumpStats = g_pMemAllocSingleton->m_vtable->DumpStats;
+    if (!g_pMemAllocSingleton) [[unlikely]] g_pMemAllocSingleton = CreateGlobalMemAlloc();
+    if (!DumpStats) [[unlikely]] DumpStats = g_pMemAllocSingleton->m_vtable->DumpStats;
     return DumpStats(g_pMemAllocSingleton);
 }
 
 __forceinline int internal_heapchk(void)
 {
-    //if (!g_pMemAllocSingleton) g_pMemAllocSingleton = CreateGlobalMemAlloc();
-    if (!heapchk) heapchk = g_pMemAllocSingleton->m_vtable->heapchk;
+    if (!g_pMemAllocSingleton) [[unlikely]] g_pMemAllocSingleton = CreateGlobalMemAlloc();
+    if (!heapchk) [[unlikely]] heapchk = g_pMemAllocSingleton->m_vtable->heapchk;
     return heapchk(g_pMemAllocSingleton);
 }
 
@@ -304,9 +304,9 @@ extern "C" {
 }
 
 extern "C" {
-    void* sentry_malloc(size_t size) { return internal_malloc(size); }
-    void* sentry_realloc(void* old_ptr, size_t size) { return internal_realloc(old_ptr, size); }
-    void sentry_free(void* ptr) { internal_free(ptr); }
+    void* sentry_malloc(size_t size) { return /*internal_malloc*/malloc(size); }
+    void* sentry_realloc(void* old_ptr, size_t size) { return /*internal_realloc*/realloc(old_ptr, size); }
+    void sentry_free(void* ptr) { /*internal_free*/free(ptr); }
 }
 
 #ifndef NDEBUG
