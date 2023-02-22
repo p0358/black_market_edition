@@ -30,6 +30,7 @@ Installers are built with Inno Setup using scripts from installer/ folder and th
 * execute Squirrel code with `script_client` and `script_ui` console commands
 * when you're a party leader, change default in-game option for leaving from "Leave with Party" to "Leave Solo", to prevent accidentally pulling out your teammates with you when you want to leave alone
 * see raw mouse sensivity value in mouse/keyboard settings
+* remove minimum mouse sensitivity limitation
 * start private matches alone by yourself
 * see who's in a party with whom in public matchmaking
 * hitch alerts to indicate various connection problems analogous to what Titanfall 2 and Apex have (for example: "OUT OF SNAPSHOTS", "NET CHOKED")

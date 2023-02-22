@@ -371,6 +371,11 @@ void DoBinaryPatches()
         TempReadWrite rw(ptr);
         *((float*)ptr) = 3.85f;
     }
+    { // m_sensitivity range patch (remove minimal value)
+        void* ptr = (void*)(Util::GetModuleBaseAddress(_("client.dll")) + 0xF87E50 + 100);
+        TempReadWrite rw(ptr);
+        *((float*)ptr) = FLT_EPSILON;
+    }
 //#endif
 
     { // isMMDev
