@@ -3,6 +3,8 @@
 #include "SigScanning.h"
 
 #ifdef NDEBUG
+#include <ehdata.h>
+#include <dbghelp.h>
 #include "_version.h"
 #include "TTFSDK.h"
 #include "tier0.h"
@@ -55,110 +57,119 @@ void sentry_logger_spdlog(sentry_level_t level, const char* message, va_list arg
 
     // write to spdlog
     switch (level) {
-    case SENTRY_LEVEL_DEBUG:
-        logger->debug("[sentry] {}", buf);
-        break;
-    case SENTRY_LEVEL_INFO:
-        logger->info("[sentry] {}", buf);
-        break;
-    case SENTRY_LEVEL_WARNING:
-        logger->warn("[sentry] {}", buf);
-        break;
-    case SENTRY_LEVEL_ERROR:
-        logger->error("[sentry] {}", buf);
-        break;
-    case SENTRY_LEVEL_FATAL:
-        logger->critical("[sentry] {}", buf);
-        break;
-    default:
-        break;
+    case SENTRY_LEVEL_DEBUG: logger->debug("[sentry] {}", buf); break;
+    case SENTRY_LEVEL_INFO: logger->info("[sentry] {}", buf); break;
+    case SENTRY_LEVEL_WARNING: logger->warn("[sentry] {}", buf); break;
+    case SENTRY_LEVEL_ERROR: logger->error("[sentry] {}", buf); break;
+    case SENTRY_LEVEL_FATAL: logger->critical("[sentry] {}", buf); break;
+    default: break;
     }
 }
 
 // just log basic exception info directly into the log for informative purposes
 // so that it's not always needed to fire up a debugger to analyse the dump
-void log_exception_info(const EXCEPTION_POINTERS* exceptionInfo) // based on code from Northstar
+void log_exception_info(const EXCEPTION_POINTERS* exceptionInfo)
 {
     if (!exceptionInfo)
         return;
 
-    const DWORD exceptionCode = exceptionInfo->ExceptionRecord->ExceptionCode;
+    const auto* exceptionRecord = exceptionInfo->ExceptionRecord;
+    const DWORD exceptionCode = exceptionRecord->ExceptionCode;
 
-    std::stringstream exceptionCause;
-    exceptionCause << "Cause: ";
+    const char* exceptionCause = nullptr;
     switch (exceptionCode)
     {
-    case EXCEPTION_ACCESS_VIOLATION:
-    case EXCEPTION_IN_PAGE_ERROR:
-    {
-        exceptionCause << "Access Violation" << std::endl;
-
-        auto exceptionInfo0 = exceptionInfo->ExceptionRecord->ExceptionInformation[0];
-        auto exceptionInfo1 = exceptionInfo->ExceptionRecord->ExceptionInformation[1];
-
-        if (!exceptionInfo0)
-            exceptionCause << "Attempted to read from: 0x" << (void*)exceptionInfo1;
-        else if (exceptionInfo0 == 1)
-            exceptionCause << "Attempted to write to: 0x" << (void*)exceptionInfo1;
-        else if (exceptionInfo0 == 8)
-            exceptionCause << "Data Execution Prevention (DEP) at: 0x" << (void*)std::hex << exceptionInfo1;
-        else
-            exceptionCause << "Unknown access violation at: 0x" << (void*)exceptionInfo1;
-
+    case EXCEPTION_ACCESS_VIOLATION: exceptionCause = "Access Violation"; break;
+    case EXCEPTION_IN_PAGE_ERROR: exceptionCause = "Access Violation (In-Page Error)"; break;
+    case EXCEPTION_ARRAY_BOUNDS_EXCEEDED: exceptionCause = "Array bounds exceeded"; break;
+    case EXCEPTION_DATATYPE_MISALIGNMENT: exceptionCause = "Datatype misalignment"; break;
+    case EXCEPTION_FLT_DENORMAL_OPERAND: exceptionCause = "Float denormal operand"; break;
+    case EXCEPTION_FLT_DIVIDE_BY_ZERO: exceptionCause = "Divide by zero (float)"; break;
+    case EXCEPTION_INT_DIVIDE_BY_ZERO: exceptionCause = "Divide by zero (int)"; break;
+    case EXCEPTION_FLT_INEXACT_RESULT: exceptionCause = "Float inexact result"; break;
+    case EXCEPTION_FLT_INVALID_OPERATION: exceptionCause = "Float invalid operation"; break;
+    case EXCEPTION_INT_OVERFLOW: exceptionCause = "Integer overflow"; break;
+    case EXCEPTION_FLT_OVERFLOW: exceptionCause = "Float overflow"; break;
+    case EXCEPTION_FLT_UNDERFLOW: exceptionCause = "Float underflow"; break;
+    case EXCEPTION_FLT_STACK_CHECK: exceptionCause = "Float stack check"; break;
+    case EXCEPTION_ILLEGAL_INSTRUCTION: exceptionCause = "Illegal instruction"; break;
+    case EXCEPTION_INVALID_DISPOSITION: exceptionCause = "Invalid disposition"; break;
+    case EXCEPTION_NONCONTINUABLE_EXCEPTION: exceptionCause = "Noncontinuable exception"; break;
+    case EXCEPTION_PRIV_INSTRUCTION: exceptionCause = "Priviledged instruction"; break;
+    case EXCEPTION_STACK_OVERFLOW:  exceptionCause = "Stack overflow"; break;
+    case EXCEPTION_BREAKPOINT: exceptionCause = "Breakpoint"; break;
+    case EH_EXCEPTION_NUMBER: exceptionCause = "C++ EH Exception"; break;
+    case 0xE000000C: exceptionCause = "Tier0 Error"; break;
+    default: exceptionCause = nullptr; break;
         break;
     }
-    case EXCEPTION_ARRAY_BOUNDS_EXCEEDED:
-        exceptionCause << "Array bounds exceeded";
-        break;
-    case EXCEPTION_DATATYPE_MISALIGNMENT:
-        exceptionCause << "Datatype misalignment";
-        break;
-    case EXCEPTION_FLT_DENORMAL_OPERAND:
-        exceptionCause << "Denormal operand";
-        break;
-    case EXCEPTION_FLT_DIVIDE_BY_ZERO:
-        exceptionCause << "Divide by zero (float)";
-        break;
-    case EXCEPTION_INT_DIVIDE_BY_ZERO:
-        exceptionCause << "Divide by zero (int)";
-        break;
-    case EXCEPTION_FLT_INEXACT_RESULT:
-        exceptionCause << "Inexact result";
-        break;
-    case EXCEPTION_FLT_INVALID_OPERATION:
-        exceptionCause << "Invalid operation";
-        break;
-    case EXCEPTION_FLT_OVERFLOW:
-    case EXCEPTION_INT_OVERFLOW:
-        exceptionCause << "Numeric overflow";
-        break;
-    case EXCEPTION_FLT_UNDERFLOW:
-        exceptionCause << "Numeric underflow";
-        break;
-    case EXCEPTION_FLT_STACK_CHECK:
-        exceptionCause << "Stack check";
-        break;
-    case EXCEPTION_ILLEGAL_INSTRUCTION:
-        exceptionCause << "Illegal instruction";
-        break;
-    case EXCEPTION_INVALID_DISPOSITION:
-        exceptionCause << "Invalid disposition";
-        break;
-    case EXCEPTION_NONCONTINUABLE_EXCEPTION:
-        exceptionCause << "Noncontinuable exception";
-        break;
-    case EXCEPTION_PRIV_INSTRUCTION:
-        exceptionCause << "Priviledged instruction";
-        break;
-    case EXCEPTION_STACK_OVERFLOW:
-        exceptionCause << "Stack overflow";
-        break;
-    case EXCEPTION_BREAKPOINT:
-        exceptionCause << "Breakpoint";
-        break;
-    default:
-        exceptionCause << "Unknown";
-        break;
+    if (exceptionCause)
+        spdlog::error("Cause: {}", exceptionCause);
+    else
+        spdlog::error("Cause: Unknown (0x{0:x})", exceptionCode);
+
+    if (exceptionCode == EXCEPTION_ACCESS_VIOLATION || exceptionCode == EXCEPTION_IN_PAGE_ERROR)
+    {
+        auto exceptionInfo0 = exceptionRecord->ExceptionInformation[0];
+        auto exceptionInfo1 = exceptionRecord->ExceptionInformation[1];
+
+        if (!exceptionInfo0) spdlog::error("Attempted to read from: {}", (void*)exceptionInfo1);
+        else if (exceptionInfo0 == 1) spdlog::error("Attempted to write to: {}", (void*)exceptionInfo1);
+        else if (exceptionInfo0 == 8) spdlog::error("Data Execution Prevention (DEP) at: {}", (void*)exceptionInfo1);
+        else spdlog::error("Unknown access violation at: {}", (void*)exceptionInfo1);
+
+        if (exceptionCode == EXCEPTION_IN_PAGE_ERROR)
+        {
+            auto exceptionInfo2 = exceptionRecord->ExceptionInformation[2];
+            spdlog::error("Underlying NTSTATUS code that resulted in the exception: {}", (void*)exceptionInfo2);
+        }
+    }
+    else if (exceptionCode == EH_EXCEPTION_NUMBER)
+    {
+        // C++ EH exception
+        // https://devblogs.microsoft.com/oldnewthing/20100730-00/?p=13273
+        // https://devblogs.microsoft.com/oldnewthing/20200821-00/?p=104112
+        // https://stackoverflow.com/a/37058499/4470653
+        // https://stackoverflow.com/a/31424553/4470653
+        auto* record = reinterpret_cast<const EHExceptionRecord*>(exceptionRecord);
+        if (record->NumberParameters >= 4 && record->params.magicNumber == EH_MAGIC_NUMBER1
+            && record->params.pExceptionObject && record->params.pThrowInfo && record->params.pThrowImageBase)
+        {
+            auto* pExceptionObject = record->params.pExceptionObject;
+            auto* pThrowInfo = record->params.pThrowInfo;
+            auto* pThrowImageBase = record->params.pThrowImageBase;
+
+            auto* pCatchableTypeArray = reinterpret_cast<_s_CatchableTypeArray*>((size_t)pThrowImageBase + pThrowInfo->pCatchableTypeArray);
+            auto pCatchableTypeArraySize = pCatchableTypeArray->nCatchableTypes;
+
+            for (int i = 0; i < pCatchableTypeArraySize; i++)
+            {
+                auto* pCatchableType = reinterpret_cast<_s_CatchableType*>((size_t)pThrowImageBase + pCatchableTypeArray->arrayOfCatchableTypes[i]);
+                auto* pCatchableTypeDescriptor = reinterpret_cast<TypeDescriptor*>((size_t)pThrowImageBase + pCatchableType->pType);
+                auto* classname = pCatchableTypeDescriptor->name; // mangled
+
+                if (i == 0)
+                {
+                    char classname_demangled_output[64]{ 0 };
+                    if (!UnDecorateSymbolName(classname + 1, classname_demangled_output, 63, UNDNAME_COMPLETE)) [[unlikely]] // +1 because it's prepended with a dot for some reason
+                        spdlog::error("UnDecorateSymbolName failed, GetLastError(): {}", GetLastError());
+                    char* classname_demangled = classname_demangled_output;
+                    while (classname_demangled[0] == ' ' || classname_demangled[0] == '?') // skip leading ' ?? '
+                        classname_demangled++;
+                    spdlog::error("Type: {} ({})", classname_demangled, classname);
+                }
+
+                // most C++ exceptions like std::runtime_error inherit from std::exception
+                // pCatchableTypeArray has all the inheritance tree, so we will hit it here at the end
+                // and then we can use its common ::what() function
+                if (strcmp(classname, ".?AVexception@std@@") == 0)
+                {
+                    auto* exception = reinterpret_cast<std::exception*>(pExceptionObject);
+                    spdlog::error("Message: {}", exception->what());
+                    break;
+                }
+            }
+        }
     }
 
     void* exceptionAddress = exceptionInfo->ExceptionRecord->ExceptionAddress;
@@ -176,7 +187,6 @@ void log_exception_info(const EXCEPTION_POINTERS* exceptionInfo) // based on cod
     DWORD64 crashedModuleOffset = ((DWORD64)exceptionAddress) - ((DWORD64)crashedModuleInfo.lpBaseOfDll);
     CONTEXT* exceptionContext = exceptionInfo->ContextRecord;
 
-    spdlog::error(exceptionCause.str());
     //spdlog::error("At: {} + {}", crashedModuleName, (void*)crashedModuleOffset);
 
     PVOID framesToCapture[62];
