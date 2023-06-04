@@ -68,8 +68,68 @@ bool GetExePathWide(wchar_t* dest, DWORD destSize)
     return length && PathRemoveFileSpecW(dest);
 }
 
+bool IsAnyIMEInstalled()
+{
+    auto count = GetKeyboardLayoutList(0, nullptr);
+    if (count == 0)
+        return false;
+    auto* list = reinterpret_cast<HKL*>(_alloca(count * sizeof(HKL)));
+    GetKeyboardLayoutList(count, list);
+    for (int i = 0; i < count; i++)
+        if (ImmIsIME(list[i]))
+            return true;
+    return false;
+}
+
+void SetMitigationPolicies()
+{
+    auto SetProcessMitigationPolicy = (decltype(&::SetProcessMitigationPolicy))GetProcAddress(GetModuleHandleW(L"kernel32.dll"), "SetProcessMitigationPolicy");
+    if (SetProcessMitigationPolicy)
+    {
+        PROCESS_MITIGATION_ASLR_POLICY ap;
+        ap.EnableBottomUpRandomization = true;
+        ap.EnableForceRelocateImages = true;
+        ap.EnableHighEntropy = true;
+        ap.DisallowStrippedImages = true; // Images that have not been built with /DYNAMICBASE and do not have relocation information will fail to load if this flag and EnableForceRelocateImages are set.
+        SetProcessMitigationPolicy(ProcessASLRPolicy, &ap, sizeof(ap));
+
+        /*PROCESS_MITIGATION_DYNAMIC_CODE_POLICY dcp;
+        dcp.ProhibitDynamicCode = true;
+        SetProcessMitigationPolicy(ProcessDynamicCodePolicy, &dcp, sizeof(dcp));*/
+
+        if (!IsAnyIMEInstalled()) // this breaks IME apparently (https://learn.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-updateprocthreadattribute)
+        {
+            PROCESS_MITIGATION_EXTENSION_POINT_DISABLE_POLICY epdp;
+            epdp.DisableExtensionPoints = true;
+            SetProcessMitigationPolicy(ProcessExtensionPointDisablePolicy, &epdp, sizeof(epdp));
+        }
+
+        PROCESS_MITIGATION_CONTROL_FLOW_GUARD_POLICY cfgp;
+        cfgp.EnableControlFlowGuard = true;
+        //cfgp.StrictMode = true; // this needs to be disabled to load stubs with no CRT
+        SetProcessMitigationPolicy(ProcessControlFlowGuardPolicy, &cfgp, sizeof(cfgp));
+
+        PROCESS_MITIGATION_DEP_POLICY dp;
+        dp.Enable = true;
+        dp.Permanent = true;
+        SetProcessMitigationPolicy(ProcessDEPPolicy, &dp, sizeof(dp));
+
+        PROCESS_MITIGATION_IMAGE_LOAD_POLICY ilp;
+        ilp.PreferSystem32Images = true;
+        ilp.NoRemoteImages = true;
+        SetProcessMitigationPolicy(ProcessImageLoadPolicy, &ilp, sizeof(ilp));
+
+        PROCESS_MITIGATION_USER_SHADOW_STACK_POLICY usspp;
+        usspp.EnableUserShadowStack = true;
+        usspp.EnableUserShadowStackStrictMode = true;
+        SetProcessMitigationPolicy(ProcessUserShadowStackPolicy, &usspp, sizeof(usspp));
+    }
+}
+
 bool Load()
 {
+    SetMitigationPolicies();
+
     wchar_t exePath[2048];
     wchar_t LibFullPath[2048];
 

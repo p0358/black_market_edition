@@ -117,6 +117,7 @@
       <DisableSpecificWarnings>4996</DisableSpecificWarnings>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <ForcedIncludeFiles>pch.h;%(ForcedIncludeFiles)</ForcedIncludeFiles>
+      <ControlFlowGuard>Guard</ControlFlowGuard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -127,6 +128,7 @@
       <AdditionalDependencies>sentry.lib;crashpad_client.lib;crashpad_util.lib;mini_chromium.lib;discord-rpc.lib;libMinHook-x64-v141-md.lib;libcurl_a.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;ws2_32.lib;wldap32.lib;Normaliz.lib;Crypt32.lib;tier0.lib;Winhttp.lib;version.lib;Dbghelp.lib;Advapi32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>..\thirdparty\discord-rpc\Release;..\thirdparty\sentry\lib;..\thirdparty\MinHook;..\thirdparty\curl-7.74.0\builds\libcurl-vc16-x64-release-static-ipv6-sspi-schannel\lib;..\thirdparty\discord_game_sdk\lib\x86_64;..\thirdparty\tier0</AdditionalLibraryDirectories>
       <IgnoreSpecificDefaultLibraries>LIBCMTD;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
+      <CETCompat>true</CETCompat>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Staging|x64'">
@@ -144,6 +146,7 @@
       <DisableSpecificWarnings>4996</DisableSpecificWarnings>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <ForcedIncludeFiles>pch.h;%(ForcedIncludeFiles)</ForcedIncludeFiles>
+      <ControlFlowGuard>Guard</ControlFlowGuard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -154,6 +157,7 @@
       <AdditionalDependencies>sentry.lib;crashpad_client.lib;crashpad_util.lib;mini_chromium.lib;discord-rpc.lib;libMinHook-x64-v141-md.lib;libcurl_a.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;ws2_32.lib;wldap32.lib;Normaliz.lib;Crypt32.lib;tier0.lib;Winhttp.lib;version.lib;Dbghelp.lib;Advapi32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>..\thirdparty\discord-rpc\Release;..\thirdparty\sentry\lib;..\thirdparty\MinHook;..\thirdparty\curl-7.74.0\builds\libcurl-vc16-x64-release-static-ipv6-sspi-schannel\lib;..\thirdparty\discord_game_sdk\lib\x86_64;..\thirdparty\tier0</AdditionalLibraryDirectories>
       <IgnoreSpecificDefaultLibraries>LIBCMTD;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
+      <CETCompat>true</CETCompat>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
