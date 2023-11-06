@@ -3,11 +3,6 @@
 #include "TTFSDK.h"
 #include "Updater.h"
 
-//#include <rapidjson/stringbuffer.h>
-#include <rapidjson/document.h>
-//#include <rapidjson/schema.h>
-//#include <rapidjson/filereadstream.h>
-
 namespace Updater {
 
     static size_t WriteCallback(void* contents, size_t size, size_t nmemb, void* userp)

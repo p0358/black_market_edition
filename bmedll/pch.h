@@ -35,6 +35,11 @@ typedef unsigned int _DWORD;
 #include <spdlog/sinks/wincolor_sink.h>
 #include <spdlog/fmt/bundled/printf.h>
 
+#include <rapidjson/document.h>
+//#include <rapidjson/stringbuffer.h>
+//#include <rapidjson/schema.h>
+//#include <rapidjson/filereadstream.h>
+
 //#define D3D11_NO_HELPERS
 //#define CINTERFACE
 #define INITGUID
