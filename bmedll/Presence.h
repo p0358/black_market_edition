@@ -78,8 +78,8 @@ public:
     inline void wipeOriginRichPresenceString();
     inline void wipeOriginJoinSecret();
     std::string getJoinSecret();
-    ourInGameJoinData parseJoinSecret(char* str);
-    bool joinGameWithDiscordJoinSecret(char* str);
+    bool joinGameWithOriginJoinSecret(const char* str, unsigned long long uid);
+    bool joinGameWithDiscordJoinSecret(const char* str);
 
     void SetTrainingResumeChoice(const CCommand& args);
     void updatePlayerCountCCommand(const CCommand& args);
@@ -95,6 +95,7 @@ public:
     void __fastcall Hook_updatePresence2(__int64 a1);
     char Hook_sub_180473500(char* a1, signed __int64 a2, const char* a3, char* a4, char* a5);
     __int64 __fastcall Hook_sub_180022CA0(__int64 a1);
+    int64_t __fastcall Hook_originEventCallback(int64_t eventID, void* a2, uint64_t* a3, void* a4);
 
     Presence(ConCommandManager& conCommandManager);
     ~Presence();

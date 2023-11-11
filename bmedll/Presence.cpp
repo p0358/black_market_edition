@@ -8,6 +8,8 @@
 #include "Util.h"
 #include "_version.h"
 
+extern FuncStaticWithType<void* (__cdecl*)()> get_cl;
+
 Presence& PresenceGlob()
 {
     return SDK().GetPresence();
@@ -431,79 +433,78 @@ std::string Presence::getJoinSecret()
     return ss.str();
 }
 
-// beware: passing via this struct doesn't seem to fucking work, use the below function instead!
-ourInGameJoinData Presence::parseJoinSecret(char* str)
+bool Presence::joinGameWithOriginJoinSecret(const char* str, unsigned long long uid)
 {
-    ourInGameJoinData data{};
-    data.ok = false;
-    // we'll do it the Respawn way xD
-    char* pch;
-    pch = strtok(str, "|");
-    if (pch != NULL)
+    unsigned int baseLocalClient__m_nSignonState = *((_DWORD*)get_cl() + 29);
+    if (baseLocalClient__m_nSignonState > 0 && baseLocalClient__m_nSignonState < 8)
     {
-        pch = strtok(NULL, "|");
-        if (pch != NULL)
-        {
-            std::string srv = Util::RemoveChar(std::string(pch), '|');
-            data.serverIPAndPort = srv;
-            pch = strtok(NULL, "|");
-            if (pch != NULL)
-            {
-                std::string key = Util::RemoveChar(std::string(pch), '|');
-                data.encryptionKeyBase64 = key;
-                pch = strtok(NULL, "|");
-                if (pch != NULL)
-                {
-                    data.uid = _atoi64(pch);
-                    //data.ok = data.uid && data.encryptionKeyBase64 && data.serverIPAndPort;
-                    data.ok = true;
-                }
-            }
-        }
-    }
-    return data;
-}
-
-bool Presence::joinGameWithDiscordJoinSecret(char* str)
-{
-    bool ok = false;
-    std::string serverIPAndPort;
-    std::string encryptionKeyBase64;
-    unsigned long long uid;
-    // we'll do it the Respawn way xD
-    char* pch;
-    pch = strtok(str, "|");
-    if (pch != NULL)
-    {
-        pch = strtok(NULL, "|");
-        if (pch != NULL)
-        {
-            serverIPAndPort = Util::RemoveChar(std::string(pch), '|');
-            pch = strtok(NULL, "|");
-            if (pch != NULL)
-            {
-                encryptionKeyBase64 = Util::RemoveChar(std::string(pch), '|');
-                pch = strtok(NULL, "|");
-                if (pch != NULL)
-                {
-                    uid = _atoi64(pch);
-                    ok = true;
-                }
-            }
-        }
+        m_logger->error("Cannot accept Origin invite during game loading (user probably pressed Join more than once)");
+        return false;
     }
 
-    if (ok) {
+    const char* regex_s = "2\\|(\\["
+        "(?:(?:[0-9a-fA-F]{1,4}:){7,7}[0-9a-fA-F]{1,4}|(?:[0-9a-fA-F]{1,4}:){1,7}:|(?:[0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|(?:[0-9a-fA-F]{1,4}:){1,5}(?::[0-9a-fA-F]{1,4}){1,2}|(?:[0-9a-fA-F]{1,4}:){1,4}(?::[0-9a-fA-F]{1,4}){1,3}|(?:[0-9a-fA-F]{1,4}:){1,3}(?::[0-9a-fA-F]{1,4}){1,4}|(?:[0-9a-fA-F]{1,4}:){1,2}(?::[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:(?:(?::[0-9a-fA-F]{1,4}){1,6})|:(?:(?::[0-9a-fA-F]{1,4}){1,7}|:)|fe80:(?::[0-9a-fA-F]{0,4}){0,4}%[0-9a-zA-Z]{1,}|::(?:ffff(?::0{1,4}){0,1}:){0,1}(?:(?:25[0-5]|(?:2[0-4]|1{0,1}[0-9]){0,1}[0-9])\\.){3,3}(?:25[0-5]|(?:2[0-4]|1{0,1}[0-9]){0,1}[0-9])|(?:[0-9a-fA-F]{1,4}:){1,4}:(?:(?:25[0-5]|(?:2[0-4]|1{0,1}[0-9]){0,1}[0-9])\\.){3,3}(?:25[0-5]|(?:2[0-4]|1{0,1}[0-9]){0,1}[0-9]))"
+        "\\]:[0-9]+)" // ipv6:port
+        "\\|([A-Za-z0-9]+=*)"; // base64 key
+    std::regex r(regex_s);
+
+    std::cmatch matches;
+    if (std::regex_search(str, matches, r) && matches.size() == 3)
+    {
+        auto serverIPAndPort = matches[1];
+        auto encryptionKeyBase64 = matches[2];
         std::stringstream cmd;
-        cmd << _("connectwithinvite");
+        cmd << "connectwithinvite";
         cmd << ' ' << '"' << serverIPAndPort << '"';
         cmd << ' ' << '"' << encryptionKeyBase64 << '"';
         cmd << ' ' << uid;
-        m_logger->info(_("Joining game with Discord invite"));
+        m_logger->info("Joining game with Origin invite");
         SDK().GetEngineClient()->ClientCmd_Unrestricted(cmd.str().c_str());
+        return true;
+    }
+    else
+    {
+        m_logger->error("Invalid join secret received in Origin invite: {} (uid {})", str, uid);
+        return false;
+    }
+}
+
+bool Presence::joinGameWithDiscordJoinSecret(const char* str)
+{
+    unsigned int baseLocalClient__m_nSignonState = *((_DWORD*)get_cl() + 29);
+    if (baseLocalClient__m_nSignonState > 0 && baseLocalClient__m_nSignonState < 8)
+    {
+        m_logger->error("Cannot accept Discord invite during game loading (user probably pressed Join more than once)");
+        return false;
     }
 
-    return ok;
+    const char* regex_s = "2\\|(\\["
+        "(?:(?:[0-9a-fA-F]{1,4}:){7,7}[0-9a-fA-F]{1,4}|(?:[0-9a-fA-F]{1,4}:){1,7}:|(?:[0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|(?:[0-9a-fA-F]{1,4}:){1,5}(?::[0-9a-fA-F]{1,4}){1,2}|(?:[0-9a-fA-F]{1,4}:){1,4}(?::[0-9a-fA-F]{1,4}){1,3}|(?:[0-9a-fA-F]{1,4}:){1,3}(?::[0-9a-fA-F]{1,4}){1,4}|(?:[0-9a-fA-F]{1,4}:){1,2}(?::[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:(?:(?::[0-9a-fA-F]{1,4}){1,6})|:(?:(?::[0-9a-fA-F]{1,4}){1,7}|:)|fe80:(?::[0-9a-fA-F]{0,4}){0,4}%[0-9a-zA-Z]{1,}|::(?:ffff(?::0{1,4}){0,1}:){0,1}(?:(?:25[0-5]|(?:2[0-4]|1{0,1}[0-9]){0,1}[0-9])\\.){3,3}(?:25[0-5]|(?:2[0-4]|1{0,1}[0-9]){0,1}[0-9])|(?:[0-9a-fA-F]{1,4}:){1,4}:(?:(?:25[0-5]|(?:2[0-4]|1{0,1}[0-9]){0,1}[0-9])\\.){3,3}(?:25[0-5]|(?:2[0-4]|1{0,1}[0-9]){0,1}[0-9]))"
+        "\\]:[0-9]+)" // ipv6:port
+        "\\|([A-Za-z0-9]+=*)" // base64 key
+        "\\|([0-9]+)"; // uid
+    std::regex r(regex_s);
+
+    std::cmatch matches;
+    if (std::regex_search(str, matches, r) && matches.size() == 4)
+    {
+        auto serverIPAndPort = matches[1];
+        auto encryptionKeyBase64 = matches[2];
+        unsigned long long uid = std::stoull(matches[3]);
+        std::stringstream cmd;
+        cmd << "connectwithinvite";
+        cmd << ' ' << '"' << serverIPAndPort << '"';
+        cmd << ' ' << '"' << encryptionKeyBase64 << '"';
+        cmd << ' ' << uid;
+        m_logger->info("Joining game with Discord invite");
+        SDK().GetEngineClient()->ClientCmd_Unrestricted(cmd.str().c_str());
+        return true;
+    }
+    else
+    {
+        m_logger->error("Invalid join secret received in Discord invite: {}", str);
+        return false;
+    }
 }
 
 void Presence::updateRichPresenceCCommand(const CCommand& args)
@@ -661,6 +662,7 @@ void Presence::updateRoundsTotalCCommand(const CCommand& args)
 HookedFuncStatic<void __fastcall, __int64> _updatePresence2("engine.dll", 0x15C4C0);
 HookedFuncStatic<char, char*, signed __int64, const char*, char*, char*> _sub_180473500("engine.dll", 0x473500);
 HookedFuncStatic<__int64 __fastcall, __int64> _sub_180022CA0("engine.dll", 0x22CA0);
+HookedFuncStatic<int64_t __fastcall, int64_t, void*, uint64_t*, void*> _originEventCallback("engine.dll", 0x15BAE0);
 
 Presence::Presence(ConCommandManager& conCommandManager)
 {
@@ -688,6 +690,7 @@ Presence::Presence(ConCommandManager& conCommandManager)
     _updatePresence2.Hook(WRAPPED_MEMBER(Hook_updatePresence2));
     _sub_180473500.Hook(WRAPPED_MEMBER(Hook_sub_180473500));
     //_sub_180022CA0.Hook(WRAPPED_MEMBER(Hook_sub_180022CA0));
+    _originEventCallback.Hook(WRAPPED_MEMBER(Hook_originEventCallback));
     didOriginOfflineKickAlready = false;
 
     trainingStage = -1;
@@ -750,4 +753,16 @@ __int64 __fastcall Presence::Hook_sub_180022CA0(__int64 a1) {
     didOriginOfflineKickAlready = false;
     updateRichPresenceLoading(true);
     return _sub_180022CA0(a1);
+}
+
+int64_t __fastcall Presence::Hook_originEventCallback(int64_t eventID, void* a2, uint64_t* a3, void* a4)
+{
+    if (eventID == 2 && a3)
+    {
+        auto* secret = reinterpret_cast<const char*>(a3[2]);
+        auto uid = a3[1];
+        joinGameWithOriginJoinSecret(secret, uid);
+        return 0;
+    }
+    return _originEventCallback(eventID, a2, a3, a4);
 }

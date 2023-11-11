@@ -35,7 +35,8 @@ Installers are built with Inno Setup using scripts from installer/ folder and th
 * see who's in a party with whom in public matchmaking
 * hitch alerts to indicate various connection problems analogous to what Titanfall 2 and Apex have (for example: "OUT OF SNAPSHOTS", "NET CHOKED")
 * separate launcher exe that alleviates issues when Origin acts up and refuses to launch the game otherwise
-* enables Unicode input in text chat (so you can type non-English characters; note: font used for some game locales cannot display many non-Latin characters)
+* enable Unicode input in text chat (so you can type non-English characters; note: font used for some game locales cannot display many non-Latin characters)
+* fix XSS in game invites (malicious join secrets could execute arbitrary client commands)
 
 ### Known bugs
 
