@@ -97,6 +97,6 @@ public:
     __int64 __fastcall Hook_sub_180022CA0(__int64 a1);
     int64_t __fastcall Hook_originEventCallback(int64_t eventID, void* a2, uint64_t* a3, void* a4);
 
-    Presence(ConCommandManager& conCommandManager);
+    Presence();
     ~Presence();
 };

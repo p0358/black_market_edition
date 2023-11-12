@@ -11,6 +11,16 @@ public:
 		typedef void(__thiscall* OriginalFn)(PVOID, const char*);
 		return getvfunc<OriginalFn>(this, 12)(this, szString);
 	}
+	void SetValueFloat(float szFloat)
+	{
+		typedef void(__thiscall* OriginalFn)(PVOID, float);
+		return getvfunc<OriginalFn>(this, 13)(this, szFloat);
+	}
+	void SetValueInt(int szInt)
+	{
+		typedef void(__thiscall* OriginalFn)(PVOID, int);
+		return getvfunc<OriginalFn>(this, 14)(this, szInt);
+	}
 	const char* GetString()
 	{
 		return *(const char**)((size_t)this + 72);
