@@ -49,7 +49,7 @@ __int64 __fastcall GameEvent_Process_Hook(__int64 thisptr) {
         }
         else if (*SDK().GetPresence().presenceBuffer)
         {
-            // TODO: obituary print
+            SDK().GetConCommandManager().ExecuteCommand("script_client Obituary_Print(\"\", \"BME\", \"A crash was prevented.\", OBITUARY_COLOR_WEAPON, BURN_CARD_WEAPON_HUD_COLOR_STRING, OBITUARY_COLOR_WEAPON)");
         }
         spdlog::info("[BME] A crash was prevented.");
     }
