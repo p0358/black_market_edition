@@ -2,63 +2,7 @@
 #include "Util.h"
 #include "TTFSDK.h"
 
-std::map<std::string, DWORD64> baseModuleAddressCache;
-
-/*#define STATUS_SUCCESS ((NTSTATUS)0x00000000L)
-#define ThreadQuerySetWin32StartAddress 9
-
-typedef NTSTATUS(WINAPI* NTQUERYINFOMATIONTHREAD)(HANDLE, LONG, PVOID, ULONG, PULONG);
-
-BOOL MatchAddressToModule(__in DWORD dwProcId, __out_bcount(MAX_PATH + 1) LPTSTR lpstrModule, __in DWORD dwThreadStartAddr, __out_opt PDWORD pModuleStartAddr) // by Echo
-{
-    BOOL bRet = FALSE;
-    HANDLE hSnapshot;
-    MODULEENTRY32 moduleEntry32;
-
-    hSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE | TH32CS_SNAPALL, dwProcId);
-
-    moduleEntry32.dwSize = sizeof(MODULEENTRY32);
-    moduleEntry32.th32ModuleID = 1;
-
-    if (Module32First(hSnapshot, &moduleEntry32)) {
-        if (dwThreadStartAddr >= (DWORD)moduleEntry32.modBaseAddr && dwThreadStartAddr <= ((DWORD)moduleEntry32.modBaseAddr + moduleEntry32.modBaseSize)) {
-            _tcscpy(lpstrModule, moduleEntry32.szExePath);
-        }
-        else {
-            while (Module32Next(hSnapshot, &moduleEntry32)) {
-                if (dwThreadStartAddr >= (DWORD)moduleEntry32.modBaseAddr && dwThreadStartAddr <= ((DWORD)moduleEntry32.modBaseAddr + moduleEntry32.modBaseSize)) {
-                    _tcscpy(lpstrModule, moduleEntry32.szExePath);
-                    break;
-                }
-            }
-        }
-    }
-
-    if (pModuleStartAddr) *pModuleStartAddr = (DWORD)moduleEntry32.modBaseAddr;
-    CloseHandle(hSnapshot);
-
-    return bRet;
-}
-
-DWORD WINAPI GetThreadStartAddress(__in HANDLE hThread, NTQUERYINFOMATIONTHREAD NtQueryInformationThread)
-{
-    NTSTATUS ntStatus;
-    DWORD dwThreadStartAddr = 0;
-    HANDLE hPseudoCurrentProcess, hNewThreadHandle;
-    //NTQUERYINFOMATIONTHREAD NtQueryInformationThread;
-
-    //if ((NtQueryInformationThread = (NTQUERYINFOMATIONTHREAD)GetProcAddress(GetModuleHandle(L"ntdll.dll"), "NtQueryInformationThread"))) {
-        hPseudoCurrentProcess = GetCurrentProcess();
-        if (DuplicateHandle(hPseudoCurrentProcess, hThread, hPseudoCurrentProcess, &hNewThreadHandle, THREAD_QUERY_INFORMATION, FALSE, 0)) {
-            ntStatus = NtQueryInformationThread(hNewThreadHandle, ThreadQuerySetWin32StartAddress, &dwThreadStartAddr, sizeof(DWORD), NULL);
-            CloseHandle(hNewThreadHandle);
-            if (ntStatus != STATUS_SUCCESS) return 0;
-        }
-
-    //}
-
-    return dwThreadStartAddr;
-}*/
+std::unordered_map<std::string, DWORD64> baseModuleAddressCache;
 
 bool hasEnding(std::string const& fullString, std::string const& ending) {
     if (fullString.length() >= ending.length()) {

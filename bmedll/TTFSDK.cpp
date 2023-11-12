@@ -8,8 +8,8 @@
 #include "BMEGUI.h"
 #include "Discord.h"
 #include "Presence.h"
+#include "tier0.h"
 #include "_version.h"
-#include <iostream>
 
 std::unique_ptr<Console> g_console;
 std::unique_ptr<TTFSDK> g_SDK;
@@ -392,29 +392,11 @@ void __fastcall TTFSDK::RunFrameHook(__int64 a1, double frameTime)
             extern void StartPreloading();
             StartPreloading();
         }
-
-        if (m_discord) {
-            DiscordRichPresence discordPresence;
-            memset(&discordPresence, 0, sizeof(discordPresence));
-            discordPresence.details = "Main Menu";
-            discordPresence.state = BME_VERSION_LONG;
-            discordPresence.largeImageKey = "titanfall_101";
-            discordPresence.largeImageText = "Titanfall";
-            discordPresence.smallImageKey = "";
-            discordPresence.smallImageText = "";
-            const auto p1 = std::chrono::system_clock::now();
-            const auto p2 = std::chrono::duration_cast<std::chrono::seconds>(
-                p1.time_since_epoch()).count();
-            discordPresence.startTimestamp = p2;
-            discordPresence.instance = 0;
-            m_discord->UpdatePresence(&discordPresence);
-        }
-
     }
 
 #ifdef NDEBUG
     static bool did_set_origin_info_in_sentry = false;
-    if (!did_set_origin_info_in_sentry && origin && origin->uid && origin->playerName && *origin->playerName)
+    if (!did_set_origin_info_in_sentry && origin && origin->uid && origin->playerName && origin->playerName[0])
     {
         // because it seems playerName isn't populated instantly
         did_set_origin_info_in_sentry = true;
@@ -422,20 +404,20 @@ void __fastcall TTFSDK::RunFrameHook(__int64 a1, double frameTime)
         sentry_value_t origin_ctx = sentry_value_new_object();
         if (origin->uid)
         {
-            std::stringstream ss; ss << origin->uid;
-            sentry_value_set_by_key(user, "id", sentry_value_new_string(ss.str().c_str()));
-            sentry_value_set_by_key(origin_ctx, "originid", sentry_value_new_string(ss.str().c_str()));
+            auto origin_id_sentry_value = sentry_value_new_string(std::to_string(origin->uid).c_str());
+            sentry_value_set_by_key(user, "id", origin_id_sentry_value);
+            sentry_value_set_by_key(origin_ctx, "originid", origin_id_sentry_value);
         }
 
-        if (origin->playerName && *origin->playerName)
+        if (origin->playerName && origin->playerName[0])
         {
             sentry_value_set_by_key(user, "username", sentry_value_new_string(origin->playerName));
             sentry_value_set_by_key(origin_ctx, "originname", sentry_value_new_string(origin->playerName));
         }
 
-        if (origin->locale && *origin->locale)
+        if (origin->locale && origin->locale[0])
             sentry_value_set_by_key(origin_ctx, "originlocale", sentry_value_new_string(origin->locale));
-        if (origin->environment && *origin->environment)
+        if (origin->environment && origin->environment[0])
             sentry_value_set_by_key(origin_ctx, "originenvironment", sentry_value_new_string(origin->environment));
 
         sentry_set_user(user);
@@ -455,21 +437,6 @@ void __fastcall TTFSDK::RunFrameHook(__int64 a1, double frameTime)
             Updater::pendingUpdateLaunchMotdChange = false;
         }
     }
-
-    if (m_discord)
-        m_discord->UpdateDebouncedPresenceTick();
-
-    static uint8_t callCount = 0;
-    callCount++;
-    if (callCount >= 5)
-    {
-        callCount = 0;
-        if (m_discord)
-            m_discord->RunCallbacks();
-
-    }
-
-    //m_uiManager->DrawTest();
 
     //return _Host_RunFrame(absTime, frameTime);
 }
@@ -658,59 +625,32 @@ bool SetupLogger()
 
 bool SetupSDK()
 {
-    if (IsSDKReady()) { spdlog::get(_("logger"))->error(_("SDK IS ALREADY SET UP!!! WTF DID CALL THIS FUNC???")); return false; }
-
-    // Separate try catch because these are required for logging to work
-    //if (!SetupLogger()) return false;
+    if (IsSDKReady()) { spdlog::error("SDK IS ALREADY SET UP!!! WTF DID CALL THIS FUNC???"); return false; }
 
     if (!strstr(GetCommandLineA(), "-bmenoupdates") && !strstr(GetCommandLineA(), "-bmeoffline"))
         Updater::CheckForUpdates();
 
     try
     {
-        /*bool breakpadSuccess = SetupBreakpad(GetThisPath());
-        if (breakpadSuccess)
-        {
-            spdlog::get(_("logger"))->info(_("Breakpad initialized"));
-        }
-        else
-        {
-            spdlog::get(_("logger"))->info(_("Breakpad was not initialized"));
-        }*/
-
-        SPDLOG_LOGGER_DEBUG(spdlog::get(_("logger")), _("Waiting for game DLLs..."));
-        // TODO: Make this smarter (automatically pull DLL we need to load from somewhere)
-        Util::WaitForModuleHandle(_("engine.dll"));
-        Util::WaitForModuleHandle(_("client.dll"));
-        Util::WaitForModuleHandle(_("vstdlib.dll"));
-        Util::WaitForModuleHandle(_("filesystem_stdio.dll"));
-        Util::WaitForModuleHandle(_("materialsystem_dx11.dll"));
-        Util::WaitForModuleHandle(_("vguimatsurface.dll"));
-
-        //SPDLOG_LOGGER_DEBUG(spdlog::get(_("logger")), _("Suspending threads..."));
-        //Util::ThreadSuspender suspender;
-        //SPDLOG_LOGGER_DEBUG(spdlog::get(_("logger")), _("Threads suspended. Initializing"));
-
         /*if (Updater::updateInProcess)
         {
-            spdlog::get(_("logger"))->info(_("Update in progress, SDK will NOT be initialized. The updater should close the game now."));
+            spdlog::info("Update in progress, SDK will NOT be initialized. The updater should close the game now.");
             return true;
         }*/
 
-        SPDLOG_LOGGER_DEBUG(spdlog::get(_("logger")), _("Before actual SDK init."));
+        SPDLOG_DEBUG("Before actual SDK init.");
         g_SDK = std::make_unique<TTFSDK>();
+        g_SDK->Init();
         extern void HitchAlert_Setup(); HitchAlert_Setup();
         g_isSDKInitialized = true;
-        SPDLOG_LOGGER_DEBUG(spdlog::get(_("logger")), _("After actual SDK init."));
-
-        //SPDLOG_LOGGER_DEBUG(spdlog::get(_("logger")), "Will unsuspend threads after this message.");
+        SPDLOG_DEBUG("After actual SDK init.");
         return true;
     }
     catch (std::exception& ex)
     {
         std::string message = fmt::format("Failed to initialise Black Market Edition: {}", ex.what());
         MessageBoxA(NULL, message.c_str(), "Error", MB_OK | MB_ICONERROR);
-        spdlog::get(_("logger"))->critical(message);
+        spdlog::critical(message);
         //MessageBox(NULL, Util::Widen(message).c_str(), L"Error", MB_OK | MB_ICONERROR);
         throw;
         return false;

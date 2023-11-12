@@ -24,7 +24,6 @@ private:
     std::unique_ptr<FileSystemManager> m_fsManager;
     std::unique_ptr<ConCommandManager> m_conCommandManager;
     std::unique_ptr<SquirrelManager> m_sqManager;
-    //std::unique_ptr<PakManager> m_pakManager;
     //std::unique_ptr<ModManager> m_modManager;
     std::unique_ptr<UIManager> m_uiManager;
     std::unique_ptr<SourceConsole> m_sourceConsole;
@@ -32,8 +31,6 @@ private:
     std::unique_ptr<BMEGUI> m_bmegui;
     std::unique_ptr<DiscordWrapper> m_discord;
     std::unique_ptr<Presence> m_presence;
-
-    //std::unique_ptr<IcepickMenu> m_icepickMenu;
 
     std::list<std::shared_ptr<IFrameTask>> m_frameTasks;
     std::recursive_mutex m_frameTasksLock;
@@ -56,7 +53,6 @@ public:
     FileSystemManager& GetFSManager();
     ConCommandManager& GetConCommandManager();
     SquirrelManager& GetSQManager();
-    //PakManager& GetPakManager();
     //ModManager& GetModManager();
     UIManager& GetUIManager();
     SourceConsole& GetSourceConsole();
@@ -66,8 +62,6 @@ public:
     Presence& GetPresence();
 
     //ID3D11Device** GetD3D11DevicePtr();
-
-    //IcepickMenu& GetIcepickMenu();
 
     //SourceInterface<IVEngineServer>& GetEngineServer();
     SourceInterface<IVEngineClient>& GetEngineClient();
@@ -79,13 +73,7 @@ public:
     bool runFrameHookCalled = false;
 
     void AddFrameTask(std::shared_ptr<IFrameTask> task);
-    void AddDelayedFunc(std::function<void()> func, int frames);
-
-    //SQInteger SQGetMouseDeltaX(HSQUIRRELVM v);
-    //SQInteger SQGetMouseDeltaY(HSQUIRRELVM v);
-
-    //void EnableNoclipCommand(const CCommand& args);
-    //void DisableNoclipCommand(const CCommand& args);
+    void AddDelayedFunc(std::function<void()> func, int frames = 0);
 
     void ReinitDiscord();
 };

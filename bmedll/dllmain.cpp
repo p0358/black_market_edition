@@ -428,43 +428,41 @@ void main()
     g_startTime = std::chrono::system_clock::now();
     CreateTier0MemAlloc();
     //if (IsClient()) ShowConsole(); // TODO: disable in production?
-    //std::cout << "bme.dll main" << std::endl;
     SetupLogger();
-    auto logger = spdlog::get(_("logger"));
 
-    if (strstr(GetCommandLineA(), _("-nocrashhandler"))) // CommandLine() not yet ready probably
-        logger->info(_("Sentry not starting due to -nocrashhandler"));
+    if (strstr(GetCommandLineA(), "-nocrashhandler")) // CommandLine() not yet ready probably
+        spdlog::info("Sentry not starting due to -nocrashhandler");
     else
     {
         auto wasCrashHandlerStarted = SetupCrashHandler(GetThisPathWide());
-        logger->info(_("Sentry was{}started"), wasCrashHandlerStarted ? " " : " not ");
+        spdlog::info("Sentry was{}started", wasCrashHandlerStarted ? " " : " not ");
     }
 
     curl_global_init_mem(CURL_GLOBAL_DEFAULT, internal_malloc, internal_free, internal_realloc, internal_strdup, internal_calloc);
 
-    SPDLOG_LOGGER_DEBUG(logger, _("DoBinaryPatches"));
+    SPDLOG_DEBUG("DoBinaryPatches");
     DoBinaryPatches();
 
     {
-        SPDLOG_LOGGER_DEBUG(logger, _("MH_Initialize")); 
+        SPDLOG_DEBUG("MH_Initialize"); 
         if (MH_Initialize() != MH_OK)
         {
-            logger->error(_("MH_Initialize error"));
+            spdlog::error("MH_Initialize error");
             return;
         }
 
-        SPDLOG_LOGGER_DEBUG(logger, _("DoMiscHooks"));
+        SPDLOG_DEBUG("DoMiscHooks");
         DoMiscHooks();
 
         if (MH_EnableHook(MH_ALL_HOOKS) != MH_OK)
         {
-            logger->error(_("MH_EnableHook error"));
+            spdlog::error("MH_EnableHook error");
             return;
         }
 
     }
 
-    SPDLOG_LOGGER_DEBUG(logger, _("Preinit code end"));
+    SPDLOG_DEBUG("Preinit code end");
 
     consoleInputThread = CreateThread(0, 0, ConsoleInputThread, 0, 0, NULL);
 }

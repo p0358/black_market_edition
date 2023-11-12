@@ -22,6 +22,26 @@ typedef unsigned int _DWORD;
 #include <tchar.h>
 #include <bcrypt.h>
 
+#include <algorithm>
+#include <functional>
+#include <shared_mutex>
+#include <unordered_set>
+#include <filesystem>
+namespace fs = std::filesystem;
+#include <locale>
+#include <codecvt>
+#include <numeric>
+#include <string>
+#include <fstream>
+#include <iostream>
+#include <regex>
+#include <mutex>
+#include <sstream>
+#include <map>
+
+using namespace std::literals::string_literals;
+using namespace std::literals::string_view_literals;
+
 #ifdef _DEBUG
 #define SPDLOG_ACTIVE_LEVEL SPDLOG_LEVEL_TRACE
 #else
@@ -55,21 +75,6 @@ typedef unsigned int _DWORD;
 #include <imgui/backends/imgui_impl_dx11.h>
 #include <imgui/backends/imgui_impl_win32.h>
 
-#include <algorithm>
-#include <functional>
-#include <shared_mutex>
-#include <unordered_set>
-#include <filesystem>
-namespace fs = std::filesystem;
-#include <locale>
-#include <codecvt>
-#include <numeric>
-#include <string>
-#include <fstream>
-#include <regex>
-#include <mutex>
-#include <sstream>
-#include <map>
 #include <MinHook/MinHook.h>
 #include <xorstr.hpp>
 #define _(str) xorstr_(str)
