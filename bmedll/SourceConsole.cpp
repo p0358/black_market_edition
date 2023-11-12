@@ -139,7 +139,7 @@ bool __fastcall CBaseClientState__InternalProcessStringCmd_Hook(__int64 thisptr,
 }
 //
 
-SourceConsole::SourceConsole(ConCommandManager& conCommandManager, spdlog::level::level_enum level) :
+SourceConsole::SourceConsole(spdlog::level::level_enum level) :
     //m_gameConsole(_("client.dll"), _("GameConsole004"))
     m_gameConsole("client.dll", "GameConsole004")
 {
@@ -150,8 +150,7 @@ SourceConsole::SourceConsole(ConCommandManager& conCommandManager, spdlog::level
     m_sink->set_level(level);
     m_logger->sinks().push_back(m_sink);
 
-    //conCommandManager.RegisterCommand(_("toggleconsole"), WRAPPED_MEMBER(ToggleConsoleCommand), _("Show/hide the console"), 0);
-    //conCommandManager.RegisterCommand(_("clear"), WRAPPED_MEMBER(ClearConsoleCommand), _("Clears the console"), 0);
+    ConCommandManager& conCommandManager = SDK().GetConCommandManager();
     conCommandManager.RegisterCommand("toggleconsole", WRAPPED_MEMBER(ToggleConsoleCommand), "Show/hide the console", 0);
     conCommandManager.RegisterCommand("clear", WRAPPED_MEMBER(ClearConsoleCommand), "Clears the console", 0);
 

@@ -93,7 +93,7 @@ class SourceConsoleSink;
 class SourceConsole
 {
 public:
-    SourceConsole(ConCommandManager& conCommandManager, spdlog::level::level_enum level);
+    SourceConsole(spdlog::level::level_enum level);
     void InitializeSource();
     void Deinitialize();
 

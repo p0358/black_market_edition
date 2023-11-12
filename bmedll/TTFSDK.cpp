@@ -216,25 +216,26 @@ TTFSDK::TTFSDK() :
     m_vstdlibCvar("vstdlib.dll", "VEngineCvar007"),
     m_inputSystem("inputsystem.dll", "InputSystemVersion001")
 {
-    runFrameHookCalled = false;
-    m_logger = spdlog::get(_("logger"));
+    m_logger = spdlog::get("logger");
+}
 
+void TTFSDK::Init()
+{
     SigScanFuncRegistry::GetInstance().ResolveAll();
 
-    /*if (MH_Initialize() != MH_OK)
-    {
-        throw std::exception(_("Failed to initialise MinHook"));
-    }*/
+    m_delayedFuncTask = std::make_shared<DelayedFuncTask>();
+    AddFrameTask(m_delayedFuncTask);
 
-    m_conCommandManager.reset(new ConCommandManager());
-    m_sqManager.reset(new SquirrelManager(*m_conCommandManager));
-    m_fsManager.reset(new FileSystemManager(GetThisPath(), *m_conCommandManager));
-    //m_uiManager.reset(new UIManager(*m_conCommandManager, *m_fsManager));
-    m_sourceConsole.reset(new SourceConsole(*m_conCommandManager, true ? spdlog::level::debug : spdlog::level::info));
+    m_conCommandManager = std::make_unique<ConCommandManager>();
+    m_sqManager = std::make_unique<SquirrelManager>();
+    m_fsManager = std::make_unique<FileSystemManager>(GetThisPath());
+    //m_uiManager = std::make_unique<UIManager>();
+    m_sourceConsole = std::make_unique<SourceConsole>(true ? spdlog::level::debug : spdlog::level::info);
 
     //m_bmegui.reset(new BMEGUI(*m_conCommandManager, *m_uiManager, *m_fsManager));
-    m_discord.reset(new DiscordWrapper(*m_conCommandManager));
-    m_presence.reset(new Presence(*m_conCommandManager));
+    if (!CommandLine()->CheckParm("-nodiscord"))
+        m_discord = std::make_unique<DiscordWrapper>();
+    m_presence = std::make_unique<Presence>();
 
     /*{
         Updater::updaterNowDownloaded = 5.0 * 1024.0 * 1023.0;
@@ -339,10 +340,8 @@ void __fastcall TTFSDK::RunFrameHook(__int64 a1, double frameTime)
             frameTask->RunFrame();
         }
 
-        m_frameTasks.erase(std::remove_if(m_frameTasks.begin(), m_frameTasks.end(), [](const std::shared_ptr<IFrameTask>& t)
-            {
-                return t->IsFinished();
-            }), m_frameTasks.end());
+        auto isFinished = [](const std::shared_ptr<IFrameTask>& t) { return t->IsFinished(); };
+        m_frameTasks.erase(std::remove_if(m_frameTasks.begin(), m_frameTasks.end(), isFinished), m_frameTasks.end());
     }
 
     static bool called = false;
@@ -489,7 +488,7 @@ void TTFSDK::AddDelayedFunc(std::function<void()> func, int frames)
 void TTFSDK::ReinitDiscord()
 {
     m_discord.reset();
-    m_discord.reset(new DiscordWrapper(*m_conCommandManager));
+    m_discord = std::make_unique<DiscordWrapper>();
 }
 
 TTFSDK::~TTFSDK()
@@ -504,7 +503,6 @@ TTFSDK::~TTFSDK()
     /////m_uiManager.reset();
     m_fsManager.reset();
     m_conCommandManager.reset();
-    //m_pakManager.reset();
     //m_modManager.reset();
     // TODO: Add anything i've missed here
     SPDLOG_DEBUG("TTFSDK destructor finishing");

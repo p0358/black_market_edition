@@ -288,7 +288,7 @@ private:
 	std::vector<std::string> m_uiCallbacks;
 
 public:
-	SquirrelManager(ConCommandManager& conCommandManager);
+	SquirrelManager();
 
 	SQInteger BasePrintHook(HSQUIRRELVM v);
 	void PrintFunc(HSQUIRRELVM v, const SQChar* source, const SQChar* s, va_list args);

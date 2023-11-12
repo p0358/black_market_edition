@@ -49,6 +49,7 @@ private:
 public:
     TTFSDK();
     ~TTFSDK();
+    void Init();
 
     TFOrigin* origin;
 
@@ -75,7 +76,7 @@ public:
 
     //void RunFrameHook(double absTime, float frameTime);
     void RunFrameHook(__int64 a1, double frameTime);
-    bool runFrameHookCalled;
+    bool runFrameHookCalled = false;
 
     void AddFrameTask(std::shared_ptr<IFrameTask> task);
     void AddDelayedFunc(std::function<void()> func, int frames);

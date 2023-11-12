@@ -146,7 +146,7 @@ bool __fastcall FatalScriptError_Hook(void* a1)
     return FatalScriptError(a1);
 }
 
-SquirrelManager::SquirrelManager(ConCommandManager& conCommandManager)
+SquirrelManager::SquirrelManager()
 {
     m_logger = spdlog::get("logger");
 
@@ -163,6 +163,7 @@ SquirrelManager::SquirrelManager(ConCommandManager& conCommandManager)
     FatalScriptError.Hook(FatalScriptError_Hook);
 
     // Add concommands to run server, client and UI code
+    ConCommandManager& conCommandManager = SDK().GetConCommandManager();
     //conCommandManager.RegisterCommand("script_server", WRAPPED_MEMBER(RunServerCommand), "Execute Squirrel code in server context", 0);
     //conCommandManager.RegisterCommand("script", WRAPPED_MEMBER(RunServerCommand), "Execute Squirrel code in server context", 0); // this is what devmenu uses // TODO: think if we should leave that in
     if (IsClient()) conCommandManager.RegisterCommand("script_client", WRAPPED_MEMBER(RunClientCommand), "Execute Squirrel code in client context", 0);

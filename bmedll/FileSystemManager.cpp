@@ -66,8 +66,8 @@ VPKData* IFileSystem_MountVPK_Hook(IFileSystem* fileSystem, const char* vpkPath)
     return IFileSystem_MountVPK(fileSystem, vpkPath);
 }
 
-FileSystemManager::FileSystemManager(const std::string& basePath, ConCommandManager& conCommandManager) :
-    m_engineFileSystem("filesystem_stdio.dll", "VFileSystem017")
+FileSystemManager::FileSystemManager(const std::string& basePath)
+    : m_engineFileSystem("filesystem_stdio.dll", "VFileSystem017")
 {
     m_logger = spdlog::get("logger");
     if (basePath[basePath.size()] == '\\' || basePath[basePath.size()] == '/')
@@ -115,6 +115,7 @@ FileSystemManager::FileSystemManager(const std::string& basePath, ConCommandMana
     IFileSystem_AddVPKFile.Hook(m_engineFileSystem->m_vtable, WRAPPED_MEMBER(AddVPKFileHook));
     ReadFileFromVPK.Hook(WRAPPED_MEMBER(ReadFileFromVPKHook));
     RemoveAllMapSearchPaths.Hook(WRAPPED_MEMBER(RemoveAllMapSearchPathsHook));
+    ConCommandManager& conCommandManager = SDK().GetConCommandManager();
     conCommandManager.RegisterCommand("dump_scripts", WRAPPED_MEMBER(DumpAllScripts), "Dump all scripts to development folder", 0);
 
 #ifdef _DEBUG

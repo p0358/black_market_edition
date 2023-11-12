@@ -27,7 +27,7 @@ private:
     bool ShouldReplaceFile(const std::string_view& path);
 
 public:
-    FileSystemManager(const std::string& basePath, ConCommandManager& conCommandManager);
+    FileSystemManager(const std::string& basePath);
     ~FileSystemManager();
 
     void EnsurePathsCreated();
