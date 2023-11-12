@@ -7,3 +7,16 @@
 [submodule "thirdparty/InnoDependencyInstaller"]
 	path = thirdparty/InnoDependencyInstaller
 	url = https://github.com/DomGries/InnoDependencyInstaller.git
+[submodule "thirdparty/spdlog"]
+	path = thirdparty/spdlog
+	url = https://github.com/gabime/spdlog.git
+[submodule "thirdparty/minhook"]
+	path = thirdparty/minhook
+	url = https://github.com/TFORevive/minhook.git
+[submodule "thirdparty/discord-rpc"]
+	path = thirdparty/discord-rpc
+	url = https://github.com/harmonytf/discord-rpc.git
+[submodule "thirdparty/curl"]
+	path = thirdparty/curl
+	url = https://github.com/curl/curl.git
+	branch = curl-8_4_0
