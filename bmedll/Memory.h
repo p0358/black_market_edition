@@ -29,6 +29,13 @@ public:
     VTable* m_vtable;
 };
 
+__forceinline void* internal_malloc(size_t size) { return malloc(size); }
+__forceinline void internal_free(void* p) { free(p); }
+__forceinline void* internal_calloc(size_t n, size_t size) { return calloc(n, size); }
+__forceinline void* internal_realloc(void* old_ptr, size_t size) { return realloc(old_ptr, size); }
+__forceinline char* internal_strdup(const char* src) { return strdup(src); }
+#if 0
+
 //void* operator new(std::size_t n);
 //void operator delete(void* p) throw();
 
@@ -146,4 +153,4 @@ extern "C" {
 
 }
 
-//#endif
+#endif

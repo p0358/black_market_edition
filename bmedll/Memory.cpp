@@ -3,6 +3,7 @@
 #include "tier0.h"
 #include "Memory.h"
 
+#if 0
 decltype(IMemAlloc::VTable::Alloc) Alloc;
 decltype(IMemAlloc::VTable::Realloc) Realloc;
 decltype(IMemAlloc::VTable::Free) Free;
@@ -302,8 +303,10 @@ extern "C" {
     }*/
 
 }
+#endif
 
-extern "C" {
+extern "C"
+{
     void* sentry_malloc(size_t size) { return /*internal_malloc*/malloc(size); }
     void* sentry_realloc(void* old_ptr, size_t size) { return /*internal_realloc*/realloc(old_ptr, size); }
     void sentry_free(void* ptr) { /*internal_free*/free(ptr); }
