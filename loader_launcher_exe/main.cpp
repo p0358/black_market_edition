@@ -177,7 +177,8 @@ int __stdcall WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
     return ((int(*)(HINSTANCE, HINSTANCE, LPSTR, int))Launcher_LauncherMain)(hInstance, hPrevInstance, lpCmdLine, nShowCmd);
 }
 
-extern "C" {
+extern "C"
+{
     __declspec(dllexport) DWORD AmdPowerXpressRequestHighPerformance = 0x00000001;
     __declspec(dllexport) DWORD NvOptimusEnablement = 0x00000001;
 }

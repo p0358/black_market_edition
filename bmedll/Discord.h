@@ -163,6 +163,7 @@ public:
 		p->joinSecret = this->joinSecret.c_str();
 		p->spectateSecret = this->spectateSecret.c_str();
 		p->instance = this->instance;
+		p->buttons = nullptr;
 	}
 
 	bool IsEqualTo(const DiscordRichPresence* p) const

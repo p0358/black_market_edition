@@ -89,7 +89,7 @@ DWORD WINAPI precachePdef(PVOID pThreadParameter) {
     auto curl = curl_easy_init();
 
     if (curl) {
-        curl_easy_setopt(curl, CURLOPT_URL, _("https://titanfall.p0358.net/pdef.bz2"));
+        curl_easy_setopt(curl, CURLOPT_URL, "https://titanfall.p0358.net/pdef.bz2");
         curl_easy_setopt(curl, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_2_0);
         curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 1L);
         //curl_easy_setopt(curl, CURLOPT_TCP_KEEPALIVE, 0L);
@@ -138,7 +138,7 @@ DWORD WINAPI precachePdef(PVOID pThreadParameter) {
                 std::stringstream ss2; ss2 << "BZ2 error " << bzresult << " decompressing pdef source from server";
                 MessageBoxA(0, ss2.str().c_str(), "Error", 0);
 #endif
-                logger->error(_("[Preloader] BZ2 error {} decompressing pdef source from server"), bzresult);
+                logger->error("[Preloader] BZ2 error {} decompressing pdef source from server", bzresult);
                 return 0;
             }
 
@@ -148,13 +148,13 @@ DWORD WINAPI precachePdef(PVOID pThreadParameter) {
 #if SHOW_PRECACHE_ERRORS
                 MessageBoxA(0, "Error parsing persistent data definition file received from server.", "Error", 0);
 #endif
-                logger->error(_("[Preloader] Error parsing persistent data definition file received from server."));
+                logger->error("[Preloader] Error parsing persistent data definition file received from server.");
                 return 0;
             }
 
             //*isPdefLoaded_ptr = 1; // not sure if we should set this, it's also set to 1 if we're using processusecached...
             //ss << "\nDecompressed length: " << decompressedLen; MessageBoxA(0, ss.str().c_str(), "Loaded pdef", 0);
-            SPDLOG_LOGGER_DEBUG(logger, _("[Preloader] Preloaded pdef, decompressed length: {}"), decompressedLen);
+            SPDLOG_LOGGER_DEBUG(logger, "[Preloader] Preloaded pdef, decompressed length: {}", decompressedLen);
         }
         else {
             //std::stringstream ss;

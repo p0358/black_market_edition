@@ -373,6 +373,7 @@ bool SetupCrashHandler(std::wstring BasePath)
     {
         sentry_options_set_sample_rate(options, 0.0);
         sentry_options_set_traces_sample_rate(options, 0.0);
+        sentry_options_set_dsn(options, "http://invalid@0.0.0.0/invalid");
     }
     else
         sentry_options_set_dsn(options, "https://45d18041edb24b1f8f25f144d121cff3@o487146.ingest.sentry.io/5545628");

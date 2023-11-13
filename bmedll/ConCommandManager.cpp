@@ -41,7 +41,7 @@ void ConCommandManager::ExecuteCommand(const std::string& commandStr)
 void ConCommandManager::UnregisterCommand(ConCommand& command)
 {
     if (!m_cvar || !m_cvar->m_vtable) return;
-    m_logger->info(_("Removing console command: {}"), command.GetName());
+    m_logger->info("Removing console command: {}", command.GetName());
     m_cvar->m_vtable->UnregisterConCommand(m_cvar, &command);
 }
 
@@ -49,7 +49,7 @@ void ConCommandManager::UnregisterAllCommands()
 {
     // NOTE: It's tricky to do this in the destructor of ConCommand because
     // it would need to call SDK() which gets tricky when we're unloading.
-    SPDLOG_LOGGER_DEBUG(spdlog::get(_("logger")), "ConCommandManager::UnregisterAllCommands");
+    SPDLOG_LOGGER_DEBUG(m_logger, "ConCommandManager::UnregisterAllCommands");
 
     for (auto& command : m_commands)
     {
@@ -61,7 +61,7 @@ void ConCommandManager::UnregisterAllCommands()
 
 ConCommandManager::~ConCommandManager()
 {
-    SPDLOG_LOGGER_DEBUG(spdlog::get(_("logger")), "ConCommandManager destructor");
+    SPDLOG_LOGGER_DEBUG(m_logger, "ConCommandManager destructor");
     if (!g_isShuttingDown)
         UnregisterAllCommands();
 }

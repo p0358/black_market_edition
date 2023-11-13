@@ -1,6 +1,9 @@
 #pragma once
 
-#define BME_VERSION "1b9"
+#ifndef BME_VERSION
+#define BME_VERSION "1b10"
+#endif
+
 #define BME_VERSION_LONG "Black Market Edition v" BME_VERSION
 
 #ifdef _DEBUG

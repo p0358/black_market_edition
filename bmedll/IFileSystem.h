@@ -57,7 +57,7 @@ public:
         VPKData* (*MountVPK) (IFileSystem* fileSystem, const char* vpkPath); // +888
         void* unknown5[22];
         //void* unknown6[1];
-        void (*AddVPKFile) (IFileSystem* fileSystem, char const* pBasename, SearchPathAdd_t addType, __int64 a1, __int64 a2, __int64 a3); // +1072
+        void (*AddVPKFile) (IFileSystem* fileSystem, char const* pBasename, void* a3, bool a4, SearchPathAdd_t addType, bool a6); // +1072
     };
 
     struct VTable2

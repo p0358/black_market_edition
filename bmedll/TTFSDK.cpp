@@ -356,10 +356,10 @@ void __fastcall TTFSDK::RunFrameHook(__int64 a1, double frameTime)
         {
             /*std::string game_s3_url{_("bme.titanfall.top/backend/game_s3.php/ver=")};
             game_s3_url += BME_VERSION;
-            game_s3_url += _("/chan=");
+            game_s3_url += "/chan=";
             game_s3_url += GetBMEChannel();
             game_s3_url += "/";
-            std::string cmd{ _("staticfile_hostname ") };
+            std::string cmd{ "staticfile_hostname " };
             cmd += game_s3_url;
             //ConVar* staticfile_hostname = m_vstdlibCvar->FindVar("staticfile_hostname");
             //staticfile_hostname->SetValueString(game_s3_url.c_str());
@@ -515,7 +515,7 @@ private:
     spdlog::sinks::basic_file_sink_mt file_sink_;
 };
 
-void SetupLoggerInternal(const std::string& filename, bool enableWindowsConsole)
+void SetupLoggerInternal(const fs::path& filename, bool enableWindowsConsole)
 {
     // Create sinks to file and console
     std::vector<spdlog::sink_ptr> sinks;
@@ -530,7 +530,7 @@ void SetupLoggerInternal(const std::string& filename, bool enableWindowsConsole)
     std::unique_ptr<std::string> fileError;
     try
     {
-        sinks.push_back(std::make_shared<flushed_file_sink_mt>(filename, true));
+        sinks.push_back(std::make_shared<flushed_file_sink_mt>(filename.wstring(), true));
     }
     catch (spdlog::spdlog_ex& ex)
     {
@@ -539,7 +539,7 @@ void SetupLoggerInternal(const std::string& filename, bool enableWindowsConsole)
 
     // Create logger from sinks
     auto logger = std::make_shared<spdlog::logger>("logger", begin(sinks), end(sinks));
-    logger->set_pattern(_("[%T] [thread %t] [%l] %^%v%$"));
+    logger->set_pattern("[%T] [thread %t] [%l] %^%v%$");
 #ifdef _DEBUG
     logger->set_level(spdlog::level::trace);
 #else
@@ -548,7 +548,7 @@ void SetupLoggerInternal(const std::string& filename, bool enableWindowsConsole)
 
     if (fileError)
     {
-        logger->warn(_("Failed to initialise file sink, log file will be unavailable ({})"), *fileError);
+        logger->warn("Failed to initialise file sink, log file will be unavailable ({})", *fileError);
     }
 
     spdlog::register_logger(logger);
@@ -573,7 +573,7 @@ bool SetupLogger()
 #endif
 #endif
         //SetupLoggerInternal((basePath / _("bme") / _("bme.log")).string(), ENABLE_WINDOWS_CONSOLE);
-        SetupLoggerInternal((basePath / _("bme") / _("bme.log")).string(), strstr(GetCommandLineA(), _("-winconsole")));
+        SetupLoggerInternal(basePath / "bme" / "bme.log", strstr(GetCommandLineA(), "-winconsole"));
 
         auto now = std::chrono::system_clock::now();
         std::time_t time = std::chrono::system_clock::to_time_t(now);
@@ -615,7 +615,7 @@ bool SetupLogger()
     catch (std::exception& ex)
     {
         std::string message = fmt::format("Failed to initialise Black Market Edition logger: {}", ex.what());
-        MessageBox(NULL, Util::Widen(message).c_str(), L"Error", MB_OK | MB_ICONERROR);
+        MessageBoxW(NULL, Util::Widen(message).c_str(), L"Error", MB_OK | MB_ICONERROR);
         return false;
     }
 }

@@ -10,10 +10,8 @@
 typedef unsigned __int64 _QWORD;
 typedef unsigned int _DWORD;
 
-#define NOMINMAX
-
-// w tym miejscu dodaj nagłówki, które mają być wstępnie kompilowane
-#include "framework.h"
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
 
 #include <TlHelp32.h>
 #include <stdint.h>
@@ -53,6 +51,7 @@ using namespace std::literals::string_view_literals;
 #include <spdlog/spdlog.h>
 #include <spdlog/sinks/basic_file_sink.h>
 #include <spdlog/sinks/wincolor_sink.h>
+#include <spdlog/sinks/stdout_sinks.h>
 #include <spdlog/fmt/bundled/printf.h>
 
 #include <rapidjson/document.h>
@@ -75,7 +74,7 @@ using namespace std::literals::string_view_literals;
 #include <imgui/backends/imgui_impl_dx11.h>
 #include <imgui/backends/imgui_impl_win32.h>
 
-#include <MinHook/MinHook.h>
+#include <MinHook.h>
 #include <xorstr.hpp>
 #define _(str) xorstr_(str)
 

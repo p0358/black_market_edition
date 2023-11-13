@@ -4,7 +4,7 @@
 
 // Based off CSigScan from https://wiki.alliedmods.net/Signature_Scanning
 
-ModuleScan::ModuleScan(const std::string& moduleName) : ModuleScan(GetModuleHandle(Util::Widen(moduleName).c_str()))
+ModuleScan::ModuleScan(const std::string& moduleName) : ModuleScan(GetModuleHandleA(moduleName.c_str()))
 {
 
 }

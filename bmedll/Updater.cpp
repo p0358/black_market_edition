@@ -92,7 +92,7 @@ namespace Updater {
         CURLcode res;
 
         wchar_t temp[MAX_PATH];
-        if (!GetTempPath(MAX_PATH - 16, temp)) return L""; //return NULL;
+        if (!GetTempPathW(MAX_PATH - 16, temp)) return L""; //return NULL;
         std::wstring outfilename{ temp };
         outfilename += L"bme_updater.exe";
 
@@ -128,10 +128,10 @@ namespace Updater {
     {
         isUpdaterLaunching = true; // TODO: in case UI drawing causes crash, move this to the bottom?
 
-        auto logger = spdlog::get(_("logger"));
-        RegisterApplicationRestart(GetCommandLine(), 0);
+        auto logger = spdlog::get("logger");
+        RegisterApplicationRestart(GetCommandLineW(), 0);
 
-        STARTUPINFO si;
+        STARTUPINFOW si;
         PROCESS_INFORMATION pi;
 
         ZeroMemory(&si, sizeof(si));
@@ -140,9 +140,9 @@ namespace Updater {
 
         std::wstring params2 = Util::Widen(params);
 
-        logger->info(_("Firing up BME updater..."));
-        SPDLOG_LOGGER_DEBUG(logger, _("Path: {}"), Util::Narrow(updater_path));
-        SPDLOG_LOGGER_DEBUG(logger, _("Params: {}"), params);
+        logger->info("Firing up BME updater...");
+        SPDLOG_LOGGER_DEBUG(logger, "Path: {}", Util::Narrow(updater_path));
+        SPDLOG_LOGGER_DEBUG(logger, "Params: {}", params);
 
         CreateProcessW(updater_path.c_str(), (LPWSTR)params2.c_str(), NULL, NULL, false, 0, NULL, NULL, &si, &pi);
 
@@ -156,34 +156,34 @@ namespace Updater {
     DWORD WINAPI DownloadAndApplyUpdate(LPVOID lpThreadParameter)
     {
         Sleep(1);
-        auto logger = spdlog::get(_("logger"));
-        logger->info(_("Checking for updates..."));
+        auto logger = spdlog::get("logger");
+        logger->info("Checking for updates...");
 
         rapidjson::Document d;
         bool result = QueryServerForUpdates(&d);
         if (result == false || !d.IsObject())
         {
-            logger->info(_("No updates found."));
+            logger->info("No updates found.");
             return 0;
         }
 
         updateInProcess = true;
-        logger->info(_("Found an update, downloading updater..."));
+        logger->info("Found an update, downloading updater...");
 
         updater_path = SaveUpdaterFile(d["updater_url"].GetString());
         if (Updater::isUpdaterDownloadCancelled)
         {
-            logger->error(_("Update cancelled by user."));
+            logger->error("Update cancelled by user.");
             return 0;
         }
         // TODO: poni¿sze jako MsgBox?
         if (updater_path.empty())
         {
-            logger->error(_("Found update, but could not save the file to user's temp directory. Check in with your antivirus software and create a whitelist entry."));
+            logger->error("Found update, but could not save the file to user's temp directory. Check in with your antivirus software and create a whitelist entry.");
             return 0;
         }
 
-        logger->info(_("Updater saved."));
+        logger->info("Updater saved.");
 
         params = std::string(d["updater_params"].GetString());
         params = std::regex_replace(params, std::regex("\\$dir"), GetThisPath());

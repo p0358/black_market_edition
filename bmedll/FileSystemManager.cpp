@@ -187,7 +187,7 @@ void FileSystemManager::AddSearchPathHook(IFileSystem* fileSystem, const char* p
 [19:53:18] [thread 27944] [trace] IFileSystem::AddSearchPath: path = ., pathID = MAIN, addType = 1
     */
 
-    m_logger->debug("IFileSystem::AddSearchPath: path = {}, pathID = {}, addType = {}", pPath, pathID != nullptr ? pathID : "", addType);
+    m_logger->debug("IFileSystem::AddSearchPath: path = {}, pathID = {}, addType = {}", pPath, pathID != nullptr ? pathID : "", (int)addType);
 
     // Add the path as intended
     IFileSystem_AddSearchPath(fileSystem, pPath, pathID, addType);
@@ -219,9 +219,9 @@ void FileSystemManager::AddSearchPathHook(IFileSystem* fileSystem, const char* p
 #endif
 }
 
-void FileSystemManager::AddVPKFileHook(IFileSystem* fileSystem, char const* pBasename, SearchPathAdd_t addType, __int64 a1, __int64 a2, __int64 a3)
+void FileSystemManager::AddVPKFileHook(IFileSystem* fileSystem, char const* pBasename, void* a3, bool a4, SearchPathAdd_t addType, bool a6)
 {
-    m_logger->debug("IFileSystem::AddVPKFile: {} {} {} {} {}", pBasename, addType, a1, a2, a3);
+    m_logger->debug("IFileSystem::AddVPKFile: {} {} {} {} {}", pBasename, a3, a4, (int)addType, a6);
     // IFileSystem::AddVPKFile: 16426288 vpk/client_mp_common.bsp.pak000
     // IFileSystem::AddVPKFile: vpk/client_mp_common.bsp.pak000 12233712 140716965429248 1 140717081273089
     // IFileSystem::AddVPKFile: vpk/client_mp_common.bsp.pak000 18524032 140716965429248 1 140717081273089
@@ -231,7 +231,7 @@ void FileSystemManager::AddVPKFileHook(IFileSystem* fileSystem, char const* pBas
     //IFileSystem_AddVPKFile(fileSystem, "packedVPK/pak000", PATH_ADD_TO_HEAD, 1, 1, 0);
     //IFileSystem_AddVPKFile(fileSystem, "packedVPK/pak000", addType, a1, a2, a3);
 
-    IFileSystem_AddVPKFile(fileSystem, pBasename, addType, a1, a2, a3);
+    IFileSystem_AddVPKFile(fileSystem, pBasename, a3, a4, addType, a6);
 #ifdef READ_FROM_VPK
     //static bool didAddAlready = false;
     //if (!didAddAlready) {

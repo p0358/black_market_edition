@@ -37,7 +37,7 @@ void SigScanFuncRegistry::ResolveAll()
             SPDLOG_LOGGER_DEBUG(logger, "No ModuleScan found for {}", moduleName);
 
             // Create modulescan
-            HMODULE m = GetModuleHandle(Util::Widen(moduleName).c_str());
+            HMODULE m = GetModuleHandleA(moduleName.c_str());
             if (m == nullptr)
             {
                 throw std::runtime_error(fmt::format("Failed to get handle for {}", moduleName));

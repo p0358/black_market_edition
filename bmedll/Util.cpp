@@ -158,13 +158,13 @@ namespace Util
     HMODULE SafeGetModuleHandle(const std::string& moduleName) {
         HMODULE hModule;
         for (hModule = nullptr; hModule == nullptr; Sleep(1)) {
-            hModule = GetModuleHandle(Util::Widen(moduleName).c_str());
+            hModule = GetModuleHandleA(moduleName.c_str());
         }
         return hModule;
     }
 
     HMODULE GetModuleHandleOrThrow(const std::string& moduleName) {
-        HMODULE hModule = GetModuleHandle(Util::Widen(moduleName).c_str());
+        HMODULE hModule = GetModuleHandleA(moduleName.c_str());
         if (!hModule)
         {
             auto err = fmt::sprintf("GetModuleHandle failed for %s (Error = 0x%X)", moduleName, GetLastError());
@@ -199,7 +199,7 @@ namespace Util
 
     void* ResolveLibraryExport(const std::string& moduleName, const std::string& exportName)
     {
-        HMODULE hModule = GetModuleHandle(Util::Widen(moduleName).c_str());
+        HMODULE hModule = GetModuleHandleA(moduleName.c_str());
         if (!hModule)
         {
             throw std::runtime_error(fmt::sprintf("GetModuleHandle failed for %s (Error = 0x%X)", moduleName, GetLastError()));
@@ -235,12 +235,12 @@ namespace Util
 
     HMODULE WaitForModuleHandle(const std::string& moduleName)
     {
-        HMODULE m = GetModuleHandle(Util::Widen(moduleName).c_str());
+        HMODULE m = GetModuleHandleA(moduleName.c_str());
         while (m == nullptr)
         {
             //Sleep(1);
             YieldProcessor();
-            m = GetModuleHandle(Util::Widen(moduleName).c_str());
+            m = GetModuleHandleA(moduleName.c_str());
         }
         return m;
     }

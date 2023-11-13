@@ -198,7 +198,8 @@ extern "C" __declspec(dllexport) int LauncherMain(HINSTANCE hInstance, HINSTANCE
 }
 
 // doubt that will help us here (in launcher.dll) though
-extern "C" {
+extern "C"
+{
     __declspec(dllexport) DWORD AmdPowerXpressRequestHighPerformance = 0x00000001;
     __declspec(dllexport) DWORD NvOptimusEnablement = 0x00000001;
 }

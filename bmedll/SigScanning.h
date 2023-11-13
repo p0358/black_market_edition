@@ -98,14 +98,14 @@ public:
         if (status != MH_OK)
         {
             //logger->critical("MH_CreateHook returned {} while trying to hook function in module {} of signature \"{}\" and mask \"{}\"", status, moduleName, signature, mask);
-            logger->critical("MH_CreateHook returned {} while trying to hook a sigscan function");
+            logger->critical("MH_CreateHook returned {} while trying to hook a sigscan function", (int)status);
             throw std::exception("Failed to hook function");
         }
 
         status = MH_EnableHook(m_hookedFunc);
         if (status != MH_OK)
         {
-            logger->critical("MH_EnableHook returned {}", status);
+            logger->critical("MH_EnableHook returned {}", (int)status);
             throw std::exception("Failed to enable hook");
         }
 
@@ -229,14 +229,14 @@ public:
         MH_STATUS status = MH_CreateHookEx(m_hookedFunc, detourFunc, &m_origFunc);
         if (status != MH_OK)
         {
-            logger->critical("MH_CreateHook returned {} while trying to hook function in module {} with offset {}", status, moduleName, (void*)offset);
+            logger->critical("MH_CreateHook returned {} while trying to hook function in module {} with offset {}", (int)status, moduleName, (void*)offset);
             throw std::exception("Failed to hook function");
         }
 
         status = MH_EnableHook(m_hookedFunc);
         if (status != MH_OK)
         {
-            logger->critical("MH_EnableHook returned {}", status);
+            logger->critical("MH_EnableHook returned {}", (int)status);
             throw std::exception("Failed to enable hook");
         }
 
@@ -474,7 +474,7 @@ public:
             throw std::runtime_error("Unknown execution context when trying to hook function");
         if (status != MH_OK)
         {
-            logger->critical("MH_EnableHook returned {}", status);
+            logger->critical("MH_EnableHook returned {}", (int)status);
             throw std::exception("Failed to enable hook");
         }
 

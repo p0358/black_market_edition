@@ -36,7 +36,7 @@ public:
     FileHandle_t ReadFileFromVPKHook(VPKData* vpkInfo, __int32* b, const char* filename);
     unsigned __int64 __fastcall RemoveAllMapSearchPathsHook(__int64 thisptr);
     VPKData* MountVPKHook(IFileSystem* fileSystem, const char* vpkPath);
-    void AddVPKFileHook(IFileSystem* fileSystem, char const* pBasename, SearchPathAdd_t addType, __int64 a1, __int64 a2, __int64 a3);
+    void AddVPKFileHook(IFileSystem* fileSystem, char const* pBasename, void* a3, bool a4, SearchPathAdd_t addType, bool a6);
     const std::vector<std::string>& GetMapNames();
     const std::string& GetLastMapReadFrom();
     void MountAllVPKs();
