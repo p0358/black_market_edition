@@ -365,6 +365,10 @@ FodyWeavers.xsd
 
 *.exe
 *.asi
-thirdparty/
+*.zip
+/build
+
 installer/test/
 installer/source/
+
+!/premake/premake5.exe
