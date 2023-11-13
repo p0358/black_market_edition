@@ -2,7 +2,7 @@
 
 Black Market Edition is a multi-purpose community enhancement mod for Titanfall game, featuring various quality-of-life changes and improvements.
 
-**NOTE:** It is NOT yet finished (but is getting very close there), there are a few chore tasks needed before so, but the work was again put on hold due to game servers being taken down by attackers. However it works as-is for the most part.
+**NOTE:** It is NOT yet finished (but is getting very close there), there are a few chore tasks needed before so. However it works as-is for the most part.
 
 Open sourcing this for now regardless, because I slowly worked on it since 2019 and I am not sure if I will ever get a chance to finish it in the current situation.
 
@@ -104,14 +104,13 @@ Mouse sensitivity value visible in settings:
 
 ## Compiling
 
-Clone the repo with `git clone --recursive --depth 1 -j8 https://github.com/p0358/black_market_edition.git` and build the solution in VS 2022 (use Staging or Release configuration, Debug is not supported).
+Clone the repo with `git clone --recursive --depth 1 -j8 https://github.com/p0358/black_market_edition.git`, then run `generate.bat` and build the solution (`./build/bme.sln`) in VS 2022 (alternatively run `msbuild build\bme.sln -m`). Use Staging or Release configuration, Debug is not supported.
 
 ### Building an installer
 
 To build an installer for full mod, you need to look into the file `installer/installer_simple2.iss` and copy the required files into `installer/source` dir manually.
 
 Under `source/bme`, copy the compiled `bme.dll` and create an empty file `bme.log`. Also create `bme_channel.txt` with the value `release`. Get `bme.bsp` from latest release in the Releases section (this file contains the filesystem replacement contents, that is scripts and some UI elements, into PakFile as lump 40 in bsp format, which can be easily mounted in the engine). Copy the built `launcher.dll` into `source/bin/x64_retail/`.
-Get [Discord GameSDK](https://dl-game-sdk.discordapp.net/2.5.6/discord_game_sdk.zip) and place its x64 dll file into the root of `source` folder.
 
 ## Acknowledgements
 
@@ -121,10 +120,12 @@ Black Market Edition makes use of the following third-party libraries:
 
 | Package Name  | URL                                                                  |
 |---------------|----------------------------------------------------------------------|
+| curl          | https://curl.se/docs/copyright.html                                  |
+| discord-rpc   | https://github.com/harmonytf/discord-rpc/blob/master/LICENSE         |
 | sentry-native | https://github.com/getsentry/sentry-native/blob/master/LICENSE       |
 | crashpad      | https://chromium.googlesource.com/crashpad/crashpad/+/master/LICENSE |
 | imgui         | https://github.com/ocornut/imgui/blob/master/LICENSE.txt             |
-| MinHook       | https://github.com/TsudaKageyu/minhook/blob/master/LICENSE.txt       |
+| MinHook       | https://github.com/TFORevive/minhook/blob/master/LICENSE.txt         |
 | rapidjson     | https://github.com/Tencent/rapidjson/blob/master/license.txt         |
 | spdlog        | https://github.com/gabime/spdlog/blob/v1.x/LICENSE                   |
 
