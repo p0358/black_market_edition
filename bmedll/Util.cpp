@@ -4,22 +4,21 @@
 
 std::unordered_map<std::string, DWORD64> baseModuleAddressCache;
 
-bool hasEnding(std::string const& fullString, std::string const& ending) {
-    if (fullString.length() >= ending.length()) {
-        return (0 == fullString.compare(fullString.length() - ending.length(), ending.length(), ending));
-    }
-    else {
-        return false;
-    }
-}
+HANDLE GetVolumeHandleForFile(const wchar_t* filePath)
+{
+    wchar_t volume_path[MAX_PATH];
+    if (!GetVolumePathNameW(filePath, volume_path, ARRAYSIZE(volume_path)))
+        return nullptr;
 
-bool hasEndingWstring(std::wstring const& fullString, std::wstring const& ending) {
-    if (fullString.length() >= ending.length()) {
-        return (0 == fullString.compare(fullString.length() - ending.length(), ending.length(), ending));
-    }
-    else {
-        return false;
-    }
+    wchar_t volume_name[MAX_PATH];
+    if (!GetVolumeNameForVolumeMountPointW(volume_path, volume_name, ARRAYSIZE(volume_name)))
+        return nullptr;
+
+    auto length = wcslen(volume_name);
+    if (length && volume_name[length - 1] == L'\\')
+        volume_name[length - 1] = L'\0';
+
+    return CreateFileW(volume_name, 0, FILE_SHARE_READ, nullptr, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, nullptr);
 }
 
 namespace Util
@@ -58,93 +57,6 @@ namespace Util
         return output;
     }
 
-    template <DWORD(*Func)(HANDLE)>
-    void PerformThreadOperation()
-    {
-        auto logger = spdlog::get("logger");
-
-        // Take a snapshot of all running threads  
-        HANDLE hThreadSnap = CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD, 0);
-        if (hThreadSnap == INVALID_HANDLE_VALUE)
-        {
-            logger->error("Failed to call CreateToolhelp32Snapshot, cannot perform thread operation");
-            return;
-        }
-
-        // Fill in the size of the structure before using it. 
-        THREADENTRY32 te32;
-        te32.dwSize = sizeof(THREADENTRY32);
-
-        // Retrieve information about the first thread,
-        // and exit if unsuccessful
-        if (!Thread32First(hThreadSnap, &te32))
-        {
-            logger->error("Failed to call Thread32First, cannot perform thread operation");
-            CloseHandle(hThreadSnap);
-            return;
-        }
-
-        //NTQUERYINFOMATIONTHREAD NtQueryInformationThread = (NTQUERYINFOMATIONTHREAD)GetProcAddress(GetModuleHandle(L"ntdll.dll"), "NtQueryInformationThread");
-
-        // Now walk the thread list of the system,
-        // and display information about each thread
-        // associated with the specified process
-        do
-        {
-            if (te32.th32OwnerProcessID == GetCurrentProcessId() && te32.th32ThreadID != GetCurrentThreadId())
-            {
-                /*HANDLE thread_q = OpenThread(THREAD_QUERY_INFORMATION, FALSE, te32.th32ThreadID);
-                if (thread_q == NULL) continue;
-
-                // http://www.rohitab.com/discuss/topic/36675-how-to-get-the-module-name-associated-with-a-thread/
-                DWORD dwModuleBaseAddr, dwThreadStartAddr;
-                TCHAR lpstrModuleName[MAX_PATH + 1] = { 0 };
-                dwThreadStartAddr = GetThreadStartAddress(thread_q, NtQueryInformationThread);
-                MatchAddressToModule(GetCurrentProcessId(), lpstrModuleName, dwThreadStartAddr, &dwModuleBaseAddr);
-
-                if (hasEndingWstring(lpstrModuleName, L"igo64.dll")) {
-#ifndef RELEASE
-                    std::wstring mn_{ lpstrModuleName };
-                    std::string mn = Util::Narrow(mn_);
-                    DWORD addr = dwThreadStartAddr - dwModuleBaseAddr;
-                    SPDLOG_LOGGER_DEBUG(spdlog::get("logger"), "Skipping igo64.dll: {}+{}", mn, addr);
-#endif
-                    continue; // skip freezing this bitch
-                }*/
-
-                HANDLE thread = OpenThread(THREAD_SUSPEND_RESUME, FALSE, te32.th32ThreadID);
-                if (thread != NULL)
-                {
-                    Func(thread);
-                    CloseHandle(thread);
-                }
-
-            }
-        } while (Thread32Next(hThreadSnap, &te32));
-
-        CloseHandle(hThreadSnap);
-    }
-
-    void SuspendAllOtherThreads()
-    {
-        PerformThreadOperation<SuspendThread>();
-    }
-
-    void ResumeAllOtherThreads()
-    {
-        PerformThreadOperation<ResumeThread>();
-    }
-
-    ThreadSuspender::ThreadSuspender()
-    {
-        Util::SuspendAllOtherThreads();
-    }
-
-    ThreadSuspender::~ThreadSuspender()
-    {
-        Util::ResumeAllOtherThreads();
-    }
-
     void FindAndReplaceAll(std::string& data, const std::string& search, const std::string& replace)
     {
         size_t pos = data.find(search);
@@ -157,18 +69,20 @@ namespace Util
 
     HMODULE SafeGetModuleHandle(const std::string& moduleName) {
         HMODULE hModule;
-        for (hModule = nullptr; hModule == nullptr; Sleep(1)) {
+        for (hModule = nullptr; hModule == nullptr; Sleep(1))
+        {
             hModule = GetModuleHandleA(moduleName.c_str());
         }
         return hModule;
     }
 
-    HMODULE GetModuleHandleOrThrow(const std::string& moduleName) {
+    HMODULE GetModuleHandleOrThrow(const std::string& moduleName)
+    {
         HMODULE hModule = GetModuleHandleA(moduleName.c_str());
         if (!hModule)
         {
             auto err = fmt::sprintf("GetModuleHandle failed for %s (Error = 0x%X)", moduleName, GetLastError());
-            if (IsSDKReady()) spdlog::get("logger")->critical(err);
+            if (IsSDKReady()) spdlog::critical(err);
             else fprintf(stderr, "%s\n", err.c_str());
             if (IsClient()) MessageBoxA(NULL, err.c_str(), "Critical BME Error", MB_ICONERROR);
             throw std::runtime_error(err);
@@ -176,7 +90,8 @@ namespace Util
         return hModule;
     }
 
-    MODULEINFO GetModuleInfo(const std::string& moduleName) {
+    MODULEINFO GetModuleInfo(const std::string& moduleName)
+    {
         MODULEINFO modinfo = { 0 };
         //HMODULE hModule = SafeGetModuleHandle(moduleName);
         HMODULE hModule = GetModuleHandleOrThrow(moduleName);
@@ -184,16 +99,19 @@ namespace Util
         return modinfo;
     }
 
-    DWORD64 GetModuleBaseAddress(const std::string& moduleName) {
+    DWORD64 GetModuleBaseAddress(const std::string& moduleName)
+    {
         DWORD64 lpBaseOfDll = baseModuleAddressCache[moduleName];
-        if (!lpBaseOfDll) {
+        if (!lpBaseOfDll)
+        {
             lpBaseOfDll = (DWORD64)GetModuleInfo(moduleName).lpBaseOfDll;
             baseModuleAddressCache[moduleName] = lpBaseOfDll;
         }
         return lpBaseOfDll;
     }
 
-    DWORD64 GetModuleBaseAddressNoCache(const std::string& moduleName) {
+    DWORD64 GetModuleBaseAddressNoCache(const std::string& moduleName)
+    {
         return (DWORD64)GetModuleInfo(moduleName).lpBaseOfDll;
     }
 
@@ -319,6 +237,52 @@ namespace Util
         const auto err = errno;
         const auto ec = std::error_code(err, std::generic_category());
         throw std::system_error(ec);
+    }
+
+    const char* GetProcessorNameString()
+    {
+        static char CPUBrandString[0x41];
+        static std::once_flag flag;
+        std::call_once(flag, [&]()
+        {
+            int cpuInfo[4] = { -1 };
+            memset(CPUBrandString, 0, sizeof(CPUBrandString));
+
+            __cpuid(cpuInfo, 0x80000002);
+            memcpy(CPUBrandString, cpuInfo, sizeof(cpuInfo));
+
+            __cpuid(cpuInfo, 0x80000003);
+            memcpy(CPUBrandString + 16, cpuInfo, sizeof(cpuInfo));
+
+            __cpuid(cpuInfo, 0x80000004);
+            memcpy(CPUBrandString + 32, cpuInfo, sizeof(cpuInfo));
+
+            CPUBrandString[0x40] = '\0';
+        });
+
+        // example: Intel(R) Core(TM) i5-6600 CPU @ 3.30GHz
+        // example: AMD Ryzen 5 3600 6-Core Processor
+        return CPUBrandString;
+    }
+
+    bool DoesStorageDeviceIncurSeekPenaltyAtPath(const wchar_t* file_path) // is HDD
+    {
+        bool incursSeekPenalty = false;
+        HANDLE volume = GetVolumeHandleForFile(file_path);
+        if (volume == INVALID_HANDLE_VALUE)
+            return false;
+
+        STORAGE_PROPERTY_QUERY query{};
+        query.PropertyId = StorageDeviceSeekPenaltyProperty;
+        query.QueryType = PropertyStandardQuery;
+
+        DWORD count;
+        DEVICE_SEEK_PENALTY_DESCRIPTOR result{};
+        if (DeviceIoControl(volume, IOCTL_STORAGE_QUERY_PROPERTY, &query, sizeof(query), &result, sizeof(result), &count, nullptr))
+            incursSeekPenalty = result.IncursSeekPenalty;
+
+        CloseHandle(volume);
+        return incursSeekPenalty;
     }
 
 }

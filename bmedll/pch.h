@@ -19,6 +19,7 @@ typedef unsigned int _DWORD;
 #include <stdio.h>
 #include <tchar.h>
 #include <bcrypt.h>
+#include <winioctl.h>
 
 #include <algorithm>
 #include <functional>

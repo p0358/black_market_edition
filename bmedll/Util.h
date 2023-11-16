@@ -112,4 +112,6 @@ namespace Util
     std::string RemoveChar(std::string str, char c);
     std::string GetLastErrorAsString();
     std::string vformat(const char* format, va_list args);
+    const char* GetProcessorNameString();
+    bool DoesStorageDeviceIncurSeekPenaltyAtPath(const wchar_t* file_path);
 }

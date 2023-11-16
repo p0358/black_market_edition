@@ -559,10 +559,7 @@ bool SetupLogger()
 {
     try
     {
-        //fs::path basePath(settings.BasePath);
-        //fs::path basePath(".");
         fs::path basePath(GetThisPath());
-        //SetupLogger((basePath / _("TTFSDK.log")).string(), true);
 #ifdef _DEBUG
 #define ENABLE_WINDOWS_CONSOLE true
 #else
@@ -572,14 +569,17 @@ bool SetupLogger()
 #define ENABLE_WINDOWS_CONSOLE false
 #endif
 #endif
-        //SetupLoggerInternal((basePath / _("bme") / _("bme.log")).string(), ENABLE_WINDOWS_CONSOLE);
         SetupLoggerInternal(basePath / "bme" / "bme.log", strstr(GetCommandLineA(), "-winconsole"));
 
         auto now = std::chrono::system_clock::now();
         std::time_t time = std::chrono::system_clock::to_time_t(now);
 
-        spdlog::get(_("logger"))->info("Logger has been initialized at {}.", strtok(std::ctime(&time), "\n"));
-        spdlog::get(_("logger"))->info("Command line: {}", GetCommandLineA());
+        spdlog::info("Logger has been initialized at {}.", strtok(std::ctime(&time), "\n"));
+        spdlog::info("Raw command line: {}", GetCommandLineA());
+
+        spdlog::info("CPU: {}", Util::GetProcessorNameString());
+        bool ishdd = Util::DoesStorageDeviceIncurSeekPenaltyAtPath((basePath / L"vpk" / L"client_mp_common.bsp.pak000_000.vpk").wstring().c_str());
+        spdlog::info("Does storage device incur seek penalty (is HDD): {}", ishdd);
 
         {
             // Log WINE version if running under WINE
@@ -600,8 +600,26 @@ bool SetupLogger()
                     const char* sysname; // example: Linux
                     const char* release; // example: 5.16.20-2-MANJARO
                     wine_get_host_version(&sysname, &release);
-                    spdlog::info("Sysname: {} | Release: {}", sysname, release);
+                    spdlog::info("WINE host system: {}", sysname);
+                    spdlog::info("WINE host system release: {}", release);
                 }
+            }
+
+            // STEAM_COMPAT_TOOL_PATHS is a colon separated lists of all compat tool paths used
+            // The first one tends to be the Proton path itself
+            // We extract the basename out of it to get the name used
+            if (char* compatToolPtr = std::getenv("STEAM_COMPAT_TOOL_PATHS"))
+            {
+                std::string_view compatToolPath{ compatToolPtr };
+
+                auto protonBasenameEnd = compatToolPath.find(":");
+                if (protonBasenameEnd == std::string_view::npos)
+                    protonBasenameEnd = 0;
+                auto protonBasenameStart = compatToolPath.rfind("/", protonBasenameEnd) + 1;
+                if (protonBasenameStart == std::string_view::npos)
+                    protonBasenameStart = 0;
+
+                spdlog::info("Proton build: {}", compatToolPath.substr(protonBasenameStart, protonBasenameEnd - protonBasenameStart));
             }
         }
         {
