@@ -304,6 +304,34 @@ __int64 __fastcall COM_ExplainDisconnection(bool a1, const char* fmt, ...)
     return COM_ExplainDisconnection_org(a1, buffer);
 }
 
+typedef void(__fastcall* Tier0_ThreadSetDebugName_type)(HANDLE, const char*);
+Tier0_ThreadSetDebugName_type Tier0_ThreadSetDebugName_org = nullptr;
+void __fastcall Tier0_ThreadSetDebugName(HANDLE threadHandle, const char* name)
+{
+    if (!name) return;
+    std::string newName{ "[R1] " };
+    newName += name;
+
+    // below might block as it will wait for internal Source's map!
+    static auto LookupThreadIDFromHandle = reinterpret_cast<unsigned int(__fastcall*)(HANDLE)>(Util::GetModuleBaseAddress("tier0.dll") + 0x12520);
+
+    auto currentThread = GetCurrentThread();
+
+    if (threadHandle == 0 || threadHandle == currentThread)
+        spdlog::info("Thread: {}", newName);
+    else
+    {
+        uint64_t threadID = LookupThreadIDFromHandle(threadHandle);
+        spdlog::info("Thread {}: {}", threadID, newName);
+    }
+
+    if (Tier0_ThreadSetDebugName_org) // we call this func to name the main thread before this hook is ready
+        Tier0_ThreadSetDebugName_org(threadHandle, newName.c_str()); // original sets name only for debugger, if it's attached
+
+    extern HRESULT _SetThreadDescription(HANDLE hThread, PCWSTR lpThreadDescription);
+    _SetThreadDescription(threadHandle == 0 ? currentThread : threadHandle, Util::Widen(newName).c_str());
+}
+
 void DoMiscHooks()
 {
     DWORD64 launcherdllBaseAddress = Util::GetModuleBaseAddress("launcher.org.dll");
@@ -324,6 +352,7 @@ void DoMiscHooks()
     CreateMiscHook(clientdllBaseAddress, 0x17E140, &sub_18017E140, reinterpret_cast<LPVOID*>(&sub_18017E140_org));
     CreateMiscHook(enginedllBaseAddress, 0x59DE0, &CL_Move, reinterpret_cast<LPVOID*>(&CL_Move_org));
     CreateMiscHook(enginedllBaseAddress, 0x117240, &COM_ExplainDisconnection, reinterpret_cast<LPVOID*>(&COM_ExplainDisconnection_org));
+    CreateMiscHookNamed("tier0", "ThreadSetDebugName", &Tier0_ThreadSetDebugName, reinterpret_cast<LPVOID*>(&Tier0_ThreadSetDebugName_org));
 }
 
 void DoBinaryPatches()
@@ -428,6 +457,7 @@ void main()
     g_startTime = std::chrono::system_clock::now();
     CreateTier0MemAlloc();
     //if (IsClient()) ShowConsole(); // TODO: disable in production?
+    Util::ThreadSetDebugName("MainThread");
     SetupLogger();
 
     if (strstr(GetCommandLineA(), "-nocrashhandler")) // CommandLine() not yet ready probably

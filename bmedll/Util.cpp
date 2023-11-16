@@ -21,6 +21,22 @@ HANDLE GetVolumeHandleForFile(const wchar_t* filePath)
     return CreateFileW(volume_name, 0, FILE_SHARE_READ, nullptr, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, nullptr);
 }
 
+extern void(__fastcall* Tier0_ThreadSetDebugName_org)(HANDLE, const char*);
+HRESULT _SetThreadDescription(HANDLE hThread, PCWSTR lpThreadDescription)
+{
+    // the below uses a new function which sets a name that's visible in minidumps even without a debugger
+    static HMODULE KernelBase = GetModuleHandleA("KernelBase.dll");
+    typedef HRESULT(WINAPI* SetThreadDescription_t)(HANDLE, PCWSTR);
+    if (KernelBase) [[likely]]
+    {
+        static SetThreadDescription_t SetThreadDescription = (SetThreadDescription_t)GetProcAddress(KernelBase, "SetThreadDescription");
+        if (SetThreadDescription) [[likely]]
+            return SetThreadDescription(hThread, lpThreadDescription);
+    }
+    spdlog::warn("KernelBase.dll/SetThreadDescription function does not exist, you are using an old version of Windows, crash minidumps will not contain debug thread names");
+    return -1;
+}
+
 namespace Util
 {
     // Taken from https://stackoverflow.com/a/18374698
@@ -283,6 +299,17 @@ namespace Util
 
         CloseHandle(volume);
         return incursSeekPenalty;
+    }
+
+    void ThreadSetDebugName(const char* name)
+    {
+        std::string newName{ name == "MainThread"sv ? "[R1] " : "[BME] " };
+        newName += name;
+
+        if (Tier0_ThreadSetDebugName_org) // we call this func to name the main thread before this hook is ready
+            Tier0_ThreadSetDebugName_org(0, newName.c_str()); // original sets name only for debugger, if it's attached
+
+        _SetThreadDescription(GetCurrentThread(), Util::Widen(newName).c_str());
     }
 
 }
