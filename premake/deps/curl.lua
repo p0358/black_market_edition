@@ -56,7 +56,7 @@ function curl.project()
 		}
 		
 		--zlib.import()
-		--nghttp2.import()
+		nghttp2.import()
 		
 		files {
 			path.join(curl.source, "lib/**.c"),
@@ -70,7 +70,7 @@ function curl.project()
 			--"HAVE_ZLIB_H",
 			--"HAVE_LIBZ",
 			-- nghttp2
-			--"USE_NGHTTP2",
+			"USE_NGHTTP2",
 		}
 		
 		filter "toolset:msc*"
