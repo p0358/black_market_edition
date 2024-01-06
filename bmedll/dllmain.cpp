@@ -358,19 +358,19 @@ void DoMiscHooks()
 void DoBinaryPatches()
 {
     { // patch the restriction "Can't send client command; not connected to a server" of ClientCommand in script
-        void* ptr = (void*)(Util::GetModuleBaseAddress(_("client.dll")) + 0x2DB33B);
+        void* ptr = (void*)(Util::GetModuleBaseAddress("client.dll") + 0x2DB33B);
         TempReadWrite rw(ptr);
         *((unsigned char*)ptr) = 0xEB;
     }
 
 //#if 0
     { // FOV range patch
-        void* ptr = (void*)(Util::GetModuleBaseAddress(_("engine.dll")) + 0x6C6D34);
+        void* ptr = (void*)(Util::GetModuleBaseAddress("engine.dll") + 0x6C6D34);
         TempReadWrite rw(ptr);
         *((float*)ptr) = 3.85f; // will work only before cvar is registered
     }
     { // FOV range patch 2
-        void* ptr = (void*)(Util::GetModuleBaseAddress(_("engine.dll")) + 0x31A1BE0 + 108);
+        void* ptr = (void*)(Util::GetModuleBaseAddress("engine.dll") + 0x31A1BE0 + 108);
         //void* ptr = (void*)(*((unsigned __int64*)(Util::GetModuleBaseAddress(_("engine.dll")) + 0x31A1BE0)) + 108);
         TempReadWrite rw(ptr);
         *((float*)ptr) = 3.85f;
@@ -381,39 +381,44 @@ void DoBinaryPatches()
         *((float*)ptr) = 3.85f; // will work only before cvar is registered
     }
     { // FOV range patch 2
-        void* ptr = (void*)(Util::GetModuleBaseAddress(_("client.dll")) + 0x38774C0 + 108);
+        void* ptr = (void*)(Util::GetModuleBaseAddress("client.dll") + 0x38774C0 + 108);
         TempReadWrite rw(ptr);
         *((float*)ptr) = 3.85f;
     }
     { // FOV range patch
-        void* ptr = (void*)(Util::GetModuleBaseAddress(_("materialsystem_dx11.dll")) + 0x191734);
+        void* ptr = (void*)(Util::GetModuleBaseAddress("materialsystem_dx11.dll") + 0x191734);
         TempReadWrite rw(ptr);
         *((float*)ptr) = 3.85f; // will work only before cvar is registered
     }
     { // FOV range patch 2
-        void* ptr = (void*)(Util::GetModuleBaseAddress(_("materialsystem_dx11.dll")) + 0x3B9560 + 108);
+        void* ptr = (void*)(Util::GetModuleBaseAddress("materialsystem_dx11.dll") + 0x3B9560 + 108);
         TempReadWrite rw(ptr);
         *((float*)ptr) = 3.85f;
     }
     { // FOV range patch in client.dll
-        void* ptr = (void*)(Util::GetModuleBaseAddress(_("client.dll")) + 0x7F9844);
+        void* ptr = (void*)(Util::GetModuleBaseAddress("client.dll") + 0x7F9844);
         TempReadWrite rw(ptr);
         *((float*)ptr) = 3.85f;
     }
     { // m_sensitivity range patch (remove minimal value)
-        void* ptr = (void*)(Util::GetModuleBaseAddress(_("client.dll")) + 0xF87E50 + 100);
+        void* ptr = (void*)(Util::GetModuleBaseAddress("client.dll") + 0xF87E50 + 100);
         TempReadWrite rw(ptr);
         *((float*)ptr) = FLT_EPSILON;
+    }
+    { // fps_max non-devonly
+        void* ptr = (void*)(Util::GetModuleBaseAddress("engine.dll") + 0x30EBF90 + 40);
+        TempReadWrite rw(ptr);
+        *((uint32_t*)ptr) &= ~FCVAR_DEVELOPMENTONLY;
     }
 //#endif
 
     { // isMMDev
-        void* ptr = (void*)(Util::GetModuleBaseAddress(_("engine.dll")) + 0x229155A);
+        void* ptr = (void*)(Util::GetModuleBaseAddress("engine.dll") + 0x229155A);
         TempReadWrite rw(ptr);
         *((bool*)ptr) = true;
     }
     { // retn here so we don't break the above accidentally
-        void* ptr = (void*)(Util::GetModuleBaseAddress(_("engine.dll")) + 0x57740);
+        void* ptr = (void*)(Util::GetModuleBaseAddress("engine.dll") + 0x57740);
         TempReadWrite rw(ptr);
         *((unsigned char*)ptr) = 0xC3;
     }
@@ -430,12 +435,12 @@ void DoBinaryPatches()
     // engine.dll+797070+193C4 = restrict server commands bool
     // engine.dll+797070+193C5 = restrict client commands bool
     { // client received net message - use ToString rather than GetName
-        void* ptr = (void*)(Util::GetModuleBaseAddress(_("engine.dll")) + 0x1E559A);
+        void* ptr = (void*)(Util::GetModuleBaseAddress("engine.dll") + 0x1E559A);
         TempReadWrite rw(ptr);
         *(unsigned char*)ptr = 0x60;
     }
     { // SecurityPatch: prevent server plugin DLL loading
-        void* ptr = (void*)(Util::GetModuleBaseAddress(_("engine.dll")) + 0xF3F40);
+        void* ptr = (void*)(Util::GetModuleBaseAddress("engine.dll") + 0xF3F40);
         TempReadWrite rw(ptr);
         *((unsigned char*)ptr) = 0x32;
         *(unsigned char*)((uint64_t)ptr + 1) = 0xC0;

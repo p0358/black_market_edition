@@ -26,7 +26,7 @@ Installers are built with Inno Setup using scripts from installer/ folder and th
 * normally dead playlists (that is: not attrition, frontier defense or campaign) will have an exclamation mark on the left side if they happen to have any players, to easily notice this fact when viewing them
 * fixes of various small bugs in scripts (that could result in you getting kicked out to main menu with an error)
 * last used gamemode loadout will be correctly focused if one was used (instead of always selecting general loadout 1); last used loadout will be always focused, even if using keyboard (so you can confirm it with Enter key, just like you can with A on controller)
-* enable in-game console accessible with `\`` key (enriched with output from Squirrel's print and svc_Print netmessages)
+* enable in-game console accessible with <code>\`</code> key (enriched with output from Squirrel's print and svc_Print netmessages)
 * execute Squirrel code with `script_client` and `script_ui` console commands
 * when you're a party leader, change default in-game option for leaving from "Leave with Party" to "Leave Solo", to prevent accidentally pulling out your teammates with you when you want to leave alone
 * see raw mouse sensivity value in mouse/keyboard settings
