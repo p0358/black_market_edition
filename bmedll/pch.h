@@ -28,7 +28,6 @@ typedef unsigned int _DWORD;
 #include <filesystem>
 namespace fs = std::filesystem;
 #include <locale>
-#include <codecvt>
 #include <numeric>
 #include <string>
 #include <fstream>

@@ -39,20 +39,20 @@ HRESULT _SetThreadDescription(HANDLE hThread, PCWSTR lpThreadDescription)
 
 namespace Util
 {
-    // Taken from https://stackoverflow.com/a/18374698
-    std::wstring Widen(const std::string& input)
+    std::wstring Widen(const std::string_view& input)
     {
-        using convert_typeX = std::codecvt_utf8<wchar_t>;
-        std::wstring_convert<convert_typeX, wchar_t> converterX;
-        return converterX.from_bytes(input);
+        int size = MultiByteToWideChar(CP_UTF8, 0, input.data(), static_cast<int>(input.length()), nullptr, 0);
+        std::wstring utf16_str(size, '\0');
+        MultiByteToWideChar(CP_UTF8, 0, input.data(), static_cast<int>(input.length()), &utf16_str[0], size);
+        return std::move(utf16_str);
     }
 
-    // Taken from https://stackoverflow.com/a/18374698
-    std::string Narrow(const std::wstring& input)
+    std::string Narrow(const std::wstring_view& input)
     {
-        using convert_typeX = std::codecvt_utf8<wchar_t>;
-        std::wstring_convert<convert_typeX, wchar_t> converterX;
-        return converterX.to_bytes(input);
+        int utf8_size = WideCharToMultiByte(CP_UTF8, 0, input.data(), static_cast<int>(input.length()), nullptr, 0, nullptr, nullptr);
+        std::string utf8_str(utf8_size, '\0');
+        WideCharToMultiByte(CP_UTF8, 0, input.data(), static_cast<int>(input.length()), (char*)&utf8_str[0], utf8_size, nullptr, nullptr);
+        return std::move(utf8_str);
     }
 
     // This will convert some data like "Hello World" to "48 65 6C 6C 6F 20 57 6F 72 6C 64"

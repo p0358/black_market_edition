@@ -49,17 +49,9 @@ struct MemberWrapper<void(T::*)(Args...), pF, T& (*)(), pObjGet>
 
 namespace Util
 {
-    std::wstring Widen(const std::string& input);
-    std::string Narrow(const std::wstring& input);
+    std::wstring Widen(const std::string_view& input);
+    std::string Narrow(const std::wstring_view& input);
     std::string DataToHex(const char* input, size_t len);
-    void SuspendAllOtherThreads();
-    void ResumeAllOtherThreads();
-
-    struct ThreadSuspender
-    {
-        ThreadSuspender();
-        ~ThreadSuspender();
-    };
 
     constexpr const char* GetContextName(ScriptContext context)
     {
