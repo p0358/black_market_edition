@@ -410,6 +410,16 @@ void DoBinaryPatches()
         TempReadWrite rw(ptr);
         *((uint32_t*)ptr) &= ~FCVAR_DEVELOPMENTONLY;
     }
+    {
+        void* ptr = (void*)(Util::GetModuleBaseAddress("engine.dll") + 0x634CC0);
+        TempReadWrite rw(ptr);
+        *((double*)ptr) = 1000.0; // override max value of fps_max (default was 144.0)
+    }
+    {
+        void* ptr = (void*)(Util::GetModuleBaseAddress("engine.dll") + 0x634CC8);
+        TempReadWrite rw(ptr);
+        *((float*)ptr) = 1000.0f; // override max value of fps_max (default was 144.0)
+    }
 //#endif
 
     { // isMMDev

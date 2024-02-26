@@ -36,7 +36,11 @@ Installers are built with Inno Setup using scripts from installer/ folder and th
 * hitch alerts to indicate various connection problems analogous to what Titanfall 2 and Apex have (for example: "OUT OF SNAPSHOTS", "NET CHOKED")
 * separate launcher exe that alleviates issues when Origin acts up and refuses to launch the game otherwise
 * enable Unicode input in text chat (so you can type non-English characters; note: font used for some game locales cannot display many non-Latin characters)
-* fix XSS in game invites (malicious join secrets could execute arbitrary client commands)
+* fix "XSS" in game invites (malicious join secrets could execute arbitrary client commands)
+* unlocks `fps_max` cvar and allows default detected monitor refresh rate to be higher than 144 Hz
+	* `fps_max -1` (default) defaults to monitor's refresh rate limit
+	* `fps_max 0` uncaps the frame rate to unlimited (not recommended, will have adverse effects on network upload and will cause your client to lag and experience various glitches)
+	* `fps_max <value>` caps the framerate to specified value
 
 ### Known bugs
 
