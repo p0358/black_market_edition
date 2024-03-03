@@ -332,12 +332,23 @@ void __fastcall Tier0_ThreadSetDebugName(HANDLE threadHandle, const char* name)
     _SetThreadDescription(threadHandle == 0 ? currentThread : threadHandle, Util::Widen(newName).c_str());
 }
 
+typedef void(__fastcall* sub_18000BAC0_type)(float*, __int64, __int64);
+sub_18000BAC0_type sub_18000BAC0_org = nullptr;
+void __fastcall sub_18000BAC0(float* a1, __int64 a2, __int64 a3)
+{
+    static auto& hudwarp_disable = SDK().GetVstdlibCvar()->FindVar("hudwarp_disable")->GetIntRef();
+    if (hudwarp_disable)
+        return;
+    sub_18000BAC0_org(a1, a2, a3);
+}
+
 void DoMiscHooks()
 {
     DWORD64 launcherdllBaseAddress = Util::GetModuleBaseAddress("launcher.org.dll");
     if (!launcherdllBaseAddress) launcherdllBaseAddress = Util::GetModuleBaseAddress("launcher.dll");
     DWORD64 clientdllBaseAddress = Util::GetModuleBaseAddress("client.dll");
     DWORD64 enginedllBaseAddress = Util::GetModuleBaseAddress("engine.dll");
+    DWORD64 vguimatsurfacedllBaseAddress = Util::GetModuleBaseAddress("vguimatsurface.dll");
     CreateMiscHook(launcherdllBaseAddress, 0x6B8E0, &CSourceAppSystemGroup_PreInit, reinterpret_cast<LPVOID*>(&CSourceAppSystemGroup_PreInit_org));
     CreateMiscHook(clientdllBaseAddress, 0x2C4220, &sub_1802C4220, reinterpret_cast<LPVOID*>(&sub_1802C4220_org));
     CreateMiscHook(enginedllBaseAddress, 0x203250, &Base_CmdKeyValues_ReadFromBuffer, reinterpret_cast<LPVOID*>(&Base_CmdKeyValues_ReadFromBuffer_org));
@@ -353,6 +364,7 @@ void DoMiscHooks()
     CreateMiscHook(enginedllBaseAddress, 0x59DE0, &CL_Move, reinterpret_cast<LPVOID*>(&CL_Move_org));
     CreateMiscHook(enginedllBaseAddress, 0x117240, &COM_ExplainDisconnection, reinterpret_cast<LPVOID*>(&COM_ExplainDisconnection_org));
     CreateMiscHookNamed("tier0", "ThreadSetDebugName", &Tier0_ThreadSetDebugName, reinterpret_cast<LPVOID*>(&Tier0_ThreadSetDebugName_org));
+    CreateMiscHook(vguimatsurfacedllBaseAddress, 0xBAC0, &sub_18000BAC0, reinterpret_cast<LPVOID*>(&sub_18000BAC0_org));
 }
 
 void DoBinaryPatches()
@@ -419,6 +431,14 @@ void DoBinaryPatches()
         void* ptr = (void*)(Util::GetModuleBaseAddress("engine.dll") + 0x634CC8);
         TempReadWrite rw(ptr);
         *((float*)ptr) = 1000.0f; // override max value of fps_max (default was 144.0)
+    }
+    { // hudwarp_chopsize set minimum value to 120 (partially mitigates a huge performance issue of this game)
+        // to mitigate if fully, use the new BME cvar hudwarp_disable 1
+        char* ptr = (char*)(Util::GetModuleBaseAddress("vguimatsurface.dll") + 0x1EDF30);
+        TempReadWrite rw(ptr);
+        *((float*)(ptr + 100)) = 120.0f; // min (but doesn't seem to work?!)
+        *((uint32_t*)(ptr + 40)) &= ~FCVAR_CHEAT; // flags
+        ((ConVar*)ptr)->SetValueInt(120);
     }
 //#endif
 

@@ -257,6 +257,7 @@ void TTFSDK::Init()
     m_conCommandManager->RegisterCommand("set_cvar", SetCvarCC, "Set cvar to value", 0);
     m_conCommandManager->RegisterConVar("bme_version", BME_VERSION, FCVAR_UNLOGGED | FCVAR_DONTRECORD | FCVAR_SERVER_CANNOT_QUERY, "Current BME version");
     m_conCommandManager->RegisterConVar("cl_nocmdrate", "0", FCVAR_DONTRECORD, "Do not limit command packet rate by cl_cmdrate, instead allow dispatching one packet after every move command (so after every client frame)");
+    m_conCommandManager->RegisterConVar("hudwarp_disable", "0", FCVAR_DONTRECORD, "Disable HUD warping entirely for hugely improved performance. Affects how the HUD is displayed visually and breaks its \"warp-in\" effect at the beginning of the match in turn.");
 
 #if 0
     /*{ // patch the restriction "Can't send client command; not connected to a server" of ClientCommand in script

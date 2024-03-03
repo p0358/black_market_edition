@@ -41,6 +41,9 @@ Installers are built with Inno Setup using scripts from installer/ folder and th
 	* `fps_max -1` (default) defaults to monitor's refresh rate limit
 	* `fps_max 0` uncaps the frame rate to unlimited (not recommended, will have adverse effects on network upload and will cause your client to lag and experience various glitches)
 	* `fps_max <value>` caps the framerate to specified value
+* mitigate performance issue that caused the game to drop FPS by wasting too much time in CPU (and leaving GPU idle) by warping HUD by overriding `hudwarp_chopsize` from `60` to `120`
+	* further performance improvement can be achieved by increasing that cvar value even higher
+	* **the best performance can be achieved by setting `hudwarp_disable 1`**, but this has adverse effect of not warping the HUD visually at all anymore, and broken fade-in effect of HUD on the game start
 
 ### Known bugs
 
