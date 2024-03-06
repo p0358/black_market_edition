@@ -342,6 +342,22 @@ void __fastcall sub_18000BAC0(float* a1, __int64 a2, __int64 a3)
     sub_18000BAC0_org(a1, a2, a3);
 }
 
+typedef void(__fastcall* SQInstance_Finalize_type)(uintptr_t);
+SQInstance_Finalize_type SQInstance_Finalize_org = nullptr;
+void SQInstance_Finalize(uintptr_t thisptr)
+{
+    if (*(uintptr_t*)(thisptr + 56) == 0)
+    {
+        // Kinda weird that this ever happened, but it sometimes caused crashes at the end of the game.
+        // Looks like normally SQInstance destructor would check for if(_class) first before calling this,
+        // however ->Finalize() may be called on objects during shared state destruction or garbage collection
+        // without that check conducted.
+        spdlog::warn("Called SQInstance::Finalize, but _class was null! Returning to prevent game crash.");
+        return;
+    }
+    SQInstance_Finalize_org(thisptr);
+}
+
 void DoMiscHooks()
 {
     DWORD64 launcherdllBaseAddress = Util::GetModuleBaseAddress("launcher.org.dll");
@@ -365,6 +381,7 @@ void DoMiscHooks()
     CreateMiscHook(enginedllBaseAddress, 0x117240, &COM_ExplainDisconnection, reinterpret_cast<LPVOID*>(&COM_ExplainDisconnection_org));
     CreateMiscHookNamed("tier0", "ThreadSetDebugName", &Tier0_ThreadSetDebugName, reinterpret_cast<LPVOID*>(&Tier0_ThreadSetDebugName_org));
     CreateMiscHook(vguimatsurfacedllBaseAddress, 0xBAC0, &sub_18000BAC0, reinterpret_cast<LPVOID*>(&sub_18000BAC0_org));
+    CreateMiscHook(launcherdllBaseAddress, 0x4D6D0, &SQInstance_Finalize, reinterpret_cast<LPVOID*>(&SQInstance_Finalize_org));
 }
 
 void DoBinaryPatches()
