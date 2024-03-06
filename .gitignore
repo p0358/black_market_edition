@@ -363,12 +363,17 @@ FodyWeavers.xsd
 
 ###
 
-*.exe
+#*.exe
 *.asi
 *.zip
 /build
 
 installer/test/
-installer/source/
+installer/bme_installer.exe
+#installer/source/
+installer/source/Titanfall_alt.exe
+installer/source/bme/bme.bsp
+installer/source/bme/bme.dll
+installer/source/bin/x64_retail/launcher.dll
 
 !/premake/premake5.exe
