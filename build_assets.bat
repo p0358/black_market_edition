@@ -41,7 +41,8 @@ cd %startdir%
 :: GIT COPY END
 
 pushd r1_modsrc
-erase "../build/bme.zip"
+if not exist ../build/NUL mkdir "../build"
+if exist ../build/bme.zip erase "../build/bme.zip"
 :: https://fossies.org/windows/misc/zip300xn-x64.zip
 ..\thirdparty\zip.exe -0 --recurse-paths --no-dir-entries --junk-sfx --filesync -X ../build/bme.zip .
 popd
