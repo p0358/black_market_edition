@@ -96,6 +96,8 @@ namespace Updater {
         std::wstring outfilename{ temp };
         outfilename += L"bme_updater.exe";
 
+        spdlog::info("Gonna save update to: {}", Util::Narrow(outfilename));
+
         curl = curl_easy_init();
         if (curl) {
             fp = _wfopen(outfilename.c_str(), L"wb");
@@ -141,8 +143,8 @@ namespace Updater {
         std::wstring params2 = Util::Widen(params);
 
         logger->info("Firing up BME updater...");
-        SPDLOG_LOGGER_DEBUG(logger, "Path: {}", Util::Narrow(updater_path));
-        SPDLOG_LOGGER_DEBUG(logger, "Params: {}", params);
+        logger->info("Path: {}", Util::Narrow(updater_path));
+        logger->info("Params: {}", params);
 
         CreateProcessW(updater_path.c_str(), (LPWSTR)params2.c_str(), NULL, NULL, false, 0, NULL, NULL, &si, &pi);
 
@@ -169,6 +171,7 @@ namespace Updater {
 
         updateInProcess = true;
         logger->info("Found an update, downloading updater...");
+        logger->info("Downloading from: {}", d["updater_url"].GetString());
 
         updater_path = SaveUpdaterFile(d["updater_url"].GetString());
         if (Updater::isUpdaterDownloadCancelled)
@@ -183,10 +186,18 @@ namespace Updater {
             return 0;
         }
 
-        logger->info("Updater saved.");
+        logger->info("Updater saved to: {}", Util::Narrow(updater_path));
 
         params = std::string(d["updater_params"].GetString());
         params = std::regex_replace(params, std::regex("\\$dir"), GetThisPath());
+
+        logger->info("Updater command line params: {}", params);
+
+        logger->info("====");
+        logger->info("BME updater will be fired up after you close your game.");
+        logger->info("If you wish to skip this update, you can set cvar in console: bme_skip_update 1");
+        logger->info("Alternatively, if you wish to never check for updates in the future, you can use the command line option: -bmenoupdates");
+        logger->info("====");
 
         pendingUpdateLaunch = true; // change, we will always launch updater after game close...
         pendingUpdateLaunchMotdChange = true;

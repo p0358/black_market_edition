@@ -133,7 +133,12 @@ void CHostState_Shutdown_Hook()
     }
 
     if (Updater::pendingUpdateLaunch)
-        Updater::LaunchUpdater();
+    {
+        if (SDK().GetVstdlibCvar()->FindVar("bme_skip_update")->GetInt())
+            spdlog::warn("Skipping BME update because bme_skip_update is set to 1");
+        else
+            Updater::LaunchUpdater();
+    }
     //FreeLibraryAndExitThread(hDLLModule, 0);
     //CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)FreeLibrary, &__ImageBase, 0, NULL);
     ////FreeSDK();
@@ -259,6 +264,7 @@ void TTFSDK::Init()
     m_conCommandManager->RegisterConVar("bme_version", BME_VERSION, FCVAR_UNLOGGED | FCVAR_DONTRECORD | FCVAR_SERVER_CANNOT_QUERY, "Current BME version");
     m_conCommandManager->RegisterConVar("cl_nocmdrate", "0", FCVAR_DONTRECORD, "Do not limit command packet rate by cl_cmdrate, instead allow dispatching one packet after every move command (so after every client frame)");
     m_conCommandManager->RegisterConVar("hudwarp_disable", "0", FCVAR_DONTRECORD, "Disable HUD warping entirely for hugely improved performance. Affects how the HUD is displayed visually and breaks its \"warp-in\" effect at the beginning of the match in turn.");
+    m_conCommandManager->RegisterConVar("bme_skip_update", "0", FCVAR_DONTRECORD, "Set to 1 if you wish to skip auto-launching downloaded BME update");
 
 #if 0
     /*{ // patch the restriction "Can't send client command; not connected to a server" of ClientCommand in script
@@ -370,7 +376,7 @@ void __fastcall TTFSDK::RunFrameHook(__int64 a1, double frameTime)
                 m_engineClient->ClientCmd_Unrestricted("getmotd");
             else*/
             if (Updater::pendingUpdateLaunch)
-                m_engineClient->ClientCmd_Unrestricted("motd \"Black Market Edition update is pending! The installer will be started after you exit your game.\"");
+                m_engineClient->ClientCmd_Unrestricted("motd \"Black Market Edition update is pending! The installer will be started after you exit your game. More information available in console and bme.log.\"");
         }
 
 #if 0
@@ -434,7 +440,7 @@ void __fastcall TTFSDK::RunFrameHook(__int64 a1, double frameTime)
         if (callCount >= 125)
         {
             //SPDLOG_LOGGER_DEBUG(m_logger, "set updater motd");
-            m_engineClient->ClientCmd_Unrestricted("motd \"^00FF0000Black Market Edition update is pending! It will be installed after you exit your game.\"");
+            m_engineClient->ClientCmd_Unrestricted("motd \"^00FF0000Black Market Edition update is pending! It will be installed after you exit your game. More information available in console and bme.log.\"");
             callCount = 0;
             Updater::pendingUpdateLaunchMotdChange = false;
         }
