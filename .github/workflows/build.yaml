@@ -1,0 +1,93 @@
+name: Build
+on:
+  push:
+    branches: [master, dependabot/*]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version (full number only, higher than last beta version)'
+        required: true
+        type: number
+jobs:
+  build:
+    runs-on: windows-2022
+    name: "Build"
+    env:
+      BME_CHANNEL: ${{ github.event_name == 'workflow_dispatch' && 'release' || 'staging' }}
+      BUILD_CONFIGURATION: ${{ github.event_name == 'workflow_dispatch' && 'x64-Release' || 'x64-Staging' }}
+      BUILD_VERSION: ${{ github.sha }}
+    steps:
+
+      - uses: actions/checkout@v3
+        with:
+          submodules: true
+          fetch-depth: 0
+
+      - name: Create channel file
+        run: echo ${{ env.BME_CHANNEL }} > ./installer/source/bme/bme_channel.txt
+
+      - name: Build ZIP and embed it in BSP
+        run: ./build_assets.bat
+
+      - name: Add msbuild to PATH
+        uses: microsoft/setup-msbuild@v1
+        with:
+          msbuild-architecture: x64
+          vs-prerelease: true
+
+      - name: Generate project files (premake)
+        run: premake/premake5 vs2022 --ci-build
+
+      - name: Compile
+        id: compile
+        run: msbuild build\bme.sln -m -p:Configuration=${{ env.BUILD_CONFIGURATION }} -p:BuildVersion=${{ env.BUILD_VERSION }}
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: build
+          path: |
+            build/bin/${{ env.BUILD_CONFIGURATION }}/*.dll
+            build/bin/${{ env.BUILD_CONFIGURATION }}/*.exe
+            build/bin/${{ env.BUILD_CONFIGURATION }}/*.pdb
+            build/bin/${{ env.BUILD_CONFIGURATION }}/*.zip
+
+      #- name: Setup Sentry CLI
+      #  if: github.ref == 'refs/heads/master'
+      #  uses: mathieu-bour/setup-sentry-cli@v1
+      #  with:
+      #    token: ${{ secrets.SENTRY_AUTH_TOKEN }}
+      #    organization: ${{ secrets.SENTRY_ORG }}
+      #    project: ${{ secrets.SENTRY_PROJECT }}
+
+      #- name: Create Sentry release
+      #  if: github.ref == 'refs/heads/master'
+      #  run: |
+      #    sentry-cli releases set-commits "${{ env.BUILD_VERSION }}" --auto --ignore-missing
+      #    sentry-cli releases new "${{ env.BUILD_VERSION }}"
+      #    sentry-cli releases deploys "${{ env.BUILD_VERSION }}" new -e ${{ env.BME_CHANNEL }}
+
+      - name: Build installer
+        run: ./build_installer.bat
+
+      - name: Upload installer artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: installer
+          path: installer/bme_installer.exe
+
+      - name: Create release
+        if: github.event_name == 'workflow_dispatch'
+        id: create_release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ inputs.version }}
+          name: Release v${{ inputs.version }}
+          #body: ${{ github.event.inputs.changelog }}
+          body: Auto-generated release version for build `${{ github.sha }}`
+          draft: false
+          prerelease: false
+          fail_on_unmatched_files: true
+          files: |
+            Fuck_off_EA_App_installer.exe
+            build/bin/Win32-Release/version.dll

@@ -374,6 +374,12 @@ installer/bme_installer.exe
 installer/source/Titanfall_alt.exe
 installer/source/bme/bme.bsp
 installer/source/bme/bme.dll
+!installer/source/bme/bme.log
+installer/source/bme/bme_channel.txt
 installer/source/bin/x64_retail/launcher.dll
+
+r1_modsrc/scripts/
+bmedll/FilesystemContents.h
+premake/deps/include
 
 !/premake/premake5.exe

@@ -23,4 +23,8 @@ links {
     "tier0",
 }
 
+linkoptions {
+    "/CETCOMPAT", -- CET Shadow Stack Compatible
+}
+
 dependencies.imports()

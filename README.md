@@ -111,9 +111,15 @@ Mouse sensitivity value visible in settings:
 
 ## Compiling
 
-Clone the repo with `git clone --recursive --depth 1 -j8 https://github.com/p0358/black_market_edition.git`, then run `generate.bat` and build the solution (`./build/bme.sln`) in VS 2022 (alternatively run `msbuild build\bme.sln -m`). Use Staging or Release configuration, Debug is not supported.
+1. Clone the repo with `git clone --recursive --depth 1 -j8 https://github.com/p0358/black_market_edition.git`
+2. Run `generate.bat` to generate Visual Studio project files
+3. Run `build_assets.bat` to package `r1_modsrc` dir contents into `installer/source/bme/bme.bsp` and generate file list header file
+4. Build the solution (`./build/bme.sln`) in VS 2022 (alternatively run `msbuild build\bme.sln -m`).
+5. Look at `installer/installer_simple2.iss` to figure out which files go where, or build the installer (instructions below).
 
 ### Building an installer
+
+After doing the steps above, with Inno Setup compile out `installer/installer_simple2.iss` (or use `build_installer.bat` script if you have `iscc` in your path). The resulting installer will be in `installer/bme_installer.exe`.
 
 To build an installer for full mod, you need to look into the file `installer/installer_simple2.iss` and copy the required files into `installer/source` dir manually.
 

@@ -20,19 +20,19 @@ AppVersion={#MyAppVersion}
 AppPublisher={#MyAppPublisher}
 AppPublisherURL={#MyAppURL}
 AppSupportURL={#MyAppURL}
-AppUpdatesURL={#MyAppURL}   
-;DefaultDirName=C:\Users\p0358\source\repos\bme\installer\test                                                                                   
+AppUpdatesURL={#MyAppURL}
+;DefaultDirName=test
 ;DefaultDirName={reg:HKLM\SOFTWARE\WOW6432Node\Respawn\Titanfall, Install Dir}
 DefaultDirName={code:GetInstallationPath}
 DefaultGroupName={#MyAppName}
 AllowNoIcons=yes
 DisableProgramGroupPage=yes
-;InfoBeforeFile=C:\Users\p0358\source\repos\bme\installer\pre_install_info.txt
+;InfoBeforeFile=pre_install_info.txt
 DisableWelcomePage=yes
-InfoAfterFile=C:\Users\p0358\source\repos\bme\installer\post_install_info.txt
-OutputDir=C:\Users\p0358\source\repos\bme\installer
+InfoAfterFile=post_install_info.txt
+OutputDir=.
 OutputBaseFilename=bme_installer
-SetupIconFile=C:\Users\p0358\source\repos\bme\installer\Titanfall_red.ico
+SetupIconFile=Titanfall_red.ico
 Compression=lzma
 SolidCompression=yes
 PrivilegesRequired=lowest
@@ -40,7 +40,7 @@ DisableReadyPage=yes
 ShowLanguageDialog=no
 CreateUninstallRegKey=no
 DirExistsWarning=no
-EnableDirDoesntExistWarning=no
+EnableDirDoesntExistWarning=yes
 CloseApplications=force
 CloseApplicationsFilter=*.exe,*.dll,*.chm,*.bik,*.asi,*.log,*.json
 ;ArchitecturesAllowed=x64
@@ -63,19 +63,16 @@ Name: "spanish"; MessagesFile: "compiler:Languages\Spanish.isl"
 
 [Dirs]
 Name: "{app}\bin\x64_retail"; Flags: uninsneveruninstall
-Name: "{app}\bme"
+Name: "{app}\r1_dlc1"; Flags: uninsneveruninstall; Permissions: users-modify
+Name: "{app}\bme"; Permissions: users-modify
 
 [Files]
-;Source: "source\winmm.dll"; DestDir: "{app}"; Flags: ignoreversion onlyifdoesntexist
-;Source: "source\bin\x64_retail\winmm.dll"; DestDir: "{app}\bin\x64_retail"; Flags: ignoreversion onlyifdoesntexist
-;Source: "source\bme\bme.asi"; DestDir: "{app}\bme"; Flags: ignoreversion
 Source: "source\bme\bme.dll"; DestDir: "{app}\bme"; Flags: ignoreversion
 Source: "source\bme\bme.bsp"; DestDir: "{app}\bme"; Flags: ignoreversion
 Source: "source\bme\bme.log"; DestDir: "{app}\bme"; Flags: ignoreversion onlyifdoesntexist
 Source: "source\bme\bme_channel.txt"; DestDir: "{app}\bme"; Flags: ignoreversion
 Source: "source\bme\crashpad_handler.exe"; DestDir: "{app}\bme"; Flags: ignoreversion
 Source: "source\bme\crashpad_wer.dll"; DestDir: "{app}\bme"; Flags: ignoreversion
-;Source: "source\discord_game_sdk.dll"; DestDir: "{app}"; Flags: ignoreversion onlyifdoesntexist
 Source: "source\r1\media\fov_video_15ms_480x400.bik"; DestDir: "{app}\r1\media"; Flags: ignoreversion onlyifdoesntexist
 Source: "{app}\bin\x64_retail\launcher.dll"; DestDir: "{app}\bin\x64_retail"; DestName: "launcher.org.dll"; Flags: external skipifsourcedoesntexist onlyifdoesntexist uninsneveruninstall
 Source: "source\bin\x64_retail\launcher.dll"; DestDir: "{app}\bin\x64_retail"; Flags: ignoreversion uninsneveruninstall
@@ -131,7 +128,8 @@ begin
     end
       else
     begin
-      InstallationPath := 'C:\Program Files (x86)\Origin Games\Titanfall';
+      //InstallationPath := 'C:\Program Files (x86)\Origin Games\Titanfall';
+      InstallationPath := 'C:\Program Files\EA Games\Titanfall';
       Log('No installation detected, using the default path: ' + InstallationPath);
     end;
   end;
@@ -169,7 +167,7 @@ begin
           end;
         end;
       //until not FindNext(FindRec);
-    end; 
+    end;
     if FindFirst(DestDir + '\Titanfall.org.exe', FindRec) then
     begin
       //repeat
@@ -188,7 +186,7 @@ begin
           end;
         end;
       //until not FindNext(FindRec);
-    end; 
+    end;
     FindClose(FindRec);
   end;
 end;

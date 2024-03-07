@@ -21,3 +21,7 @@ includedirs {"./loader_launcher_proxy"}
 
 libdirs {"./thirdparty/tier0"}
 links {"tier0"}
+
+linkoptions {
+    "/CETCOMPAT", -- CET Shadow Stack Compatible
+}
