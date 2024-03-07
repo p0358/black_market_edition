@@ -23,3 +23,6 @@
 [submodule "thirdparty/nghttp2"]
 	path = thirdparty/nghttp2
 	url = https://github.com/nghttp2/nghttp2.git
+[submodule "bme_scripts"]
+	path = bme_scripts
+	url = https://github.com/p0358/bme_scripts.git
