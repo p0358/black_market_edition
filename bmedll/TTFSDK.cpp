@@ -34,7 +34,7 @@ bool IsSDKReady()
 ////HookedSigScanFunc<void, double, float> _Host_RunFrame("engine.dll", "\x48\x8B\xC4\x48\x89\x58\x10\x48\x89\x68\x18\x48\x89\x70\x20\xF3\x0F\x11\x40\x08", "xxxxxxxxxxxxxxxxxxxx");
 //HookedSigScanFunc<void, double, float> _Host_RunFrame("engine.dll", "\x48\x8B\xC4\x48\x89\x58\x10\x48\x89\x68\x18\x48\x89\x70\x20\xF3\x0F\x11\x40\x08", "xxxxxx??????????xxx?");
 HookedFuncStatic<void __fastcall, __int64, double> CHostState_State_Run("engine.dll", 0x14B300);
-HookedFuncStatic<void> HostState_Shutdown("engine.dll", 0x14B810);
+HookedFuncStatic<void> CHostState_Shutdown("engine.dll", 0x58BD0); // was: 0x14B810
 HookedFuncStatic<void __fastcall, double> getMotd("engine.dll", 0x1B340);
 
 void test(const CCommand& args)
@@ -116,8 +116,9 @@ const std::string GetBMEChannel()
 //extern void LaunchUpdater();
 
 //EXTERN_C IMAGE_DOS_HEADER __ImageBase;
-void HostState_Shutdown_Hook() {
-    SPDLOG_LOGGER_DEBUG(spdlog::get(_("logger")), "HostState_Shutdown_Hook => Engine is going to shut down");
+void CHostState_Shutdown_Hook()
+{
+    spdlog::debug("CHostState::Shutdown Hook => Engine is going to shut down");
     //auto func = HostState_Shutdown.m_origFunc;
     //auto func = HostState_Shutdown.m_hookedFunc;
     //isProcessTerminating = true;
@@ -136,11 +137,11 @@ void HostState_Shutdown_Hook() {
     //FreeLibraryAndExitThread(hDLLModule, 0);
     //CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)FreeLibrary, &__ImageBase, 0, NULL);
     ////FreeSDK();
-    //HostState_Shutdown.Unhook();
+    //CHostState_Shutdown.Unhook();
     //func();
     if (&g_SDK->GetDiscord() != nullptr)
         Discord_Shutdown();
-    HostState_Shutdown();
+    CHostState_Shutdown();
     //MH_Uninitialize();
     //TerminateProcess(GetCurrentProcess(), 0);
     FreeSDK();
@@ -305,7 +306,7 @@ void TTFSDK::Init()
     }
 
     AntiEventCrash_Setup();
-    HostState_Shutdown.Hook(HostState_Shutdown_Hook);
+    CHostState_Shutdown.Hook(CHostState_Shutdown_Hook);
 }
 
 
