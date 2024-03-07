@@ -1,0 +1,222 @@
+resource/ui/menus/mousekeyboardcontrols.menu
+{
+	MouseKeyboardControlsMenu
+	{
+		ControlName				Frame
+		xpos					0
+		ypos					0
+		zpos					3
+		wide					f0
+		tall					f0
+		autoResize				0
+		visible					1
+		enabled					1
+		pinCorner				0
+		PaintBackgroundType		0
+		infocus_bgcolor_override	"0 0 0 0"
+		outoffocus_bgcolor_override	"0 0 0 0"
+
+		BackgroundOverlay
+		{
+			ControlName				Label
+			InheritProperties		BackgroundDarken
+		}
+
+		MenuTitle
+		{
+			ControlName				Label
+			InheritProperties		MenuTitle
+			labelText				"#CONTROLS"
+		}
+
+		MenuCommon
+		{
+			ControlName				CNestedPanel
+			xpos					0
+			ypos					0
+			wide					f0
+			tall					f0
+			visible					1
+			controlSettingsFile		"resource/ui/menus/panels/menu_common.res"
+		}
+
+		MatchmakingStatus
+		{
+			ControlName				CNestedPanel
+			xpos					0
+			ypos					0
+			wide					f0
+			tall					f0
+			visible					1
+			controlSettingsFile		"resource/ui/menus/panels/matchmaking_status.res"
+		}
+
+		ImgTopBar
+		{
+			ControlName				ImagePanel
+			InheritProperties		MenuTopBar
+		}
+
+		ImgBottomBar
+		{
+			ControlName				ImagePanel
+			InheritProperties		MenuBottomBar
+		}
+
+		ImgTitanfallLogoSmall
+		{
+			ControlName				ImagePanel
+			InheritProperties		TitanfallLogoSmall
+		}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		LblMenuItemDescription
+		{
+			ControlName				Label
+			InheritProperties		OptionMenuTooltip
+			classname 				MenuItemDescriptionClass
+			pin_to_sibling			ImgTopBar
+			pin_corner_to_sibling	0
+			pin_to_sibling_corner	2
+		}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		// Mouse/Keyboard subheader
+		ImgMouseKeyboardSubheaderBackground	[!$GAMECONSOLE]
+		{
+			ControlName				ImagePanel
+			InheritProperties		SubheaderBackground
+			pin_to_sibling			ImgTopBar
+			pin_corner_to_sibling	0
+			pin_to_sibling_corner	2
+			ypos					14
+		}
+		LblMouseKeyboardSubheaderText [!$GAMECONSOLE]
+		{
+			ControlName				Label
+			InheritProperties		SubheaderText
+			pin_to_sibling			ImgMouseKeyboardSubheaderBackground
+			pin_corner_to_sibling	7
+			pin_to_sibling_corner	7
+			xpos					-10
+			labelText				"#MOUSE_KEYBOARD_CONTROLS"
+		}
+
+		// Mouse/Keyboard options
+		BtnMouseKeyboardBindings [!$GAMECONSOLE]
+		{
+			ControlName				BaseModHybridButton
+			InheritProperties		WideButton
+			classname 				MouseKeyboardBindingsButtonClass
+			pin_to_sibling			ImgMouseKeyboardSubheaderBackground
+			pin_corner_to_sibling	0
+			pin_to_sibling_corner	2
+			xpos					10
+			navUp					SwchMouseInvertY
+			navDown					SldMouseSensitivity
+			tabPosition				1
+			labelText				"#KEY_BINDINGS"
+		}
+		SldMouseSensitivity	[!$GAMECONSOLE]
+		{
+			ControlName				SliderControl
+			InheritProperties		SliderControl
+			classname 				MouseSensitivitySliderClass
+			pin_to_sibling			BtnMouseKeyboardBindings
+			pin_corner_to_sibling	0
+			pin_to_sibling_corner	2
+			navUp					BtnMouseKeyboardBindings
+			navDown					SwchMouseAcceleration
+			minValue				0.25f
+			maxValue				20.0f
+			stepSize				0.25f
+			conCommand				"m_sensitivity"
+			BtnDropButton
+			{
+				ControlName				BaseModHybridButton
+				classname 				MouseSensitivitySliderClass
+				childGroupNormal		WideButtonNormalGroup
+				childGroupFocused		WideButtonFocusGroup
+				clip 					0
+				wide					300
+				tall					20
+				autoResize				1
+				pinCorner				0
+				visible					1
+				enabled					1
+				labelText				"#MOUSE_SENSITIVITY"
+				style					LeftDialogButton
+				allcaps					1
+				command					""
+			}
+		}
+        LblMouseSensitivity	[!$GAMECONSOLE]
+		{
+			ControlName				Label
+			xpos					-32
+			ypos					-2
+			auto_wide_to_contents	1
+			font					MenuFontTiny
+			pin_to_sibling			SldMouseSensitivity
+			pin_corner_to_sibling	0
+			pin_to_sibling_corner	1
+			labelText				"5.0"
+			textAlignment			"west"
+			fgcolor_override		"255 255 255 255"
+			zpos					0
+		}
+		SwchMouseAcceleration [!$GAMECONSOLE]
+		{
+			ControlName				BaseModHybridButton
+			InheritProperties		SwitchButton
+			classname 				MouseAccelerationSwitchClass
+			style					DialogListButton
+			pin_to_sibling			SldMouseSensitivity
+			pin_corner_to_sibling	0
+			pin_to_sibling_corner	2
+			navUp					SldMouseSensitivity
+			navDown					SwchMouseInvertY
+			labelText				"#MOUSE_ACCELERATION"
+			ConVar 					"m_acceleration"
+			list
+			{
+				"#SETTING_OFF"		0
+				"#SETTING_ON"		1
+			}
+		}
+		SwchMouseInvertY [!$GAMECONSOLE]
+		{
+			ControlName				BaseModHybridButton
+			InheritProperties		SwitchButton
+			classname 				MouseInvertSwitchClass
+			style					DialogListButton
+			pin_to_sibling			SwchMouseAcceleration
+			pin_corner_to_sibling	0
+			pin_to_sibling_corner	2
+			navUp					SwchMouseAcceleration
+			navDown					BtnMouseKeyboardBindings
+			labelText				"#MOUSE_INVERT"
+			ConVar 					"m_invert_pitch"
+			list
+			{
+				"#SETTING_OFF"		0
+				"#SETTING_ON"		1
+			}
+		}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		FooterButtons
+		{
+			ControlName				CNestedPanel
+			xpos					0
+			ypos					r53
+			wide					f0
+			tall					16
+			visible					1
+			controlSettingsFile		"resource/ui/menus/panels/footer_buttons.res"
+		}
+	}
+}

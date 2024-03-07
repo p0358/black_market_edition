@@ -1,0 +1,823 @@
+resource/ui/menus/lobby.menu
+{
+	LobbyMenu
+	{
+		ControlName				Frame
+		xpos					0
+		ypos					0
+		zpos					3
+		wide					f0
+		tall					f0
+		autoResize				0
+		pinCorner				0
+		visible					1
+		enabled					1
+		PaintBackgroundType		0
+		infocus_bgcolor_override	"0 0 0 0"
+		outoffocus_bgcolor_override	"0 0 0 0"
+
+		MenuCommon
+		{
+			ControlName				CNestedPanel
+			xpos					0
+			ypos					0
+			wide					f0
+			tall					f0
+			visible					1
+			controlSettingsFile		"resource/ui/menus/panels/menu_common.res"
+		}
+
+		MatchmakingStatus
+		{
+			ControlName				CNestedPanel
+			xpos					0
+			ypos					0
+			wide					f0
+			tall					f0
+			visible					1
+			controlSettingsFile		"resource/ui/menus/panels/matchmaking_status.res"
+		}
+
+		NextMapImage
+		{
+			ControlName				ImagePanel
+			xpos 					r532
+			ypos					74
+			wide					493
+			tall					186
+			visible					0
+			scaleImage				1
+			image					""
+		}
+		NextMapImageFrame
+		{
+			ControlName				ImagePanel
+			pin_to_sibling			NextMapImage
+			pin_corner_to_sibling	0
+			pin_to_sibling_corner	0
+			wide					493
+			tall					186
+			visible					0
+			scaleImage				1
+			image					"../ui/menu/lobby/map_image_frame"
+			zpos					802
+		}
+
+		NextMapName
+		{
+			ControlName				Label
+			pin_to_sibling			NextMapImage
+			pin_corner_to_sibling	1
+			pin_to_sibling_corner	1
+			xpos					-11
+			ypos					-9
+			zpos 					900
+			auto_wide_tocontents 	1
+			auto_tall_tocontents	1
+			visible					0
+			labelText				""
+			font					NextMapFont
+			allcaps					1
+			fgcolor_override		"204 234 255 255"
+		}
+		NextGameModeName
+		{
+			ControlName				Label
+			pin_to_sibling			NextMapName
+			pin_corner_to_sibling	1
+			pin_to_sibling_corner	3
+			ypos					-5
+			auto_wide_tocontents 	1
+			auto_tall_tocontents	1
+			visible					0
+			labelText				""
+			use_proportional_insets	1
+			textinsetx 				1
+			font					NextGameModeFont
+			allcaps					1
+			fgcolor_override		"204 234 255 255"
+		}
+
+		MapStarsDetailsPanel
+		{
+			ControlName				CNestedPanel
+			classname				MapStarsDetailsPanel
+			xpos					0
+			ypos					0
+			zpos					800
+			wide					493
+			tall					186
+			visible					0
+			controlSettingsFile		"resource/UI/menus/map_stars_details.res"
+			pin_to_sibling			NextMapImage
+			pin_corner_to_sibling	0
+			pin_to_sibling_corner	0
+		}
+
+		StarsLabelGamepad
+		{
+			ControlName				Label
+			classname 				StarsLabelGamepad
+			xpos					-11
+			ypos					20
+			auto_wide_tocontents 	1
+			auto_tall_tocontents	1
+			visible					0
+			labelText				"#MAP_STARS_HEADER_GAMEPAD"
+			font					WinStreakHeaderFont
+			allcaps					0
+			fgcolor_override		"204 234 255 255"
+			pin_to_sibling			NextMapImage
+			pin_corner_to_sibling	5
+			pin_to_sibling_corner	5
+			activeInputExclusivePaint	gamepad
+		}
+		StarsLabelKeyboard
+		{
+			ControlName				Label
+			classname 				StarsLabelKeyboard
+			xpos					-11
+			ypos					20
+			auto_wide_tocontents 	1
+			auto_tall_tocontents	1
+			visible					0
+			labelText				"#MAP_STARS_HEADER_KEYBOARD"
+			font					WinStreakHeaderFont
+			allcaps					0
+			fgcolor_override		"204 234 255 255"
+			pin_to_sibling			NextMapImage
+			pin_corner_to_sibling	5
+			pin_to_sibling_corner	5
+			activeInputExclusivePaint	keyboard
+		}
+
+		MapStar2
+		{
+			ControlName				ImagePanel
+			classname 				MapStar2
+			xpos					-11
+			ypos					36
+			wide					16
+			tall					16
+			visible					0
+			scaleImage				1
+			image					"../ui/menu/lobby/map_star_empty"
+			pin_to_sibling			NextMapImage
+			pin_corner_to_sibling	5
+			pin_to_sibling_corner	5
+		}
+
+		MapStar1
+		{
+			ControlName				ImagePanel
+			classname 				MapStar1
+			xpos 					0
+			ypos					0
+			wide					16
+			tall					16
+			visible					0
+			scaleImage				1
+			image					"../ui/menu/lobby/map_star_empty"
+			pin_to_sibling			MapStar2
+			pin_corner_to_sibling	5
+			pin_to_sibling_corner	7
+		}
+
+		MapStar0
+		{
+			ControlName				ImagePanel
+			classname 				MapStar0
+			xpos 					0
+			ypos					0
+			wide					16
+			tall					16
+			visible					0
+			scaleImage				1
+			image					"../ui/menu/lobby/map_star_empty"
+			pin_to_sibling			MapStar1
+			pin_corner_to_sibling	5
+			pin_to_sibling_corner	7
+		}
+
+		WinStreakLabel
+		{
+			ControlName				Label
+			xpos					-11
+			ypos					-2
+			auto_wide_tocontents 	1
+			auto_tall_tocontents	1
+			visible					0
+			labelText				""
+			font					WinStreakFont
+			allcaps					0
+			fgcolor_override		"204 234 255 255"
+
+			pin_to_sibling			NextMapImage
+			pin_corner_to_sibling	3
+			pin_to_sibling_corner	3
+		}
+		LastTenLabel
+		{
+			ControlName				Label
+			ypos					-2
+			auto_wide_tocontents 	1
+			auto_tall_tocontents	1
+			visible					0
+			labelText				""
+			use_proportional_insets	1
+			textinsetx 				1
+			font					WinStreakFont
+			allcaps					0
+			fgcolor_override		"204 234 255 255"
+
+			pin_to_sibling			WinStreakLabel
+			pin_corner_to_sibling	3
+			pin_to_sibling_corner	1
+		}
+		WinStreakHeader
+		{
+			ControlName				Label
+			ypos					-4
+			auto_wide_tocontents 	1
+			auto_tall_tocontents	1
+			visible					0
+			labelText				"#WIN_STREAK_HEADER"
+			use_proportional_insets	1
+			textinsetx 				1
+			font					WinStreakHeaderFont
+			allcaps					1
+			fgcolor_override		"204 234 255 255"
+
+			pin_to_sibling			LastTenLabel
+			pin_corner_to_sibling	3
+			pin_to_sibling_corner	1
+		}
+
+		//ImgGuide
+		//{
+		//	ControlName				ImagePanel
+		//	xpos					0
+		//	ypos					0
+		//	wide					f0
+		//	tall					f0
+		//	image 					"../ui/guide"
+		//	visible					1
+		//	scaleImage				1
+		//	drawColor				"255 255 255 127"
+		//}
+
+		ImgTopBar
+		{
+			ControlName				ImagePanel
+			InheritProperties		MenuTopBar
+		}
+
+		MenuTitle
+		{
+			ControlName				Label
+			InheritProperties		MenuTitle
+			classname 				LobbyTitleClass
+			labelText				"#PRIVATE_LOBBY"
+		}
+
+		ImgTitanfallLogoSmall
+		{
+			ControlName				ImagePanel
+			InheritProperties		TitanfallLogoSmall
+		}
+
+		ImgBottomBar
+		{
+			ControlName				ImagePanel
+			InheritProperties		MenuBottomBar
+		}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		BigPlayButton1
+		{
+			ControlName				BaseModHybridButton
+			InheritProperties		LargeButton
+			xpos					30
+			ypos					78
+			zpos 					900
+			navUp					RankedButton
+			navDown					PrivateMatchButton
+			navRight				DLCButton1
+			tabPosition				1
+			labelText				"#PLAY_TITANFALL"
+		}
+
+		CoopMatchButton
+		{
+			ControlName				BaseModHybridButton
+			InheritProperties		LargeButton
+			ypos					-1
+			zpos 					900
+			pin_to_sibling			BigPlayButton1
+			pin_corner_to_sibling	0
+			pin_to_sibling_corner	2
+			navUp					BigPlayButton1
+			navDown					PrivateMatchButton
+			navRight				DLCButton1
+			labelText				"#PLAY_COOP"
+			visible					0
+			enabled					0
+		}
+
+		PrivateMatchButton
+		{
+			ControlName				BaseModHybridButton
+			InheritProperties		CompactButton
+			ypos					-1
+			zpos 					900
+			pin_to_sibling			BigPlayButton1
+			pin_corner_to_sibling	0
+			pin_to_sibling_corner	2
+			navUp					BigPlayButton1
+			navDown					TrainingButton
+			navRight				DLCButton1
+			labelText				"#PRIVATE_MATCH"
+		}
+
+		TrainingButton
+		{
+			ControlName				BaseModHybridButton
+			InheritProperties		CompactButton
+			ypos					-1
+			zpos 					900
+			pin_to_sibling			PrivateMatchButton
+			pin_corner_to_sibling	0
+			pin_to_sibling_corner	2
+			navUp					PrivateMatchButton
+			navDown					StartMatchButton
+			navRight				DLCButton1
+			labelText				"#MAIN_MENU_TRAINING"
+		}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+	DLCButton1
+	{
+	    ControlName				BaseModHybridButton
+	    InheritProperties		DLCStoreButton
+	    xpos					r291
+	    ypos					70
+	    scriptID				1
+	    navLeft					BtnEditPilotLoadouts
+	    navDown					DLCButton2
+		visible					1
+	    scriptID				1
+	}
+
+	DLCButton2
+	{
+	    ControlName				BaseModHybridButton
+	    InheritProperties		DLCStoreButton
+	    xpos					0
+	    ypos					-8
+		pin_to_sibling			DLCButton1
+		pin_corner_to_sibling	0
+		pin_to_sibling_corner	2
+	    navUp					DLCButton1
+	    navDown					DLCButton3
+		navLeft					BtnEditPilotLoadouts
+		visible					1
+	    scriptID				2
+	}
+
+	DLCButton3
+	{
+	    ControlName				BaseModHybridButton
+	    InheritProperties		DLCStoreButton
+	    xpos					0
+	    ypos					-8
+		pin_to_sibling			DLCButton2
+		pin_corner_to_sibling	0
+		pin_to_sibling_corner	2
+	    navUp					DLCButton2
+		navLeft					BtnEditPilotLoadouts
+		visible					1
+	    scriptID				3
+	}
+
+	DLCHeader
+	{
+		ControlName				Label
+		xpos					0
+		ypos					2
+		zpos					30
+		tall 					14
+		wide					270
+		visible					0
+		pin_to_sibling			DLCButton1
+		pin_corner_to_sibling	2
+		pin_to_sibling_corner	0
+		font					ChallengeButtonProgressFont
+		labelText				"#DLC_SECTION_TITLE"
+		textAlignment			center
+		allcaps					0
+		fgcolor_override		"200 200 200 255"
+	}
+
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		StartMatchButton
+		{
+			ControlName				BaseModHybridButton
+			InheritProperties		LargeButton
+			xpos					30
+			ypos					75
+			zpos 					900
+			navUp					TrainingButton
+			navDown					MapsButton
+			navRight				ListFriendlies
+			labelText				"#START_MATCH"
+		}
+
+		MapsButton
+		{
+			ControlName				BaseModHybridButton
+			InheritProperties		CompactButton
+			pin_to_sibling			StartMatchButton
+			pin_corner_to_sibling	0
+			pin_to_sibling_corner	2
+			xpos					0
+			zpos 					900
+			navUp					StartMatchButton
+			navDown					ModesButton
+			navRight				ListFriendlies
+			labelText				"#MAPS"
+			visible 				0
+		}
+
+		ModesButton
+		{
+			ControlName				BaseModHybridButton
+			InheritProperties		CompactButton
+			pin_to_sibling			MapsButton
+			pin_corner_to_sibling	0
+			pin_to_sibling_corner	2
+			navUp					MapsButton
+			navDown					SettingsButton
+			navRight				ListFriendlies
+			labelText				"#MODES"
+			visible 				0
+			zpos 					900
+		}
+
+		SettingsButton
+		{
+			ControlName				BaseModHybridButton
+			InheritProperties		CompactButton
+			pin_to_sibling			ModesButton
+			pin_corner_to_sibling	0
+			pin_to_sibling_corner	2
+			navUp					ModesButton
+			navDown					BtnEditPilotLoadouts
+			navRight				ListFriendlies
+			labelText				"#SETTINGS"
+			visible 				0
+			zpos 					900
+		}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		BtnEditPilotLoadouts
+		{
+			ControlName				BaseModHybridButton
+			InheritProperties		CompactButton
+			classname 				EditPilotLoadoutsButtonClass
+			xpos					30
+			ypos					173
+			zpos 					900
+			navUp					SettingsButton
+			navDown					BtnEditTitanLoadouts
+			navRight				ListFriendlies
+			labelText				"#MENU_EDIT_PILOT_LOADOUTS"
+		}
+		BtnEditTitanLoadouts
+		{
+			ControlName				BaseModHybridButton
+			InheritProperties		CompactButton
+			classname 				EditTitanLoadoutsButtonClass
+			pin_to_sibling			BtnEditPilotLoadouts
+			pin_corner_to_sibling	0
+			pin_to_sibling_corner	2
+			zpos 					900
+			navUp					BtnEditPilotLoadouts
+			navDown					BtnEditBurnCards
+			navRight				ListFriendlies
+			labelText				"#MENU_EDIT_TITAN_LOADOUTS"
+		}
+		BtnEditBurnCards
+		{
+			ControlName				BaseModHybridButton
+			InheritProperties		CompactButton
+			classname 				EditBurnCardsButtonClass
+			pin_to_sibling			BtnEditTitanLoadouts
+			pin_corner_to_sibling	0
+			pin_to_sibling_corner	2
+			zpos 					900
+			navUp					BtnEditTitanLoadouts
+			navDown					BtnBlackMarket
+			navRight				ListFriendlies
+			labelText				"#BC_EDIT_BURN_CARDS"
+		}
+		BtnBlackMarket
+		{
+			ControlName				BaseModHybridButton
+			InheritProperties		CompactButton
+			classname 				BtnBlackMarketClass
+			pin_to_sibling			BtnEditBurnCards
+			pin_corner_to_sibling	0
+			pin_to_sibling_corner	2
+			zpos 					900
+			navUp					BtnEditBurnCards
+			navDown					BtnGameSummary
+			navRight				ListFriendlies
+			labelText				"#SHOP_LOBBY_BUTTON"
+		}
+		BtnGameSummary
+		{
+			ControlName				BaseModHybridButton
+			InheritProperties		CompactButton
+			classname 				BtnGameSummaryClass
+			pin_to_sibling			BtnBlackMarket
+			pin_corner_to_sibling	0
+			pin_to_sibling_corner	2
+			//ypos					11
+			zpos 					900
+			navUp					BtnBlackMarket
+			navDown					BtnStats
+			navRight				ListFriendlies
+			labelText				"#GAME_SUMMARY"
+		}
+		BtnStats
+		{
+			ControlName				BaseModHybridButton
+			InheritProperties		CompactButton
+			pin_to_sibling			BtnGameSummary
+			pin_corner_to_sibling	0
+			pin_to_sibling_corner	2
+			zpos 					900
+			navUp					BtnGameSummary
+			navDown					BtnChallenges
+			navRight				ListFriendlies
+			labelText				"#STATS_BUTTON_TEXT"
+		}
+		BtnChallenges
+		{
+			ControlName				BaseModHybridButton
+			InheritProperties		CompactButton
+			pin_to_sibling			BtnStats
+			pin_corner_to_sibling	0
+			pin_to_sibling_corner	2
+			zpos 					900
+			navUp					BtnStats
+			navDown					BtnOptions
+			navRight				ListFriendlies
+			labelText				"#MENU_CHALLENGES"
+		}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		BtnOptions
+		{
+			ControlName				BaseModHybridButton
+			InheritProperties		CompactButton
+			classname 				OptionsButtonClass
+			xpos					30
+			ypos					293
+			zpos 					900
+			navUp					BtnChallenges
+			navDown					BtnRegen
+			navRight				ListFriendlies
+			labelText				"#OPTIONS"
+		}
+		BtnRegen
+		{
+			ControlName				BaseModHybridButton
+			InheritProperties		CompactButton
+			pin_to_sibling			BtnOptions
+			pin_corner_to_sibling	0
+			pin_to_sibling_corner	2
+			zpos 					900
+			navUp					BtnOptions
+			navDown					RankedButton
+			navRight				ListFriendlies
+			labelText				"#REGEN"
+		}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		RankedButton
+		{
+			ControlName				BaseModHybridButton
+			InheritProperties		CompactButton
+			pin_to_sibling			BtnRegen
+			pin_corner_to_sibling	0
+			pin_to_sibling_corner	2
+			zpos 					900
+			navUp					BtnRegen
+			navDown					BigPlayButton1
+			navRight				ListFriendlies
+			labelText				"#RANKING_LOBBY_UNAVAILABLE"
+		}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		LobbyEnemyTeamBackground
+		{
+			ControlName				CNestedPanel
+			xpos					r285
+			ypos					r219
+			wide					246
+			tall					165
+			visible					1
+			controlSettingsFile		"resource/ui/menus/panels/enemy_team_background.res"
+		}
+		EnemyTeamLogo
+		{
+			ControlName				ImagePanel
+			classname 				EnemyTeamLogoClass
+			pin_to_sibling			LobbyEnemyTeamBackground
+			pin_corner_to_sibling	0
+			pin_to_sibling_corner	0
+			xpos					-5
+			ypos					-7
+			wide					28
+			tall					28
+			visible					1
+			scaleImage				1
+		}
+		EnemyTeamName
+		{
+			ControlName				Label
+			classname				EnemyTeamNameClass
+			pin_to_sibling			EnemyTeamLogo
+			pin_corner_to_sibling	7
+			pin_to_sibling_corner	5
+			xpos					3
+			auto_wide_tocontents 	1
+			auto_tall_tocontents 	1
+			visible 				1
+			labelText				""
+			font 					TeamNameFont
+			allcaps					1
+			fgcolor_override		"204 234 255 255"
+		}
+
+		ListEnemies
+		{
+			ControlName				CPlayerList
+			InheritProperties 		LobbyPlayerList
+			pin_to_sibling			LobbyEnemyTeamBackground
+			pin_corner_to_sibling	0
+			pin_to_sibling_corner	0
+			xpos					-4
+			ypos					-40
+			tall					166
+			navLeft					ListFriendlies
+			teamRelationshipFilter	enemy
+			arrowsVisible			0
+			listEntrySettings
+			{
+				InheritProperties		LobbyEnemyButton
+			}
+		}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		LobbyFriendlyTeamBackground
+		{
+			ControlName				CNestedPanel
+			xpos					r285
+			ypos					r219
+			wide					246
+			tall					165
+			visible					1
+			controlSettingsFile		"resource/ui/menus/panels/friendly_team_background.res"
+		}
+		MyTeamLogo
+		{
+			ControlName				ImagePanel
+			classname 				MyTeamLogoClass
+			pin_to_sibling			LobbyFriendlyTeamBackground
+			pin_corner_to_sibling	0
+			pin_to_sibling_corner	0
+			xpos					-5
+			ypos					-7
+			wide					28
+			tall					28
+			visible					1
+			scaleImage				1
+		}
+		MyTeamName
+		{
+			ControlName				Label
+			classname				MyTeamNameClass
+			pin_to_sibling			MyTeamLogo
+			pin_corner_to_sibling	7
+			pin_to_sibling_corner	5
+			xpos					3
+			auto_wide_tocontents 	1
+			auto_tall_tocontents 	1
+			visible 				1
+			labelText				""
+			font 					TeamNameFont
+			allcaps					1
+			fgcolor_override		"204 234 255 255"
+		}
+
+		ListFriendlies
+		{
+			ControlName				CPlayerList
+			InheritProperties 		LobbyPlayerList
+			pin_to_sibling			LobbyFriendlyTeamBackground
+			pin_corner_to_sibling	0
+			pin_to_sibling_corner	0
+			xpos					-4
+			ypos					-40
+			tall					166
+			navLeft					BtnEditPilotLoadouts
+			navRight				ListEnemies
+			teamRelationshipFilter	friendly
+			arrowsVisible			0
+			listEntrySettings
+			{
+				InheritProperties		LobbyFriendlyButton
+			}
+		}
+
+		LobbyTextChat [$WINDOWS]
+		{
+			ControlName				CBaseHudChat
+//			ControlName				TextEntry
+			pin_to_sibling			LobbyFriendlyTeamBackground
+			pin_corner_to_sibling	1
+			pin_to_sibling_corner	0
+			xpos					2
+//			xpos					20
+			zpos 					10
+			wide					280 [$WIDESCREEN_16_9]
+			wide					199 [!$WIDESCREEN_16_9]
+			tall					163
+			visible 				1
+			enabled					1
+			messageModeAlwaysOn		1
+			bgcolor_override 		"0 0 0 0"
+
+			chatBorderThickness		5
+			chatHistoryBgColor		"24 27 30 120"
+			chatEntryBgColor		"24 27 30 120"
+			chatEntryBgColorFocused	"24 27 30 120"
+            
+            unicode					1
+            
+            allowRightClickMenu		1
+			allowSpecialCharacters	1
+            InheritProperties		ChatBox
+		}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		ButtonTooltip
+		{
+			ControlName				CNestedPanel
+			InheritProperties		ButtonTooltip
+		}
+
+		LobbyBadRepPresentMessage
+		{
+			ControlName				Label
+			pin_to_sibling 			NextMapImage
+			pin_corner_to_sibling	0
+			pin_to_sibling_corner	0
+			xpos 					-10
+			ypos 					-10
+			zpos					1000
+			auto_wide_tocontents	1
+			auto_tall_tocontents	1
+			visible 				0
+			font 					FooterFont
+			labelText				""
+			fgcolor_override 		"255 50 50 255"
+		}
+
+		FooterButtons
+		{
+			ControlName				CNestedPanel
+			xpos					0
+			ypos					r53
+			wide					f0
+			tall					16
+			visible					1
+			controlSettingsFile		"resource/ui/menus/panels/footer_buttons.res"
+		}
+	}
+}

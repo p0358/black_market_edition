@@ -1,0 +1,215 @@
+// enum PinCorner_e 
+// {
+// 	PIN_TOPLEFT = 0,
+// 	PIN_TOPRIGHT, // 1
+// 	PIN_BOTTOMLEFT, // 2
+// 	PIN_BOTTOMRIGHT, // 3
+
+// 	// For sibling pinning
+// 	PIN_CENTER_TOP, // 4
+// 	PIN_CENTER_RIGHT, // 5
+// 	PIN_CENTER_BOTTOM, // 6
+// 	PIN_CENTER_LEFT, // 7
+// };
+
+resource/ui/menus/choicedialog.menu
+{
+	ChoiceDialog2
+	{
+		ControlName				Frame
+		xpos					0
+		ypos					0
+		zpos					3
+		wide					f0
+		tall					f0
+		autoResize				0
+		pinCorner				0
+		visible					1
+		enabled					1
+		tabPosition				0
+		PaintBackgroundType		0
+		infocus_bgcolor_override	"0 0 0 0"
+		outoffocus_bgcolor_override	"0 0 0 0"
+		modal					1
+
+		ImgDialog
+		{
+			ControlName				ImagePanel
+			xpos					c-427
+			ypos					c-240
+			wide					854 //f0
+			tall					480 //f0
+			image 					"../ui/menu/common/pop_up_menu_back"
+			visible					1
+			scaleImage				1
+		}
+
+		DialogFrame
+		{
+			ControlName				Label
+			xpos					c-173
+			ypos					c-119
+			wide					346
+			tall					238
+			labelText				""
+			visible					1
+		}
+
+		LblMessage
+		{
+			ControlName				Label
+			xpos					c-170
+//			ypos					c-113
+//			ypos					c-115
+			ypos					c-119
+			zpos					3 // Needed or clicking on the background can hide this
+			wide					340
+			tall					54
+			visible					1
+			labelText				"DEFAULT MESSAGE"
+			font					DialogMessageFont
+			textAlignment			center
+			wrap					1
+			centerwrap				1
+			allcaps					1
+			fgcolor_override		"204 234 255 255"
+		}
+
+		LblDetails
+		{
+			ControlName				Label
+			xpos					0
+			ypos					2
+			wide					290
+			tall					54
+			visible					1
+			labelText				"DEFAULT MESSAGE"
+			font					DialogDetailsFont
+			textAlignment			north
+			wrap					1
+			centerwrap				1
+			allcaps					0
+			fgcolor_override		"150 180 190 255"
+
+			pin_to_sibling			LblMessage
+			pin_corner_to_sibling	4
+			pin_to_sibling_corner	6
+		}
+
+		ImgSpinningCircle
+		{
+			ControlName				ImagePanel
+			classname 				SpinningCircle
+			pin_to_sibling			ImgTopBar
+			pin_corner_to_sibling	3
+			pin_to_sibling_corner	1
+			xpos					c-40
+			ypos					c-66
+			wide					80
+			tall					80
+			visible					1
+			scaleImage				1
+			image					"../ui/icon_processing"
+		}
+        
+        ButtonsPanel
+		{
+			ControlName				CNestedPanel
+//			xpos					30
+//			ypos					94
+////			ypos					0
+//			zpos					200
+////			wide					300
+//			tall					306
+////			tall					70
+			visible					1
+            
+//			xpos					30
+//			ypos					94
+			zpos					200
+//			wide					300
+//			wide					330
+			wide					350
+//			tall					306
+//			tall					396
+//			tall					360
+///			tall					366
+//			tall					150
+//			tall					200
+			tall					150
+
+//			xpos					c-173
+//			ypos					c-119
+//			xpos					100
+//			ypos					80
+//			xpos					60
+//			ypos					80
+///			xpos					255
+//			xpos					285
+//			ypos					c-100
+//			ypos					1
+//			ypos					-40
+///			ypos					-35
+            
+//            pin_to_sibling			LblDetails
+///            pin_to_sibling			LblMessage
+///			pin_corner_to_sibling	4
+///			pin_to_sibling_corner	6
+            
+////			pin_to_sibling			DialogFrame
+////			pin_corner_to_sibling	3
+////			pin_to_sibling_corner	3
+////			xpos 					-1
+////			ypos 					-1
+
+			pin_to_sibling			LblMessage
+			pin_corner_to_sibling	4
+			pin_to_sibling_corner	6
+            
+			xpos					0
+//			ypos					2
+			ypos					4
+            
+            tabPosition				1
+			controlSettingsFile		"resource/ui/menus/choicedialog2_buttons.res"
+		}
+		
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		PCScrollUpButton
+		{
+			ControlName					BaseModHybridButton
+			InheritProperties			MenuArrowButtonUp
+			classname					Choice2ScrollUpClass
+
+			pin_to_sibling				ButtonsPanel
+			pin_corner_to_sibling		6
+			pin_to_sibling_corner		4
+
+			ypos						-2
+
+			navUp						Button23
+			navDown						Button0
+		}
+
+		PCScrollDownButton
+		{
+			ControlName					BaseModHybridButton
+			InheritProperties			MenuArrowButtonDown
+			classname 					Choice2ScrollDownClass
+
+			pin_to_sibling				ButtonsPanel
+			pin_corner_to_sibling		4
+			pin_to_sibling_corner		6
+
+			ypos						-18
+
+			navUp						Button23
+			navDown						Button0
+		}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	}
+}
