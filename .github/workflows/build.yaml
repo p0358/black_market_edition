@@ -68,6 +68,13 @@ jobs:
       #    sentry-cli releases new "${{ env.BUILD_VERSION }}"
       #    sentry-cli releases deploys "${{ env.BUILD_VERSION }}" new -e ${{ env.BME_CHANNEL }}
 
+      - name: Copy built files to installer dirs
+        run: |
+          copy ./build/bin/${{ env.BUILD_DIR }}/bme.dll ./installer/source/bme/bme.dll
+          copy ./build/bin/${{ env.BUILD_DIR }}/Titanfall_alt.exe ./installer/source/Titanfall_alt.exe
+          md ./installer/source/bin/x64_retail
+          copy ./build/bin/${{ env.BUILD_DIR }}/launcher.dll ./installer/source/bin/x64_retail/launcher.dll
+
       - name: Build installer
         run: ./build_installer.bat
 

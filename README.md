@@ -115,7 +115,8 @@ Mouse sensitivity value visible in settings:
 2. Run `generate.bat` to generate Visual Studio project files
 3. Run `build_assets.bat` to package `r1_modsrc` dir contents into `installer/source/bme/bme.bsp` and generate file list header file
 4. Build the solution (`./build/bme.sln`) in VS 2022 (alternatively run `msbuild build\bme.sln -m`).
-5. Look at `installer/installer_simple2.iss` to figure out which files go where, or build the installer (instructions below).
+5. Look at `installer/installer_simple2.iss` to figure out which files go where (copy `bme.dll` and `Titanfall_alt.exe` most importantly).
+6. Optionally build the installer (instructions below).
 
 ### Building an installer
 
