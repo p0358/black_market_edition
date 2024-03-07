@@ -14,7 +14,8 @@ jobs:
     name: "Build"
     env:
       BME_CHANNEL: ${{ github.event_name == 'workflow_dispatch' && 'release' || 'staging' }}
-      BUILD_CONFIGURATION: ${{ github.event_name == 'workflow_dispatch' && 'x64-Release' || 'x64-Staging' }}
+      BUILD_DIR: ${{ github.event_name == 'workflow_dispatch' && 'x64-Release' || 'x64-Staging' }}
+      BUILD_CONFIGURATION: ${{ github.event_name == 'workflow_dispatch' && 'Release' || 'Staging' }}
       BUILD_VERSION: ${{ github.sha }}
     steps:
 
@@ -47,10 +48,10 @@ jobs:
         with:
           name: build
           path: |
-            build/bin/${{ env.BUILD_CONFIGURATION }}/*.dll
-            build/bin/${{ env.BUILD_CONFIGURATION }}/*.exe
-            build/bin/${{ env.BUILD_CONFIGURATION }}/*.pdb
-            build/bin/${{ env.BUILD_CONFIGURATION }}/*.zip
+            build/bin/${{ env.BUILD_DIR }}/*.dll
+            build/bin/${{ env.BUILD_DIR }}/*.exe
+            build/bin/${{ env.BUILD_DIR }}/*.pdb
+            build/bin/${{ env.BUILD_DIR }}/*.zip
 
       #- name: Setup Sentry CLI
       #  if: github.ref == 'refs/heads/master'
@@ -89,5 +90,4 @@ jobs:
           prerelease: false
           fail_on_unmatched_files: true
           files: |
-            Fuck_off_EA_App_installer.exe
-            build/bin/Win32-Release/version.dll
+            installer/bme_installer.exe
