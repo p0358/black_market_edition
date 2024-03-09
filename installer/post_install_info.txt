@@ -2,4 +2,6 @@ Thank you for installing Black Market Edition!
 
 Open Titanfall as you normally do and enjoy!
 
+You can also use the Titanfall_alt.exe alternate launcher in the game directory if you run into any issues with the original Titanfall.exe.
+
 The mod will automatically check for updates when you start the game, once any updates are available (you can disable it with -bmenoupdates or -bmeoffline command line switches if you wish).

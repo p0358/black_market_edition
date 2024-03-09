@@ -2,7 +2,9 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "Black Market Edition"
-#define MyAppVersion "1b9"
+#ifndef MyAppVersion
+#define MyAppVersion "DEV"
+#endif
 #define MyAppPublisher "p0358"
 #define MyAppURL "https://github.com/p0358/black_market_edition"
 
@@ -87,6 +89,83 @@ Type: files; Name: "{app}\bme\bme.asi"
 Type: files; Name: "{app}\source\discord_game_sdk.dll"
 
 [Code]
+type
+  HINSTANCE = THandle;
+
+
+
+procedure ExitProcess(uExitCode: UINT);
+  external 'ExitProcess@kernel32.dll stdcall';
+function ShellExecute(hwnd: HWND; lpOperation: string; lpFile: string; lpParameters: string; lpDirectory: string; nShowCmd: Integer): THandle;
+  external 'ShellExecuteW@shell32.dll stdcall';
+
+
+
+function HaveWriteAccessToApp: Boolean;
+var
+  FileName: string;
+begin
+  FileName := AddBackslash(WizardDirValue) + 'writetest.tmp';
+  Result := SaveStringToFile(FileName, 'test', False);
+  if Result then
+  begin
+    Log(Format('Have write access to the last installation path [%s]', [WizardDirValue]));
+    DeleteFile(FileName);
+  end
+    else
+  begin
+    Log(Format('Does not have write access to the last installation path [%s]', [WizardDirValue]));
+  end;
+end;
+
+
+
+function Elevate: Boolean;
+var
+  I: Integer;
+  RetVal: Integer;
+  Params: string;
+  S: string;
+begin
+  { Collect current instance parameters }
+  for I := 1 to ParamCount do
+  begin
+    S := ParamStr(I);
+    { Unique log file name for the elevated instance }
+    if CompareText(Copy(S, 1, 5), '/LOG=') = 0 then
+    begin
+      S := S + '-elevated';
+    end;
+    { Do not pass our /SL5 switch }
+    if CompareText(Copy(S, 1, 5), '/SL5=') <> 0 then
+    begin
+      Params := Params + AddQuotes(S) + ' ';
+    end;
+  end;
+
+  { ... and add selected language }
+  Params := Params + '/LANG=' + ActiveLanguage;
+
+  Log(Format('Elevating setup with parameters [%s]', [Params]));
+  RetVal :=
+    ShellExecute(0, 'runas', ExpandConstant('{srcexe}'), Params, '', SW_SHOWNORMAL);
+  Log(Format('Running elevated setup returned [%d]', [RetVal]));
+  Result := (RetVal > 32);
+  { if elevated executing of this setup succeeded, then... }
+  if Result then
+  begin
+    Log('Elevation succeeded');
+    { exit this non-elevated setup instance }
+    ExitProcess(0);
+  end
+    else
+  begin
+    Log(Format('Elevation failed [%s]', [SysErrorMessage(RetVal)]));
+  end;
+end;
+
+
+
 function InitializeSetup: Boolean;
 begin
   Dependency_AddVC2015To2022;
@@ -101,6 +180,40 @@ begin
     WizardForm.NextButton.Caption := SetupMessage(msgButtonInstall)
   //else
   //  WizardForm.NextButton.Caption := SetupMessage(msgButtonNext);
+end;
+
+
+
+function NextButtonClick(CurPageID: Integer): Boolean;
+var
+  RetVal: HINSTANCE;
+begin
+  Result := True
+  if not IsAdmin and (CurPageID = wpSelectDir) then
+  begin
+    Log('Running non-elevated');
+    
+    if not HaveWriteAccessToApp then
+    begin
+      if MsgBox(
+        'The selected directory is write-protected and the setup needs to run as admin.'
+        + #13#10 + #13#10
+        + 'The default installation directory of EA App is not user-writable, so the installer will have to restart itself as admin.'
+        + ' Alternatively, you can install the game to a non-default location.'
+        + #13#10 + #13#10
+        + 'Press OK to elevate the installer to admin.', mbConfirmation, MB_OKCANCEL) = IDOK then
+      begin
+        if not Elevate then
+        begin
+          Result := False;
+          MsgBox(Format('Elevating of this setup failed. Code: %d', [RetVal]), mbError, MB_OK);
+        end;
+      end
+      else
+        Result := False;
+    end;
+
+  end;
 end;
 
 
