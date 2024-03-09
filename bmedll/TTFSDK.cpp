@@ -484,8 +484,6 @@ TTFSDK::~TTFSDK()
     //_Host_RunFrame.Unhook();
     CHostState_State_Run.Unhook();
 
-    //MH_Uninitialize();
-
     curl_global_cleanup();
     SPDLOG_DEBUG("TTFSDK destructor finished");
 }

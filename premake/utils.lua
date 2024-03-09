@@ -112,3 +112,19 @@ function io.writefile(filename, content)
 		return true
 	end
 end
+
+-- Quote the given string input as a C string
+function cstrquote(value)
+	if value == nil then
+		return "\"\""
+	end
+	result = value:gsub("\\", "\\\\")
+	result = result:gsub("\"", "\\\"")
+	result = result:gsub("\n", "\\n")
+	result = result:gsub("\t", "\\t")
+	result = result:gsub("\r", "\\r")
+	result = result:gsub("\a", "\\a")
+	result = result:gsub("\b", "\\b")
+	result = "\"" .. result .. "\""
+	return result
+end

@@ -15,8 +15,8 @@ filter "files:**.c" --or files:**/pch_impl.cpp
     forceincludes {";"}
 filter {}
 
-files {"./bmedll/**.h", "./bmedll/**.cpp", "%{dir}/bmedll/**.asm"}
-includedirs {"./bmedll"}
+files {"./bmedll/**.h", "./bmedll/**.cpp", "%{dir}/bmedll/**.asm", "./bmedll/**.rc"}
+includedirs {"./bmedll", "%{prj.location}/src"}
 libdirs {"./thirdparty/tier0"}
 
 links {
@@ -26,5 +26,7 @@ links {
 linkoptions {
     "/CETCOMPAT", -- CET Shadow Stack Compatible
 }
+
+prebuildcommands {"pushd %{_MAIN_SCRIPT_DIR}", "premake\\premake5 generate-buildinfo", "popd"}
 
 dependencies.imports()

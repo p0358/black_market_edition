@@ -20,7 +20,8 @@ void TranslatorFunc(unsigned int, struct _EXCEPTION_POINTERS* exinfo)
 
 LONG WINAPI VectoredExceptionHandler(EXCEPTION_POINTERS* pExceptionInfo)
 {
-    const auto& exceptionCode = pExceptionInfo->ExceptionRecord->ExceptionCode;
+    const auto exceptionCode = pExceptionInfo->ExceptionRecord->ExceptionCode;
+    spdlog::debug("[VectoredExceptionHandler] exceptionCode: {}", exceptionCode);
 
     if (exceptionCode != EXCEPTION_ACCESS_VIOLATION && exceptionCode != EXCEPTION_ARRAY_BOUNDS_EXCEEDED &&
         exceptionCode != EXCEPTION_DATATYPE_MISALIGNMENT && exceptionCode != EXCEPTION_FLT_DENORMAL_OPERAND &&
@@ -353,7 +354,7 @@ bool SetupCrashHandler(std::wstring BasePath)
     sentry_options_set_on_crash(options, sentry_on_crash, NULL);
     
     sentry_options_set_release(options, "bme-v" BME_VERSION);
-    sentry_options_set_environment(options, GetBMEChannel().c_str());
+    sentry_options_set_environment(options, BME_CHANNEL); // GetBMEChannel().c_str()
 
     fs::path basePath{ BasePath };
     fs::path handlerPath{ basePath / "bme" / "crashpad_handler.exe" };

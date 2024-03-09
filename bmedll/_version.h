@@ -1,7 +1,9 @@
 #pragma once
 
+#include <version.h>
+
 #ifndef BME_VERSION
-#define BME_VERSION "1b10"
+#define BME_VERSION "DEV"
 #endif
 
 #define BME_VERSION_LONG "Black Market Edition v" BME_VERSION

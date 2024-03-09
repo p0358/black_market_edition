@@ -8,7 +8,7 @@ Open sourcing this for now regardless, because I slowly worked on it since 2019 
 
 ## Installation
 
-~~Just grab the latest version's installer from the [Releases](https://github.com/p0358/bme_solution/releases) page and run it in order to install BME.~~
+Just grab the latest version's installer from the [Releases](https://github.com/p0358/bme_solution/releases) page and run it in order to install BME.
 
 Installers are built with Inno Setup using scripts from installer/ folder and they automatically detect game installation folder to which they can unpack the files.
 
@@ -116,10 +116,11 @@ Mouse sensitivity value visible in settings:
 
 1. Clone the repo with `git clone --recursive --depth 1 -j8 https://github.com/p0358/black_market_edition.git`
 2. Run `generate.bat` to generate Visual Studio project files
-3. Run `build_assets.bat` to package `r1_modsrc` dir contents into `installer/source/bme/bme.bsp` and generate file list header file
-4. Build the solution (`./build/bme.sln`) in VS 2022 (alternatively run `msbuild build\bme.sln -m`).
-5. Look at `installer/installer_simple2.iss` to figure out which files go where (copy `bme.dll` and `Titanfall_alt.exe` most importantly).
-6. Optionally build the installer (instructions below).
+3. Run `copy_scripts_to_r1_modsrc.bat` to copy needed files from `bme_scripts` into `r1_modsrc`.
+4. Run `build_assets.bat` to package `r1_modsrc` dir contents into `installer/source/bme/bme.bsp` and generate file list header file
+5. Build the solution (`./build/bme.sln`) in VS 2022 (alternatively run `msbuild build\bme.sln -m`).
+6. Look at `installer/installer_simple2.iss` to figure out which files go where (copy `bme.dll` and `Titanfall_alt.exe` most importantly).
+7. Optionally build the installer (instructions below).
 
 ### Building an installer
 

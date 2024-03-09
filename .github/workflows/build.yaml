@@ -16,35 +16,42 @@ jobs:
       BME_CHANNEL: ${{ github.event_name == 'workflow_dispatch' && 'release' || 'staging' }}
       BUILD_DIR: ${{ github.event_name == 'workflow_dispatch' && 'x64-Release' || 'x64-Staging' }}
       BUILD_CONFIGURATION: ${{ github.event_name == 'workflow_dispatch' && 'Release' || 'Staging' }}
-      BUILD_VERSION: ${{ github.sha }}
     steps:
 
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           submodules: true
           fetch-depth: 0
 
       - name: Create channel file
         run: echo ${{ env.BME_CHANNEL }} > ./installer/source/bme/bme_channel.txt
-
-      - name: Build ZIP and embed it in BSP
-        run: ./build_assets.bat
+      - name: Override version file (release only)
+        if: github.event_name == 'workflow_dispatch'
+        run: echo ${{ inputs.version }} > ./bme_version.txt
 
       - name: Add msbuild to PATH
-        uses: microsoft/setup-msbuild@v1
+        uses: microsoft/setup-msbuild@v2
         with:
           msbuild-architecture: x64
           vs-prerelease: true
 
       - name: Generate project files (premake)
-        run: premake/premake5 vs2022 --ci-build
+        run: premake/premake5 vs2022 --ci-build ${{ env.BME_CHANNEL }}
+
+      - name: Build ZIP and embed it in BSP
+        run: |
+          ./copy_scripts_to_r1_modsrc.bat
+          ./build_assets.bat
 
       - name: Compile
         id: compile
-        run: msbuild build\bme.sln -m -p:Configuration=${{ env.BUILD_CONFIGURATION }} -p:BuildVersion=${{ env.BUILD_VERSION }}
+        run: msbuild build\bme.sln -m -p:Configuration=${{ env.BUILD_CONFIGURATION }}
+
+      - name: Get final BME version
+        run: echo "BME_VERSION=$(Get-Content ./build/version.txt)" >> $env:GITHUB_ENV
 
       - name: Upload build artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: build
           path: |
@@ -53,20 +60,27 @@ jobs:
             build/bin/${{ env.BUILD_DIR }}/*.pdb
             build/bin/${{ env.BUILD_DIR }}/*.zip
 
-      #- name: Setup Sentry CLI
-      #  if: github.ref == 'refs/heads/master'
-      #  uses: mathieu-bour/setup-sentry-cli@v1
-      #  with:
-      #    token: ${{ secrets.SENTRY_AUTH_TOKEN }}
-      #    organization: ${{ secrets.SENTRY_ORG }}
-      #    project: ${{ secrets.SENTRY_PROJECT }}
+      - name: Setup Sentry CLI
+        if: github.ref == 'refs/heads/master'
+        uses: mathieu-bour/setup-sentry-cli@v2
+        with:
+          token: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          organization: ${{ secrets.SENTRY_ORG }}
+          project: ${{ secrets.SENTRY_PROJECT }}
 
-      #- name: Create Sentry release
-      #  if: github.ref == 'refs/heads/master'
-      #  run: |
-      #    sentry-cli releases set-commits "${{ env.BUILD_VERSION }}" --auto --ignore-missing
-      #    sentry-cli releases new "${{ env.BUILD_VERSION }}"
-      #    sentry-cli releases deploys "${{ env.BUILD_VERSION }}" new -e ${{ env.BME_CHANNEL }}
+      - name: Create Sentry release
+        if: github.ref == 'refs/heads/master'
+        run: |
+          sentry-cli releases set-commits "${{ env.BME_VERSION }}" --auto --ignore-missing
+          sentry-cli releases new "${{ env.BME_VERSION }}"
+          sentry-cli releases deploys "${{ env.BME_VERSION }}" new -e ${{ env.BME_CHANNEL }}
+
+      - name: "Upload pdb and executables to Sentry"
+        if: github.ref == 'refs/heads/master'
+        run: |
+          $files_to_upload = Get-ChildItem -Path build\bin -Recurse -Include ("*.pdb", "*.dll", "*.exe")
+          echo "Files to upload:" $files_to_upload
+          sentry-cli upload-dif --include-sources $files_to_upload
 
       - name: Copy built files to installer dirs
         run: |
@@ -76,10 +90,10 @@ jobs:
           copy ./build/bin/${{ env.BUILD_DIR }}/launcher.dll ./installer/source/bin/x64_retail/launcher.dll
 
       - name: Build installer
-        run: ./build_installer.bat
+        run: iscc installer/installer_simple2.iss /DMyAppVersion=${{ env.BME_VERSION }}
 
       - name: Upload installer artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: installer
           path: installer/bme_installer.exe
