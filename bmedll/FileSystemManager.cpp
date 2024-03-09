@@ -85,8 +85,6 @@ FileSystemManager::FileSystemManager(const std::string& basePath)
     m_compiledPath = m_basePath / "r1_modsrc";
     m_dumpPath = m_basePath / "assets_dump";
     m_modsPath = m_basePath / "mods";
-    m_savesPath = m_basePath / "saves";
-    m_spawnlistsPath = m_basePath / "spawnlists";
     if (!fs::exists(m_bspPath))
         m_logger->error("bsp file does not exist at: {}", m_bspPath.string().c_str());
 
@@ -170,8 +168,6 @@ void FileSystemManager::EnsurePathsCreated()
     fs::create_directories(m_dumpPath);
     fs::create_directories(m_compiledPath);
     fs::create_directories(m_modsPath);
-    fs::create_directories(m_savesPath);
-    fs::create_directories(m_spawnlistsPath);
 }
 
 // TODO: Do we maybe need to add the search path in a frame hook or will this do?
@@ -539,14 +535,4 @@ const fs::path& FileSystemManager::GetModsPath()
 const fs::path& FileSystemManager::GetCompilePath()
 {
     return m_compiledPath;
-}
-
-const fs::path& FileSystemManager::GetSavesPath()
-{
-    return m_savesPath;
-}
-
-const fs::path& FileSystemManager::GetSpawnlistsPath()
-{
-    return m_spawnlistsPath;
 }

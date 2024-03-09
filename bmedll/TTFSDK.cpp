@@ -109,6 +109,13 @@ const std::string GetBMEChannel()
         chan = sstr.str();
     }
     else chan = std::string(BME_CHANNEL);
+    const auto rtrim = [](std::string_view str) -> std::string_view
+    {
+        const auto pos(str.find_last_not_of(" \t\n\r\f\v"));
+        str.remove_suffix(std::min(str.length() - pos - 1, str.length()));
+        return str;
+    };
+    chan = rtrim(chan);
     return chan;
 }
 

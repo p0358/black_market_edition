@@ -24,10 +24,10 @@ jobs:
           fetch-depth: 0
 
       - name: Create channel file
-        run: echo ${{ env.BME_CHANNEL }} > ./installer/source/bme/bme_channel.txt
+        run: echo "${{ env.BME_CHANNEL }}" | Out-File -Encoding ascii ./installer/source/bme/bme_channel.txt -NoNewline
       - name: Override version file (release only)
         if: github.event_name == 'workflow_dispatch'
-        run: echo ${{ inputs.version }} > ./bme_version.txt
+        run: echo "${{ inputs.version }}" | Out-File -Encoding ascii ./bme_version.txt -NoNewline
 
       - name: Add msbuild to PATH
         uses: microsoft/setup-msbuild@v2
