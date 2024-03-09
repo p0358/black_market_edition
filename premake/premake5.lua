@@ -43,7 +43,7 @@ newaction {
 			bmeVersion = bmeVersion .. "-DEV"
 		end
 		
-		local proc = assert(io.popen("git describe --dirty --broken --always", "r"))
+		local proc = assert(io.popen("git describe --always" .. (_OPTIONS["ci-build"] and "" or " --dirty --broken"), "r"))
 		local gitDescribeOutput = assert(proc:read('*all')):gsub("%s+", "")
 		proc:close()
 		

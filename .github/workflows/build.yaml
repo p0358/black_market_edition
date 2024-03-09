@@ -36,7 +36,7 @@ jobs:
           vs-prerelease: true
 
       - name: Generate project files (premake)
-        run: premake/premake5 vs2022 --ci-build ${{ env.BME_CHANNEL }}
+        run: premake/premake5 vs2022 --ci-build=${{ env.BME_CHANNEL }}
 
       - name: Build ZIP and embed it in BSP
         run: |
@@ -71,9 +71,9 @@ jobs:
       - name: Create Sentry release
         if: github.ref == 'refs/heads/master'
         run: |
-          sentry-cli releases set-commits "${{ env.BME_VERSION }}" --auto --ignore-missing
-          sentry-cli releases new "${{ env.BME_VERSION }}"
-          sentry-cli releases deploys "${{ env.BME_VERSION }}" new -e ${{ env.BME_CHANNEL }}
+          sentry-cli releases set-commits "bme-v${{ env.BME_VERSION }}" --auto --ignore-missing
+          sentry-cli releases new "bme-v${{ env.BME_VERSION }}"
+          sentry-cli releases deploys "bme-v${{ env.BME_VERSION }}" new -e ${{ env.BME_CHANNEL }}
 
       - name: "Upload pdb and executables to Sentry"
         if: github.ref == 'refs/heads/master'

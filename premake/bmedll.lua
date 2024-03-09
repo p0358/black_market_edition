@@ -27,6 +27,6 @@ linkoptions {
     "/CETCOMPAT", -- CET Shadow Stack Compatible
 }
 
-prebuildcommands {"pushd %{_MAIN_SCRIPT_DIR}", "premake\\premake5 generate-buildinfo", "popd"}
+prebuildcommands {"pushd %{_MAIN_SCRIPT_DIR}", "premake\\premake5 generate-buildinfo" .. (_OPTIONS["ci-build"] and (" --ci-build=" .. _OPTIONS["ci-build"]) or ""), "popd"}
 
 dependencies.imports()
