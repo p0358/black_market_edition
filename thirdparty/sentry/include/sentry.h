@@ -30,7 +30,7 @@ extern "C" {
 #        define SENTRY_SDK_NAME "sentry.native"
 #    endif
 #endif
-#define SENTRY_SDK_VERSION "0.6.6"
+#define SENTRY_SDK_VERSION "0.7.0"
 #define SENTRY_SDK_USER_AGENT SENTRY_SDK_NAME "/" SENTRY_SDK_VERSION
 
 /* common platform detection */
@@ -90,7 +90,7 @@ extern "C" {
 
 /* context type dependencies */
 #ifdef _WIN32
-#    include <wtypes.h>
+#    include <windows.h>
 #else
 #    include <signal.h>
 #endif
