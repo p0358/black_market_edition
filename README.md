@@ -33,7 +33,7 @@ Installers are built with Inno Setup using scripts from installer/ folder and th
 * remove minimum mouse sensitivity limitation
 * start private matches alone by yourself
 * see who's in a party with whom in public matchmaking
-* hitch alerts to indicate various connection problems analogous to what Titanfall 2 and Apex have (for example: "OUT OF SNAPSHOTS", "NET CHOKED")
+* hitch alerts to indicate various connection problems analogous to what Titanfall 2 and Apex have (for example: "OUT OF SNAPSHOTS", "NET CHOKED") (needs `cl_showfps` enabled)
 * separate launcher exe that alleviates issues when Origin acts up and refuses to launch the game otherwise
 * enable Unicode input in text chat (so you can type non-English characters; note: font used for some game locales cannot display many non-Latin characters)
 * fix "XSS" in game invites (malicious join secrets could execute arbitrary client commands)
@@ -47,6 +47,7 @@ Installers are built with Inno Setup using scripts from installer/ folder and th
 * allow to go on DLC playlists despite not having DLCs (by adding Ignore button to the playlist dialog)
 	* this allows you to play the game (more-less) even if you couldn't obtain Deluxe Edition or Season Pass keys
 	* as soon as a DLC map comes up in the rotation, you will be kicked out of the lobby upon its launch: still, that's better than not getting to play on the playlist at all
+* make the game follow the default sound output device automatically (such as when connecting a Bluetooth headset; might not always work due to some engine bug though and then you still gotta restart the game)
 
 ### Known bugs
 

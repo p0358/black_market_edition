@@ -536,6 +536,9 @@ void main()
         SPDLOG_DEBUG("DoMiscHooks");
         DoMiscHooks();
 
+        extern void Setup_MMNotificationClient();
+        Setup_MMNotificationClient();
+
         if (MH_EnableHook(MH_ALL_HOOKS) != MH_OK)
         {
             spdlog::error("MH_EnableHook error");

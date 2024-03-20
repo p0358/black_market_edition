@@ -261,6 +261,9 @@ void TTFSDK::Init()
     //_Host_RunFrame.Hook(WRAPPED_MEMBER(RunFrameHook));
     CHostState_State_Run.Hook(WRAPPED_MEMBER(RunFrameHook));
 
+    extern void ConCommand_sound_reboot_xaudio(const CCommand & args);
+
+    m_conCommandManager->RegisterCommand("sound_reboot_xaudio", ConCommand_sound_reboot_xaudio, "Faster than sound_reboot as it reinitializes only the output interfaces", 0);
     m_conCommandManager->RegisterCommand("testtt", test, "Tests", 0);
     m_conCommandManager->RegisterCommand("test_crash1", test_crash1, "Crash the engine by dereferencing a null pointer", 0);
     m_conCommandManager->RegisterCommand("test_crash2", test_crash2, "Crash the engine by throwing a runtime error", 0);
