@@ -91,50 +91,54 @@ void SetMitigationPolicies()
     if (!SetProcessMitigationPolicy || !GetProcessMitigationPolicy)
         return;
 
+    auto SetProcessMitigationPolicyEnsureOK = [SetProcessMitigationPolicy](PROCESS_MITIGATION_POLICY MitigationPolicy, PVOID lpBuffer, SIZE_T dwLength) {
+        bool result = SetProcessMitigationPolicy(MitigationPolicy, lpBuffer, dwLength);
+        if (!result)
+        {
+            auto lastError = GetLastError();
+            MessageBoxA(0, ("Failed mitigation: " + std::to_string(MitigationPolicy) + ", error: " + std::to_string(lastError)).c_str(),
+                "BME: SetProcessMitigationPolicy failed", 0);
+        }
+    };
+
     PROCESS_MITIGATION_ASLR_POLICY ap;
     GetProcessMitigationPolicy(::GetCurrentProcess(), ProcessASLRPolicy, &ap, sizeof(ap));
     ap.EnableBottomUpRandomization = true;
     ap.EnableForceRelocateImages = true;
     ap.EnableHighEntropy = true;
     ap.DisallowStrippedImages = true; // Images that have not been built with /DYNAMICBASE and do not have relocation information will fail to load if this flag and EnableForceRelocateImages are set.
-    SetProcessMitigationPolicy(ProcessASLRPolicy, &ap, sizeof(ap));
+    SetProcessMitigationPolicyEnsureOK(ProcessASLRPolicy, &ap, sizeof(ap));
 
     /*PROCESS_MITIGATION_DYNAMIC_CODE_POLICY dcp;
     GetProcessMitigationPolicy(::GetCurrentProcess(), ProcessDynamicCodePolicy, &dcp, sizeof(dcp));
     dcp.ProhibitDynamicCode = true;
-    SetProcessMitigationPolicy(ProcessDynamicCodePolicy, &dcp, sizeof(dcp));*/
+    SetProcessMitigationPolicyEnsureOK(ProcessDynamicCodePolicy, &dcp, sizeof(dcp));*/
 
     if (!IsAnyIMEInstalled()) // this breaks IME apparently (https://learn.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-updateprocthreadattribute)
     {
         PROCESS_MITIGATION_EXTENSION_POINT_DISABLE_POLICY epdp;
         GetProcessMitigationPolicy(::GetCurrentProcess(), ProcessExtensionPointDisablePolicy, &epdp, sizeof(epdp));
         epdp.DisableExtensionPoints = true;
-        SetProcessMitigationPolicy(ProcessExtensionPointDisablePolicy, &epdp, sizeof(epdp));
+        SetProcessMitigationPolicyEnsureOK(ProcessExtensionPointDisablePolicy, &epdp, sizeof(epdp));
     }
 
-    PROCESS_MITIGATION_CONTROL_FLOW_GUARD_POLICY cfgp;
+    /*PROCESS_MITIGATION_CONTROL_FLOW_GUARD_POLICY cfgp;
     GetProcessMitigationPolicy(::GetCurrentProcess(), ProcessControlFlowGuardPolicy, &cfgp, sizeof(cfgp));
-    cfgp.EnableControlFlowGuard = true;
+    cfgp.EnableControlFlowGuard = true; // This field cannot be changed via SetProcessMitigationPolicy.
     cfgp.StrictMode = true; // this needs to be disabled to load stubs with no CRT
-    SetProcessMitigationPolicy(ProcessControlFlowGuardPolicy, &cfgp, sizeof(cfgp));
-
-    PROCESS_MITIGATION_DEP_POLICY dp;
-    GetProcessMitigationPolicy(::GetCurrentProcess(), ProcessDEPPolicy, &dp, sizeof(dp));
-    dp.Enable = true;
-    dp.Permanent = true;
-    SetProcessMitigationPolicy(ProcessDEPPolicy, &dp, sizeof(dp));
+    SetProcessMitigationPolicyEnsureOK(ProcessControlFlowGuardPolicy, &cfgp, sizeof(cfgp));*/
 
     PROCESS_MITIGATION_IMAGE_LOAD_POLICY ilp;
     GetProcessMitigationPolicy(::GetCurrentProcess(), ProcessImageLoadPolicy, &ilp, sizeof(ilp));
     ilp.PreferSystem32Images = true;
     ilp.NoRemoteImages = true;
-    SetProcessMitigationPolicy(ProcessImageLoadPolicy, &ilp, sizeof(ilp));
+    SetProcessMitigationPolicyEnsureOK(ProcessImageLoadPolicy, &ilp, sizeof(ilp));
 
     PROCESS_MITIGATION_USER_SHADOW_STACK_POLICY usspp;
     GetProcessMitigationPolicy(::GetCurrentProcess(), ProcessUserShadowStackPolicy, &usspp, sizeof(usspp));
     usspp.EnableUserShadowStack = true;
     usspp.EnableUserShadowStackStrictMode = true;
-    SetProcessMitigationPolicy(ProcessUserShadowStackPolicy, &usspp, sizeof(usspp));
+    SetProcessMitigationPolicyEnsureOK(ProcessUserShadowStackPolicy, &usspp, sizeof(usspp));
 }
 
 bool Load()
