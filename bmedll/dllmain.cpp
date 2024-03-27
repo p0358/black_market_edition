@@ -358,6 +358,81 @@ void SQInstance_Finalize(uintptr_t thisptr)
     SQInstance_Finalize_org(thisptr);
 }
 
+inline bool IsMemoryReadable(void* ptr, size_t size, DWORD protect_required_flags_oneof)
+{
+    static SYSTEM_INFO sysInfo;
+    if (!sysInfo.dwPageSize)
+        GetSystemInfo(&sysInfo);
+
+    MEMORY_BASIC_INFORMATION memInfo;
+
+    if (!VirtualQuery(ptr, &memInfo, sizeof(memInfo)))
+        return false;
+
+    if (memInfo.RegionSize < size)
+        return false;
+
+    return (memInfo.State & MEM_COMMIT) && !(memInfo.Protect & PAGE_NOACCESS) && (memInfo.Protect & protect_required_flags_oneof) != 0;
+}
+
+typedef void(__fastcall* sub_180100880_type)(uintptr_t);
+sub_180100880_type sub_180100880_org = nullptr;
+void __fastcall sub_180100880(uintptr_t a1) // we fix seldom crash in vphysics on level shutdown (but most frequent crash to be reported)
+{
+    auto cl = get_cl();
+    unsigned int& baseLocalClient__m_nSignonState = *((_DWORD*)cl + 29);
+    bool cl_isActive = baseLocalClient__m_nSignonState == 8;
+
+    // We just rebuild the function
+    static auto* sub_1800FFB50 = reinterpret_cast<__int64(*)(uintptr_t)>(Util::GetModuleBaseAddress("vphysics.dll") + 0xFFB50);
+    static auto* sub_1800FF010 = reinterpret_cast<__int64(*)(uintptr_t)>(Util::GetModuleBaseAddress("vphysics.dll") + 0xFF010);
+    static auto* sub_1800CA0B0 = reinterpret_cast<__int64(*)(uintptr_t)>(Util::GetModuleBaseAddress("vphysics.dll") + 0xCA0B0);
+    bool do_check = !cl_isActive; // it only seems to happen during level shutdown, so conduct checks only then (but this seems redundant since this func doesn't seem to be called at other times)
+
+    void(__fastcall * **v2)(_QWORD, __int64); // rcx
+    __int64 v3; // rcx
+
+    spdlog::debug("[sub_180100880] Before func");
+    sub_1800FFB50(a1);
+    sub_1800FF010(a1);
+    spdlog::debug("[sub_180100880] Before problematic loop");
+    int i = 0;
+    while (*(__int16*)(a1 + 1310866)) // apparently the loop usually doesn't run at all????? (is there a chance it's always to crash if ran?)
+    {
+        i++;
+        v2 = **(void(__fastcall*****)(_QWORD, __int64))(a1 + 1310872);
+        if (v2)
+        {
+            if (*v2 && **v2) // should always be true by practice, but **v2 may already be freed
+            {
+                if (do_check)
+                {
+                    if (!IsMemoryReadable(**v2, 8, PAGE_EXECUTE | PAGE_EXECUTE_READ | PAGE_EXECUTE_READWRITE | PAGE_EXECUTE_WRITECOPY))
+                    {
+                        spdlog::warn("[sub_180100880] Trying to prevent vphysics crash by breaking out of the loop now, possible side effects unknown!");
+                        break;
+                    }
+                    else spdlog::debug("[sub_180100880] All good");
+                }
+                else spdlog::debug("[sub_180100880] Not doing the check???");
+                (**v2)((_QWORD)v2, 1i64); // this call likes to crash :)
+            }
+        }
+    }
+    spdlog::debug("[sub_180100880] After problematic loop, ran it {} times", i);
+    v3 = *(_QWORD*)(a1 + 1310872);
+    if (v3 != a1 + 1310880)
+    {
+        if (v3)
+            sub_1800CA0B0(v3);
+        *(_QWORD*)(a1 + 1310872) = 0i64;
+        *(__int16*)(a1 + 1310864) = 0;
+    }
+    *(__int16*)(a1 + 1310866) = 0;
+    DeleteCriticalSection((LPCRITICAL_SECTION)(a1 + 8));
+    spdlog::debug("[sub_180100880] After func");
+}
+
 void DoMiscHooks()
 {
     DWORD64 launcherdllBaseAddress = Util::GetModuleBaseAddress("launcher.org.dll");
@@ -365,6 +440,7 @@ void DoMiscHooks()
     DWORD64 clientdllBaseAddress = Util::GetModuleBaseAddress("client.dll");
     DWORD64 enginedllBaseAddress = Util::GetModuleBaseAddress("engine.dll");
     DWORD64 vguimatsurfacedllBaseAddress = Util::GetModuleBaseAddress("vguimatsurface.dll");
+    DWORD64 vphysicsdllBaseAddress = Util::GetModuleBaseAddress("vphysics.dll");
     CreateMiscHook(launcherdllBaseAddress, 0x6B8E0, &CSourceAppSystemGroup_PreInit, reinterpret_cast<LPVOID*>(&CSourceAppSystemGroup_PreInit_org));
     CreateMiscHook(clientdllBaseAddress, 0x2C4220, &sub_1802C4220, reinterpret_cast<LPVOID*>(&sub_1802C4220_org));
     CreateMiscHook(enginedllBaseAddress, 0x203250, &Base_CmdKeyValues_ReadFromBuffer, reinterpret_cast<LPVOID*>(&Base_CmdKeyValues_ReadFromBuffer_org));
@@ -382,6 +458,7 @@ void DoMiscHooks()
     CreateMiscHookNamed("tier0", "ThreadSetDebugName", &Tier0_ThreadSetDebugName, reinterpret_cast<LPVOID*>(&Tier0_ThreadSetDebugName_org));
     CreateMiscHook(vguimatsurfacedllBaseAddress, 0xBAC0, &sub_18000BAC0, reinterpret_cast<LPVOID*>(&sub_18000BAC0_org));
     CreateMiscHook(launcherdllBaseAddress, 0x4D6D0, &SQInstance_Finalize, reinterpret_cast<LPVOID*>(&SQInstance_Finalize_org));
+    CreateMiscHook(vphysicsdllBaseAddress, 0x100880, &sub_180100880, reinterpret_cast<LPVOID*>(&sub_180100880_org));
 }
 
 void DoBinaryPatches()

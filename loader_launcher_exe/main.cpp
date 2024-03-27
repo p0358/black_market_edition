@@ -124,6 +124,7 @@ bool Load(LPSTR lpCmdLine)
         MessageBoxA(GetForegroundWindow(), "Failed getting game directory.\nThe game cannot continue and has to exit.", ERROR_MESSAGE_CAPTION, 0);
         return false;
     }
+    //wcscat(exePath, L"\\..");
 
     if (_wchdir(exePath))
     {
@@ -159,6 +160,7 @@ bool Load(LPSTR lpCmdLine)
     LOAD_LIBRARY("bin\\x64_retail\\vstdlib.dll");
     LOAD_LIBRARY("bin\\x64_retail\\vguimatsurface.dll");
     LOAD_LIBRARY("bin\\x64_retail\\inputsystem.dll");
+    LOAD_LIBRARY("bin\\x64_retail\\vphysics.dll");
 
     if (!strstr(lpCmdLine, "-nobme"))
     {

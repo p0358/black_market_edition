@@ -182,6 +182,7 @@ bool Load()
     LOAD_LIBRARY("bin\\x64_retail\\vstdlib.dll");
     LOAD_LIBRARY("bin\\x64_retail\\vguimatsurface.dll");
     LOAD_LIBRARY("bin\\x64_retail\\inputsystem.dll");
+    LOAD_LIBRARY("bin\\x64_retail\\vphysics.dll");
 
     FARPROC Hook_Init = nullptr;
     {
