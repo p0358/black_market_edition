@@ -173,6 +173,7 @@ SquirrelManager::SquirrelManager()
     AddFuncRegistrationAllContexts("TraceLog_Internal", WRAPPED_MEMBER(TraceLog), ".s", 0, "void", "string text", "Log to trace log. Might not work in all compilations.");
     //AddFuncRegistrationAllContexts("IsDedi", WRAPPED_MEMBER(IsDedi_Script), ".", 0, "bool", "", "Is running a dedicated server.");
     //AddFuncRegistrationAllContexts("IsClient_Native", WRAPPED_MEMBER(IsClient_Script), ".", 0, "bool", "", "Is running in a client game rather than a dedicated server, regardless of script execution context.");
+    AddFuncRegistration(SCRIPT_CONTEXT_CLIENT, "TranslateTokenToUTF8", WRAPPED_MEMBER(TranslateTokenToUTF8), ".s", 0, "string", "string text", "");
 }
 
 SQInteger SquirrelManager::BasePrintHook(HSQUIRRELVM v)
@@ -477,5 +478,14 @@ SQInteger SquirrelManager::IsDedi_Script(HSQUIRRELVM v)
 SQInteger SquirrelManager::IsClient_Script(HSQUIRRELVM v)
 {
     sq_pushbool(nullptr, v, IsClient());
+    return 1;
+}
+
+SQInteger SquirrelManager::TranslateTokenToUTF8(HSQUIRRELVM v)
+{
+    const SQChar* str;
+    sq_getstring(v, 2, &str);
+    auto sub_1802DBEA0 = reinterpret_cast<const char* (*)(const char*)>(Util::GetModuleBaseAddress("client.dll") + 0x2DBEA0);
+    sq_pushstring(v, sub_1802DBEA0(str), -1);
     return 1;
 }

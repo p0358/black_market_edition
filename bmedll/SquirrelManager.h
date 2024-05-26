@@ -347,6 +347,7 @@ public:
 	SQInteger TraceLog(HSQUIRRELVM v);
 	SQInteger IsDedi_Script(HSQUIRRELVM v);
 	SQInteger IsClient_Script(HSQUIRRELVM v);
+	SQInteger TranslateTokenToUTF8(HSQUIRRELVM v);
 };
 
 extern FuncStatic<SQRESULT, HSQUIRRELVM, SQLEXREADFUNC, SQUserPointer, const SQChar*, SQBool> sq_compile;
