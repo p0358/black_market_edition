@@ -67,7 +67,7 @@ UIManager::UIManager(ConCommandManager& conCommandManager/*, SquirrelManager& sq
     SPDLOG_LOGGER_DEBUG(m_logger, "m_ppSwapChain = {}", (void*)m_ppSwapChain);
     SPDLOG_LOGGER_DEBUG(m_logger, "pSwapChain = {}", (void*)*m_ppSwapChain);
 
-    InitImGui(fsManager.GetModsPath());
+    InitImGui();
 
     using namespace std::placeholders;
 
@@ -117,7 +117,7 @@ UIManager::~UIManager()
     ImGui::DestroyContext();
 }
 
-void UIManager::InitImGui(const fs::path& modsPath)
+void UIManager::InitImGui()
 {
     m_gameWindow = FindWindowW(L"Respawn001", L"Titanfall");
     m_logger->info("Game window = {}", (void*)m_gameWindow);

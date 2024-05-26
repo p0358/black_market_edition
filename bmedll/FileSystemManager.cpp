@@ -81,17 +81,11 @@ FileSystemManager::FileSystemManager(const std::string& basePath)
 
     m_logger->info("Base path: {}", m_basePath.string());
     m_bspPath = m_basePath / "bme" / "bme.bsp";
-    //m_compiledPath = m_basePath / "compiled_assets";
-    m_compiledPath = m_basePath / "r1_modsrc";
-    m_dumpPath = m_basePath / "assets_dump";
-    m_modsPath = m_basePath / "mods";
     if (!fs::exists(m_bspPath))
         m_logger->error("bsp file does not exist at: {}", m_bspPath.string().c_str());
 
     m_requestingOriginalFile = false;
     m_blockingRemoveAllMapSearchPaths = false;
-    //CacheMapVPKs();
-    //EnsurePathsCreated();
 
     // Hook functions
     IFileSystem_AddSearchPath.Hook(m_engineFileSystem->m_vtable, WRAPPED_MEMBER(AddSearchPathHook));
@@ -114,7 +108,6 @@ FileSystemManager::FileSystemManager(const std::string& basePath)
     ReadFileFromVPK.Hook(WRAPPED_MEMBER(ReadFileFromVPKHook));
     RemoveAllMapSearchPaths.Hook(WRAPPED_MEMBER(RemoveAllMapSearchPathsHook));
     ConCommandManager& conCommandManager = SDK().GetConCommandManager();
-    conCommandManager.RegisterCommand("dump_scripts", WRAPPED_MEMBER(DumpAllScripts), "Dump all scripts to development folder", 0);
 
 #ifdef _DEBUG
     _sub_18019FB30.Hook(sub_18019FB30);
@@ -135,39 +128,6 @@ FileSystemManager::~FileSystemManager()
     ReadFileFromVPK.Unhook();
     RemoveAllMapSearchPaths.Unhook();
     _sub_18019FB30.Unhook();
-}
-
-void FileSystemManager::CacheMapVPKs()
-{
-    for (auto& file : fs::directory_iterator("vpk"))
-    {
-        if (!fs::is_regular_file(file))
-        {
-            continue;
-        }
-
-        std::string fileName = file.path().filename().generic_string();
-        std::smatch m;
-        std::regex_search(fileName, m, s_mapFromVPKRegex);
-        if (!m.empty())
-        {
-            std::string path = "vpk/" + m[0].str();
-            if (std::find(m_mapVPKs.begin(), m_mapVPKs.end(), path) == m_mapVPKs.end())
-            {
-                m_logger->info("Found map VPK: {}", path);
-                m_mapVPKs.emplace_back(path);
-                m_mapNames.emplace_back(m[1].str());
-            }
-        }
-    }
-}
-
-void FileSystemManager::EnsurePathsCreated()
-{
-    fs::create_directories(m_basePath);
-    fs::create_directories(m_dumpPath);
-    fs::create_directories(m_compiledPath);
-    fs::create_directories(m_modsPath);
 }
 
 // TODO: Do we maybe need to add the search path in a frame hook or will this do?
@@ -361,32 +321,6 @@ VPKData* FileSystemManager::MountVPKHook(IFileSystem* fileSystem, const char* vp
     return res;
 }
 
-const std::vector<std::string>& FileSystemManager::GetMapNames()
-{
-    return m_mapNames;
-}
-
-const std::string& FileSystemManager::GetLastMapReadFrom()
-{
-    return m_lastMapReadFrom;
-}
-
-void FileSystemManager::MountAllVPKs()
-{
-    //for (const auto& otherMapVPK : m_mapVPKs)
-    //{
-    //std::string otherMapVPK{"C:\\Program Files (x86)\\Origin Games\\Titanfall\\packedVPK"};
-    /*std::string otherMapVPK{"c:\\program files (x86)\\origin games\\titanfall\\packedvpk\\client_mp_bme.bsp.pak000"};
-
-        /////SPDLOG_LOGGER_TRACE(m_logger, "Mounting VPK: {}", otherMapVPK);
-        VPKData* injectedRes = IFileSystem_MountVPK(m_engineFileSystem, otherMapVPK.c_str());
-        if (injectedRes == nullptr)
-        {
-            m_logger->error("Failed to mount VPK: {}", otherMapVPK);
-        }*/
-    //}
-}
-
 bool FileSystemManager::FileExists(const char* fileName, const char* pathID)
 {
     m_requestingOriginalFile = true;
@@ -451,70 +385,6 @@ bool FileSystemManager::ShouldReplaceFile(const std::string_view& path)
 #endif
 }
 
-void FileSystemManager::DumpFile(FileHandle_t handle, const std::string& dir, const std::string& path)
-{
-    if (handle == nullptr)
-    {
-        return;
-    }
-
-    fs::create_directories(m_dumpPath / dir);
-    std::ofstream f(m_dumpPath / path, std::ios::binary);
-    char data[4096];
-
-    int totalBytes = 0;
-    int readBytes = 0;
-    do
-    {
-        readBytes = m_engineFileSystem->m_vtable2->Read(&m_engineFileSystem->m_vtable2, data, std::size(data), handle);
-        f.write(data, readBytes);
-        totalBytes += readBytes;
-    } while (readBytes == std::size(data));
-
-    SPDLOG_LOGGER_TRACE(m_logger, "Wrote {} bytes to {}", totalBytes, path);
-}
-
-void FileSystemManager::DumpVPKScripts(const std::string& vpkPath)
-{
-    m_logger->info("Dumping scripts from {}...", vpkPath);
-    VPKData* result = IFileSystem_MountVPK(m_engineFileSystem, vpkPath.c_str());
-    if (result == nullptr)
-    {
-        m_logger->error("Failed to dump scripts from {}", vpkPath);
-        return;
-    }
-
-    for (int i = 0; i < result->numEntries; i++)
-    {
-        // Only process files in scripts
-        if (strncmp(result->entries[i].directory, "scripts", 7) != 0)
-        {
-            continue;
-        }
-
-        // TODO: Better error handling here
-        m_requestingOriginalFile = true;
-        std::string path = fmt::format("{}/{}.{}", result->entries[i].directory, result->entries[i].filename, result->entries[i].extension);
-        Util::FindAndReplaceAll(path, "\\", "/");
-        SPDLOG_LOGGER_TRACE(m_logger, "Dumping {}", path);
-        FileHandle_t handle = m_engineFileSystem->m_vtable2->Open(&m_engineFileSystem->m_vtable2, path.c_str(), "rb", "GAME", 0);
-        SPDLOG_LOGGER_TRACE(m_logger, "Handle = {}", handle);
-        DumpFile(handle, result->entries[i].directory, path); // TODO: Refactor this
-        m_engineFileSystem->m_vtable2->Close(m_engineFileSystem, handle);
-        m_requestingOriginalFile = false;
-    }
-}
-
-void FileSystemManager::DumpAllScripts(const CCommand& args)
-{
-    fs::remove_all(m_dumpPath);
-    for (const auto& vpk : m_mapVPKs)
-    {
-        DumpVPKScripts(vpk);
-    }
-    m_logger->info("Script dump complete!");
-}
-
 unsigned __int64 __fastcall FileSystemManager::RemoveAllMapSearchPathsHook(__int64 thisptr)
 {
     if (m_blockingRemoveAllMapSearchPaths)
@@ -525,14 +395,4 @@ unsigned __int64 __fastcall FileSystemManager::RemoveAllMapSearchPathsHook(__int
 const fs::path& FileSystemManager::GetBasePath()
 {
     return m_basePath;
-}
-
-const fs::path& FileSystemManager::GetModsPath()
-{
-    return m_modsPath;
-}
-
-const fs::path& FileSystemManager::GetCompilePath()
-{
-    return m_compiledPath;
 }

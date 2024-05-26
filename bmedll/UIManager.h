@@ -164,7 +164,7 @@ public:
     UIManager(ConCommandManager& conCommandManager/*, SquirrelManager& sqManager*/, FileSystemManager& fsManager/*, ID3D11Device* ppD3DDevice*/);
     ~UIManager();
 
-    void InitImGui(const fs::path& modsPath);
+    void InitImGui();
     void ShowCursorCommand(const CCommand& args);
 
     //SQInteger SQShowCursor(HSQUIRRELVM v);
