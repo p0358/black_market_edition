@@ -37,6 +37,7 @@ Installers are built with Inno Setup using scripts from installer/ folder and th
 * separate launcher exe that alleviates issues when Origin acts up and refuses to launch the game otherwise
 * enable Unicode input in text chat (so you can type non-English characters; note: font used for some game locales cannot display many non-Latin characters)
 * fix "XSS" in game invites (malicious join secrets could execute arbitrary client commands)
+* fix various other security issues in the game
 * unlocks `fps_max` cvar and allows default detected monitor refresh rate to be higher than 144 Hz
 	* `fps_max -1` (default) defaults to monitor's refresh rate limit
 	* `fps_max 0` uncaps the frame rate to unlimited (not recommended, will have adverse effects on network upload and will cause your client to lag and experience various glitches)
@@ -49,6 +50,7 @@ Installers are built with Inno Setup using scripts from installer/ folder and th
 	* as soon as a DLC map comes up in the rotation, you will be kicked out of the lobby upon its launch: still, that's better than not getting to play on the playlist at all
 * make the game follow the default sound output device automatically (such as when connecting a Bluetooth headset; might not always work due to some engine bug though and then you still gotta restart the game)
 * add custom playlist player counts sourced from [titanfall.p0358.net](https://titanfall.p0358.net) if the in-game counters are broken (the fallback BME counters are displayed in green, while original game ones from Stryder in amber)
+* for switch-sides-based gamemodes, show in HUD whether you're playing first or second half
 
 ### Known bugs
 
@@ -117,6 +119,10 @@ Mouse sensitivity value visible in settings:
 Fallback playlist player counters:
 
 ![BME playlist counts](https://github.com/p0358/black_market_edition/raw/master/screenshots/player_counts.png)
+
+Showing whether you're playing first or second half in switch-sides-based gamemodes such as CTF:
+
+![Playing first half of the game](https://github.com/p0358/black_market_edition/raw/master/screenshots/first_half.png)
 
 ## Compiling
 
