@@ -48,6 +48,7 @@ Installers are built with Inno Setup using scripts from installer/ folder and th
 	* this allows you to play the game (more-less) even if you couldn't obtain Deluxe Edition or Season Pass keys
 	* as soon as a DLC map comes up in the rotation, you will be kicked out of the lobby upon its launch: still, that's better than not getting to play on the playlist at all
 * make the game follow the default sound output device automatically (such as when connecting a Bluetooth headset; might not always work due to some engine bug though and then you still gotta restart the game)
+* add custom playlist player counts sourced from [titanfall.p0358.net](https://titanfall.p0358.net) if the in-game counters are broken (the fallback BME counters are displayed in green, while original game ones from Stryder in amber)
 
 ### Known bugs
 
@@ -112,6 +113,10 @@ Arbitrary training stage selection:
 Mouse sensitivity value visible in settings:
 
 ![Training dialog](https://github.com/p0358/black_market_edition/raw/master/screenshots/mouse_sensitivity.png)
+
+Fallback playlist player counters:
+
+![BME playlist counts](https://github.com/p0358/black_market_edition/raw/master/screenshots/player_counts.png)
 
 ## Compiling
 

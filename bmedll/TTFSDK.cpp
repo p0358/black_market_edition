@@ -323,6 +323,8 @@ void TTFSDK::Init()
 
     AntiEventCrash_Setup();
     CHostState_Shutdown.Hook(CHostState_Shutdown_Hook);
+    extern void PlaylistCounts_Init();
+    PlaylistCounts_Init();
 }
 
 
