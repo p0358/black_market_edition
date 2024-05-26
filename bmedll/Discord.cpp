@@ -44,6 +44,7 @@ DiscordWrapper::DiscordWrapper()
 	handlers.joinGame = WRAPPED_MEMBER(handleDiscordJoin);
 	handlers.spectateGame = WRAPPED_MEMBER(handleDiscordSpectate);
 	handlers.joinRequest = WRAPPED_MEMBER(handleDiscordJoinRequest);
+	handlers.debug = WRAPPED_MEMBER(handleDiscordDebug);
 	Discord_Initialize(DISCORD_APP_ID, &handlers, 1, NULL);
 
 	static std::once_flag flag;
@@ -61,7 +62,8 @@ DiscordWrapper::DiscordWrapper()
 		DiscordRichPresence discordPresence;
 		memset(&discordPresence, 0, sizeof(discordPresence));
 		discordPresence.details = "Launching game...";
-		discordPresence.state = BME_VERSION_LONG;
+		//discordPresence.state = BME_VERSION_LONG;
+		discordPresence.state = "Black Market Edition";
 		discordPresence.largeImageKey = "titanfall_101";
 		discordPresence.largeImageText = "Titanfall";
 		discordPresence.smallImageKey = "";
@@ -73,7 +75,8 @@ DiscordWrapper::DiscordWrapper()
 			DiscordRichPresence discordPresence;
 			memset(&discordPresence, 0, sizeof(discordPresence));
 			discordPresence.details = "Main Menu";
-			discordPresence.state = BME_VERSION_LONG;
+			//discordPresence.state = BME_VERSION_LONG;
+			discordPresence.state = "Black Market Edition";
 			discordPresence.largeImageKey = "titanfall_101";
 			discordPresence.largeImageText = "Titanfall";
 			discordPresence.smallImageKey = "";
@@ -90,7 +93,8 @@ DiscordWrapper::DiscordWrapper()
 	m_presenceUpdatePendingSince = std::chrono::system_clock::now();
 	m_presenceUpdatePending = false;
 	
-	m_logger->info("Discord init - {} ms", std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - startTime).count());
+	m_logger->info("Discord wrapper init - {} ms (not yet connected)",
+		std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - startTime).count());
 }
 
 void DiscordWrapper::handleDiscordReady(const DiscordUser* connectedUser)
