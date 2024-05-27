@@ -81,8 +81,11 @@ FileSystemManager::FileSystemManager(const std::string& basePath)
 
     m_logger->info("Base path: {}", m_basePath.string());
     m_bspPath = m_basePath / "bme" / "bme.bsp";
+    m_customFilesPath = m_basePath / "r1_mod";
     if (!fs::exists(m_bspPath))
         m_logger->error("bsp file does not exist at: {}", m_bspPath.string().c_str());
+    if (!fs::exists(m_customFilesPath))
+        fs::create_directories(m_customFilesPath);
 
     m_requestingOriginalFile = false;
     m_blockingRemoveAllMapSearchPaths = false;
@@ -108,6 +111,7 @@ FileSystemManager::FileSystemManager(const std::string& basePath)
     ReadFileFromVPK.Hook(WRAPPED_MEMBER(ReadFileFromVPKHook));
     RemoveAllMapSearchPaths.Hook(WRAPPED_MEMBER(RemoveAllMapSearchPathsHook));
     ConCommandManager& conCommandManager = SDK().GetConCommandManager();
+    conCommandManager.RegisterCommand("fs_replacements_cache_refresh", WRAPPED_MEMBER(RefreshReplacementsCacheCC), "", 0);
 
 #ifdef _DEBUG
     _sub_18019FB30.Hook(sub_18019FB30);
@@ -173,6 +177,8 @@ void FileSystemManager::AddSearchPathHook(IFileSystem* fileSystem, const char* p
 #endif
 #endif
 #endif
+    IFileSystem_AddSearchPath(fileSystem, m_customFilesPath.string().c_str(), "GAME", PATH_ADD_TO_HEAD);
+    IFileSystem_AddSearchPath(fileSystem, m_customFilesPath.string().c_str(), "MAIN", PATH_ADD_TO_HEAD);
 }
 
 void FileSystemManager::AddVPKFileHook(IFileSystem* fileSystem, char const* pBasename, void* a3, bool a4, SearchPathAdd_t addType, bool a6)
@@ -364,6 +370,16 @@ bool FileSystemManager::ShouldReplaceFile(const std::string_view& path)
         return false;
     }
 
+    if (m_replacementsCachedPaths.size() > 0)
+    {
+        std::string copy{ path };
+        _strlwr_s(&copy[0], copy.size() + 1);
+        fs::path path{ copy };
+        path = path.lexically_normal();
+        if (m_replacementsCachedPaths.contains(path))
+            return true;
+    }
+
 #ifdef READ_FROM_BSP
     //char* p = (char*)path.data();
     std::string copy{ path };
@@ -392,7 +408,67 @@ unsigned __int64 __fastcall FileSystemManager::RemoveAllMapSearchPathsHook(__int
     return RemoveAllMapSearchPaths(thisptr);
 }
 
+void FileSystemManager::RefreshReplacementsCache(bool debugLogLoadedFiles)
+{
+    auto startTime = std::chrono::system_clock::now();
+    try
+    {
+        std::vector<fs::path> replacements_cached_paths_new{};
+        auto& scanpath = m_customFilesPath;
+
+        if (fs::exists(scanpath))
+        {
+            for (auto& entry : fs::recursive_directory_iterator(scanpath))
+            {
+                if (!entry.is_directory())
+                {
+                    // apparently fs::relative is super expensive for whatever reason
+                    ////auto filepath = fs::relative(entry.path(), scanpath);// .lexically_normal(); // lexically_normal in this case changed literally nothing
+                    ////_wcslwr_s((wchar_t*)filepath.native().c_str(), filepath.native().length() * 2); // lower case, fucky way but it works
+                    if (entry.path().native().length() <= scanpath.native().length() + 1) [[unlikely]]
+                    {
+                        spdlog::error("[RefreshReplacementsCache] invalid path \"{}\"", Util::Narrow(entry.path().native()));
+                        continue;
+                    }
+                    std::wstring_view filepath{ entry.path().native().c_str() + scanpath.native().length() + 1 }; // no copy
+                    _wcslwr_s((wchar_t*)filepath.data(), filepath.length() * 2); // lower case, fucky way but it works
+
+                    auto filepath_narrow = Util::Narrow(filepath);
+
+                    if (FileExists(filepath_narrow.c_str(), "GAME") || FileExists(filepath_narrow.c_str(), "MAIN"))
+                    {
+                        replacements_cached_paths_new.push_back(filepath);
+                        if (debugLogLoadedFiles)
+                            spdlog::debug("[RefreshReplacementsCache] Adding: {}", filepath_narrow.c_str());
+                    }
+                }
+            }
+        }
+
+        m_replacementsCachedPaths.clear();
+        m_replacementsCachedPaths.reserve(replacements_cached_paths_new.size());
+        std::copy(replacements_cached_paths_new.begin(), replacements_cached_paths_new.end(), std::inserter(m_replacementsCachedPaths, m_replacementsCachedPaths.end()));
+    }
+    catch (std::exception& e)
+    {
+        // it will throw errors if paths are not found...
+        spdlog::error("Error in fs_replacements_cache_refresh: {}", e.what());
+    }
+    spdlog::info("Refreshed replacements cache, amount of loaded files: {} (took {} ms)",
+        m_replacementsCachedPaths.size(), std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - startTime).count());
+}
+
+void FileSystemManager::RefreshReplacementsCacheCC(const CCommand& args)
+{
+    RefreshReplacementsCache(args.ArgC() > 1);
+}
+
 const fs::path& FileSystemManager::GetBasePath()
 {
     return m_basePath;
+}
+
+const fs::path& FileSystemManager::GetCustomFilesPath()
+{
+    return m_customFilesPath;
 }

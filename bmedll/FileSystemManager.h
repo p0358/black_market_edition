@@ -3,6 +3,24 @@
 #include "pch.h"
 #include "IFileSystem.h"
 
+struct PathEqual
+{
+public:
+    bool operator()(const fs::path& p1, const fs::path& p2) const
+    {
+        return p1 == p2;
+    }
+};
+
+struct PathHash
+{
+public:
+    size_t operator()(const fs::path& p) const
+    {
+        return fs::hash_value(p);
+    }
+};
+
 class FileSystemManager
 {
 private:
@@ -12,8 +30,10 @@ private:
     SourceInterface<IFileSystem> m_engineFileSystem;
     fs::path m_basePath;
     fs::path m_bspPath;
+    fs::path m_customFilesPath;
     bool m_requestingOriginalFile;
     bool m_blockingRemoveAllMapSearchPaths;
+    std::unordered_set<fs::path, PathHash, PathEqual> m_replacementsCachedPaths;
 
     bool ShouldReplaceFile(const std::string_view& path);
 
@@ -31,5 +51,9 @@ public:
     bool FileExists(const char* fileName, const char* pathID);
     std::string ReadOriginalFile(const char* path, const char* pathID);
 
+    void RefreshReplacementsCache(bool debugLogLoadedFiles);
+    void RefreshReplacementsCacheCC(const CCommand& args);
+
     const fs::path& GetBasePath();
+    const fs::path& GetCustomFilesPath();
 };

@@ -51,6 +51,8 @@ Installers are built with Inno Setup using scripts from installer/ folder and th
 * make the game follow the default sound output device automatically (such as when connecting a Bluetooth headset; might not always work due to some engine bug though and then you still gotta restart the game)
 * add custom playlist player counts sourced from [titanfall.p0358.net](https://titanfall.p0358.net) if the in-game counters are broken (the fallback BME counters are displayed in green, while original game ones from Stryder in amber)
 * for switch-sides-based gamemodes, show in HUD whether you're playing first or second half
+* allow replacing VPK files without making patched VPK files, by putting your modded files into `r1_mod` directory under your game installation dir
+	* use concommand `fs_replacements_cache_refresh` to refresh the file list without restarting the game
 
 ### Known bugs
 

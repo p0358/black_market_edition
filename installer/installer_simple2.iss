@@ -66,6 +66,7 @@ Name: "spanish"; MessagesFile: "compiler:Languages\Spanish.isl"
 [Dirs]
 Name: "{app}\bin\x64_retail"; Flags: uninsneveruninstall
 Name: "{app}\r1_dlc1"; Flags: uninsneveruninstall; Permissions: users-modify
+Name: "{app}\r1_mod"; Flags: uninsneveruninstall; Permissions: users-modify
 Name: "{app}\bme"; Permissions: users-modify
 
 [Files]
