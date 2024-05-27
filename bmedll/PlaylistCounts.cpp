@@ -160,10 +160,10 @@ SQInteger Script_GetPlaylistCountDescForRegion_BME(HSQUIRRELVM v)
         }
         json = g_playlistCountsJson;
     }
-    if (json->HasMember("playlists") && (*json)["playlists"].IsObject())
+    if (json->HasMember("playlists"))
     {
         auto& playlists = (*json)["playlists"];
-        if (playlists.HasMember(str) && playlists[str].IsObject() && playlists[str].HasMember(match_myDatacenter_str) && playlists[str][match_myDatacenter_str].IsNumber())
+        if (playlists.IsObject() && playlists.HasMember(str) && playlists[str].IsObject() && playlists[str].HasMember(match_myDatacenter_str) && playlists[str][match_myDatacenter_str].IsNumber())
             sq_pushinteger(nullptr, v, playlists[str][match_myDatacenter_str].GetInt());
         else
             sq_pushinteger(nullptr, v, 0);
@@ -187,10 +187,10 @@ SQInteger Script_GetPlaylistCountDescForWorld_BME(HSQUIRRELVM v)
         }
         json = g_playlistCountsJson;
     }
-    if (json->HasMember("playlists") && (*json)["playlists"].IsObject())
+    if (json->HasMember("playlists"))
     {
         auto& playlists = (*json)["playlists"];
-        if (playlists.HasMember(str) && playlists[str].IsObject() && playlists[str].HasMember("_world") && playlists[str]["_world"].IsNumber())
+        if (playlists.IsObject() && playlists.HasMember(str) && playlists[str].IsObject() && playlists[str].HasMember("_world") && playlists[str]["_world"].IsNumber())
             sq_pushinteger(nullptr, v, playlists[str]["_world"].GetInt());
         else
             sq_pushinteger(nullptr, v, 0);
