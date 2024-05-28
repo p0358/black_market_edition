@@ -102,7 +102,7 @@ public:
     ConCommandManager() noexcept;
     ~ConCommandManager();
     void RegisterCommand(const char* name, void(*callback)(const CCommand&), const char* helpString, int flags);
-    void RegisterConVar(const char* name, const char* defaultValue, int flags, const char* helpString);
+    ConVar* RegisterConVar(const char* name, const char* defaultValue, int flags, const char* helpString);
     void ExecuteCommand(const std::string& commandStr);
     void UnregisterCommand(ConCommand& command);
     void UnregisterAllCommands();

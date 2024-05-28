@@ -22,13 +22,14 @@ void ConCommandManager::RegisterCommand(const char* name, void(*callback)(const 
     ConCommand_ConCommand(newCommand, name, callback, helpString, flags, nullptr);
 }
 
-void ConCommandManager::RegisterConVar(const char* name, const char* defaultValue, int flags, const char* helpString)
+ConVar* ConCommandManager::RegisterConVar(const char* name, const char* defaultValue, int flags, const char* helpString)
 {
     //m_logger->info(_("Adding cvar: {}"), name);
     SPDLOG_LOGGER_DEBUG(m_logger, "Adding cvar: {}", name);
     m_cvars.emplace_back();
     ConVar2* newCvar = &m_cvars.back();
     ConVar_ConVar(newCvar, name, defaultValue, flags, helpString);
+    return reinterpret_cast<ConVar*>(newCvar);
 }
 
 void ConCommandManager::ExecuteCommand(const std::string& commandStr)

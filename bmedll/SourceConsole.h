@@ -3,6 +3,10 @@
 #include "VTableHooking.h"
 #include "ConCommandManager.h"
 
+class SourceConsoleSink;
+
+extern std::shared_ptr<SourceConsoleSink> g_sourceConsoleSink;
+
 class EditablePanel
 {
 public:
@@ -52,13 +56,11 @@ class CConsoleDialog
 public:
     struct VTable
     {
-        //void* unknown[298];
         void* unknown[294];
         void(*OnCommandSubmitted)(CConsoleDialog* consoleDialog, const char* pCommand);
     };
 
     VTable* m_vtable;
-    //unsigned char unknown[0x398];
     unsigned char unknown[0x390];
     CConsolePanel* m_pConsolePanel;
 };
@@ -88,14 +90,14 @@ public:
     CConsoleDialog* m_pConsole;
 };
 
-class SourceConsoleSink;
-
 class SourceConsole
 {
 public:
-    SourceConsole(spdlog::level::level_enum level);
+    SourceConsole();
+    static std::shared_ptr<SourceConsoleSink> PreinitSink(spdlog::level::level_enum level);
     void InitializeSource();
     void Deinitialize();
+    bool IsConsoleAvailable();
 
     void ToggleConsoleCommand(const CCommand& args);
     void ClearConsoleCommand(const CCommand& args);
@@ -116,13 +118,16 @@ private:
 class SourceConsoleSink : public spdlog::sinks::base_sink<std::mutex>
 {
 public:
-    SourceConsoleSink(SourceConsole* console);
+    SourceConsoleSink();
+    void SetSourceConsole(SourceConsole* console);
 
 protected:
+    void internal_print_(const spdlog::details::log_msg& msg);
     void sink_it_(const spdlog::details::log_msg& msg) override;
     void flush_() override;
 
 private:
     std::map<spdlog::level::level_enum, SourceColor> m_colours;
     SourceConsole* m_console;
+    std::vector<spdlog::details::log_msg_buffer> m_buffered;
 };

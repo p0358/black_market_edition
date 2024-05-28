@@ -244,7 +244,8 @@ void TTFSDK::Init()
     m_fsManager = std::make_unique<FileSystemManager>(GetThisPath());
     m_fsManager->RefreshReplacementsCache(true);
     //m_uiManager = std::make_unique<UIManager>();
-    m_sourceConsole = std::make_unique<SourceConsole>(true ? spdlog::level::debug : spdlog::level::info);
+    m_sourceConsole = std::make_unique<SourceConsole>();
+    g_sourceConsoleSink->SetSourceConsole(m_sourceConsole.get());
 
     //m_bmegui.reset(new BMEGUI(*m_conCommandManager, *m_uiManager, *m_fsManager));
     if (!CommandLine()->CheckParm("-nodiscord"))
@@ -537,6 +538,8 @@ void SetupLoggerInternal(const fs::path& filename, bool enableWindowsConsole)
     {
         fileError = std::make_unique<std::string>(ex.what());
     }
+
+    sinks.push_back(SourceConsole::PreinitSink(true ? spdlog::level::debug : spdlog::level::info));
 
     // Create logger from sinks
     auto logger = std::make_shared<spdlog::logger>("logger", begin(sinks), end(sinks));

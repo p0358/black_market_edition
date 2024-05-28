@@ -3,6 +3,8 @@
 #include "ConCommandManager.h"
 #include "SourceConsole.h"
 
+std::shared_ptr<SourceConsoleSink> g_sourceConsoleSink;
+
 SourceConsole& SourceCon()
 {
     return SDK().GetSourceConsole();
@@ -139,16 +141,12 @@ bool __fastcall CBaseClientState__InternalProcessStringCmd_Hook(__int64 thisptr,
 }
 //
 
-SourceConsole::SourceConsole(spdlog::level::level_enum level) :
-    //m_gameConsole(_("client.dll"), _("GameConsole004"))
-    m_gameConsole("client.dll", "GameConsole004")
+SourceConsole::SourceConsole() : m_gameConsole("client.dll", "GameConsole004")
 {
-    m_logger = spdlog::get(_("logger"));
+    m_logger = spdlog::get("logger");
 
-    m_sink = std::make_shared<SourceConsoleSink>(this);
-    m_sink->set_pattern(_("%v")); // [%l] 
-    m_sink->set_level(level);
-    m_logger->sinks().push_back(m_sink);
+    m_sink = g_sourceConsoleSink;
+    m_sink->set_pattern("%v"); // [%l] 
 
     ConCommandManager& conCommandManager = SDK().GetConCommandManager();
     conCommandManager.RegisterCommand("toggleconsole", WRAPPED_MEMBER(ToggleConsoleCommand), "Show/hide the console", 0);
@@ -159,10 +157,18 @@ SourceConsole::SourceConsole(spdlog::level::level_enum level) :
     CBaseClientState_InternalProcessStringCmd.Hook(CBaseClientState__InternalProcessStringCmd_Hook);
 }
 
+std::shared_ptr<SourceConsoleSink> SourceConsole::PreinitSink(spdlog::level::level_enum level)
+{
+    g_sourceConsoleSink = std::make_shared<SourceConsoleSink>();
+    g_sourceConsoleSink->set_level(level);
+    return g_sourceConsoleSink;
+}
+
 void SourceConsole::InitializeSource()
 {
     m_gameConsole->Initialize();
     CConsoleDialog_OnCommandSubmitted.Hook(m_gameConsole->m_pConsole->m_vtable, WRAPPED_MEMBER(OnCommandSubmittedHook));
+    m_logger->info("===== SOURCE CONSOLE INITIALIZED =====");
 }
 
 void SourceConsole::Deinitialize()
@@ -171,9 +177,15 @@ void SourceConsole::Deinitialize()
     sinks.erase(std::remove(sinks.begin(), sinks.end(), m_sink), sinks.end());
 }
 
+bool SourceConsole::IsConsoleAvailable()
+{
+    return IsSDKReady() && m_gameConsole && m_gameConsole->m_bInitialized
+        && m_gameConsole->m_pConsole && m_gameConsole->m_pConsole->m_pConsolePanel;
+}
+
 void SourceConsole::ToggleConsoleCommand(const CCommand& args)
 {
-    if (!m_gameConsole->m_bInitialized)
+    if (!IsConsoleAvailable())
     {
         return;
     }
@@ -190,7 +202,7 @@ void SourceConsole::ToggleConsoleCommand(const CCommand& args)
 
 void SourceConsole::ClearConsoleCommand(const CCommand& args)
 {
-    if (!m_gameConsole->m_bInitialized)
+    if (!IsConsoleAvailable())
     {
         return;
     }
@@ -200,16 +212,21 @@ void SourceConsole::ClearConsoleCommand(const CCommand& args)
 
 void SourceConsole::OnCommandSubmittedHook(CConsoleDialog* consoleDialog, const char* pCommand)
 {
-    Print(_("] "));
-    Print(pCommand);
-    Print(_("\n"));
+    // don't run commands if console is closed
+    if (!IsConsoleAvailable() || !m_gameConsole->IsConsoleVisible())
+        return;
+
+    //Print(_("] "));
+    //Print(pCommand);
+    //Print(_("\n"));
+    m_logger->info("] {}", pCommand);
 
     CConsoleDialog_OnCommandSubmitted(consoleDialog, pCommand);
 }
 
 void SourceConsole::ColorPrint(const SourceColor& clr, const char* pMessage)
 {
-    if (!m_gameConsole->m_bInitialized || !IsSDKReady())
+    if (!IsConsoleAvailable())
     {
         return;
     }
@@ -219,7 +236,7 @@ void SourceConsole::ColorPrint(const SourceColor& clr, const char* pMessage)
 
 void SourceConsole::Print(const char* pMessage)
 {
-    if (!m_gameConsole->m_bInitialized || !IsSDKReady())
+    if (!IsConsoleAvailable())
     {
         return;
     }
@@ -229,7 +246,7 @@ void SourceConsole::Print(const char* pMessage)
 
 void SourceConsole::DPrint(const char* pMessage)
 {
-    if (!m_gameConsole->m_bInitialized || !IsSDKReady())
+    if (!IsConsoleAvailable())
     {
         return;
     }
@@ -237,9 +254,9 @@ void SourceConsole::DPrint(const char* pMessage)
     m_gameConsole->m_pConsole->m_pConsolePanel->DPrint(pMessage);
 }
 
-SourceConsoleSink::SourceConsoleSink(SourceConsole* console)
+SourceConsoleSink::SourceConsoleSink() : m_console(nullptr)
 {
-    m_console = console;
+    std::lock_guard<std::mutex> lock(base_sink<std::mutex>::mutex_);
     m_colours.emplace(spdlog::level::trace, SourceColor(0, 255, 255, 255));
     m_colours.emplace(spdlog::level::debug, SourceColor(0, 255, 255, 255));
     m_colours.emplace(spdlog::level::info, SourceColor(255, 255, 255, 255));
@@ -247,18 +264,42 @@ SourceConsoleSink::SourceConsoleSink(SourceConsole* console)
     m_colours.emplace(spdlog::level::err, SourceColor(255, 0, 0, 255));
     m_colours.emplace(spdlog::level::critical, SourceColor(255, 0, 0, 255));
     m_colours.emplace(spdlog::level::off, SourceColor(0, 0, 0, 0));
+    m_buffered.reserve(100);
+}
+
+void SourceConsoleSink::SetSourceConsole(SourceConsole* console)
+{
+    std::lock_guard<std::mutex> lock(base_sink<std::mutex>::mutex_);
+    m_console = console;
+}
+
+void SourceConsoleSink::internal_print_(const spdlog::details::log_msg& msg)
+{
+    spdlog::memory_buf_t formatted;
+    base_sink<std::mutex>::formatter_->format(msg, formatted);
+    m_console->ColorPrint(m_colours[msg.level], fmt::to_string(formatted).c_str());
 }
 
 void SourceConsoleSink::sink_it_(const spdlog::details::log_msg& msg)
 {
-    if (!IsSDKReady()) return;
-    //fmt::memory_buf_t formatted;
-    /*spdlog::memory_buf_t formatted;
-    base_sink::formatter_->format(msg, formatted);
-    m_console->ColorPrint(m_colours[msg.level], fmt::to_string(formatted).c_str());*/
-    spdlog::memory_buf_t formatted;
-    base_sink<std::mutex>::formatter_->format(msg, formatted);
-    m_console->ColorPrint(m_colours[msg.level], fmt::to_string(formatted).c_str());
+    if (m_console && m_console->IsConsoleAvailable())
+    {
+        if (m_buffered.size()) [[unlikely]]
+        {
+            for (auto&& bmsg : m_buffered)
+            {
+                internal_print_(bmsg);
+            }
+            m_buffered.clear();
+            m_buffered.shrink_to_fit();
+        }
+
+        internal_print_(msg);
+    }
+    else
+    {
+        m_buffered.push_back(spdlog::details::log_msg_buffer{ msg });
+    }
 }
 
 void SourceConsoleSink::flush_()
