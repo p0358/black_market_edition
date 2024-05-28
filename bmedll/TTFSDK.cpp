@@ -242,6 +242,7 @@ void TTFSDK::Init()
     m_conCommandManager = std::make_unique<ConCommandManager>();
     m_sqManager = std::make_unique<SquirrelManager>();
     m_fsManager = std::make_unique<FileSystemManager>(GetThisPath());
+    m_fsManager->RefreshReplacementsCache(true);
     //m_uiManager = std::make_unique<UIManager>();
     m_sourceConsole = std::make_unique<SourceConsole>(true ? spdlog::level::debug : spdlog::level::info);
 
