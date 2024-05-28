@@ -374,23 +374,6 @@ void __fastcall TTFSDK::RunFrameHook(__int64 a1, double frameTime)
         Updater::drawModalWillUpdaterLaunchAfterGameClose = false;
         m_sourceConsole->InitializeSource();
 
-        {
-            /*std::string game_s3_url{_("bme.titanfall.top/backend/game_s3.php/ver=")};
-            game_s3_url += BME_VERSION;
-            game_s3_url += "/chan=";
-            game_s3_url += GetBMEChannel();
-            game_s3_url += "/";
-            std::string cmd{ "staticfile_hostname " };
-            cmd += game_s3_url;
-            //ConVar* staticfile_hostname = m_vstdlibCvar->FindVar("staticfile_hostname");
-            //staticfile_hostname->SetValueString(game_s3_url.c_str());
-            m_engineClient->ClientCmd_Unrestricted(cmd.c_str());
-            if (!Updater::pendingUpdateLaunch)
-                m_engineClient->ClientCmd_Unrestricted("getmotd");
-            else*/
-            if (Updater::pendingUpdateLaunch)
-                m_engineClient->ClientCmd_Unrestricted("motd \"Black Market Edition update is pending! The installer will be started after you exit your game. More information available in console and bme.log.\"");
-        }
 
 #if 0
         { // FOV range patch
@@ -452,8 +435,7 @@ void __fastcall TTFSDK::RunFrameHook(__int64 a1, double frameTime)
         callCount++;
         if (callCount >= 125)
         {
-            //SPDLOG_LOGGER_DEBUG(m_logger, "set updater motd");
-            m_engineClient->ClientCmd_Unrestricted("motd \"^00FF0000Black Market Edition update is pending! It will be installed after you exit your game. More information available in console and bme.log.\"");
+            Updater::InformAboutUpdates();
             callCount = 0;
             Updater::pendingUpdateLaunchMotdChange = false;
         }

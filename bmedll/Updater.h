@@ -10,6 +10,7 @@ namespace Updater {
 	extern bool pendingUpdateLaunch;
 	extern bool pendingUpdateLaunchMotdChange;
 	extern bool updateInProcess;
+	extern bool updaterDownloadFailed;
 	extern std::wstring updater_path;
 	extern std::string params;
 
@@ -23,5 +24,6 @@ namespace Updater {
 
 	void LaunchUpdater();
 	DWORD WINAPI DownloadAndApplyUpdate(LPVOID lpThreadParameter);
+	void InformAboutUpdates();
 	void CheckForUpdates();
 }
