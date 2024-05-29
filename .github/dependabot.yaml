@@ -9,3 +9,6 @@ updates:
     submodules:
       patterns:
         - "*"
+  ignore:
+    - dependency-name: "thirdparty/curl"
+ 

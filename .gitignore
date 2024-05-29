@@ -377,9 +377,12 @@ installer/source/bme/bme.dll
 !installer/source/bme/bme.log
 installer/source/bme/bme_channel.txt
 installer/source/bin/x64_retail/launcher.dll
+!installer/source/bme/crashpad_handler.exe
+!installer/source/bme/crashpad_wer.dll
 
 r1_modsrc/scripts/
 bmedll/FilesystemContents.h
 premake/deps/include
 
 !/premake/premake5.exe
+!/thirdparty/sentry/lib/*.lib

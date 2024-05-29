@@ -19,7 +19,6 @@
 [submodule "thirdparty/curl"]
 	path = thirdparty/curl
 	url = https://github.com/curl/curl.git
-	branch = curl-8_4_0
 [submodule "thirdparty/nghttp2"]
 	path = thirdparty/nghttp2
 	url = https://github.com/nghttp2/nghttp2.git

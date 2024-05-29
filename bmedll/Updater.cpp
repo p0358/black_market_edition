@@ -136,7 +136,7 @@ namespace Updater {
 
             if (res != CURLE_OK)
             {
-                spdlog::error("Update download error, curl code is not CURLE_OK: {}", res);
+                spdlog::error("Update download error, curl code is not CURLE_OK: {}", (int)res);
                 return L"";
             }
             if (response_code != 200)
