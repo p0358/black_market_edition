@@ -2,6 +2,7 @@
 #include "TTFSDK.h"
 #include "SigScanning.h"
 #include "SquirrelManager.h"
+#include "SquirrelJSONConverter.h"
 #include "Tier0.h"
 
 __forceinline SquirrelManager& SQManager()
@@ -21,7 +22,7 @@ FuncStatic<SQRESULT, HSQUIRRELVM, SQInteger, SQBool> sq_newslot("launcher.org.dl
 FuncStatic<void, HSQUIRRELVM, SQInteger> SQVM_Pop("launcher.org.dll", 0x2BC60);
 FuncStatic<void, HSQUIRRELVM, SQInteger> sq_push("launcher.org.dll", 0x165E0);
 //FuncStatic<SQString*, HSQUIRRELVM, const SQObject&> SQVM_PrintObjVal("launcher.org.dll", 0x41300);
-static auto SQVM_Raise_Error = (void(*)(HSQUIRRELVM, const SQChar*, ...))(Util::GetModuleBaseAddressNoCache("launcher.org.dll") + 0x411B0);
+void(*SQVM_Raise_Error)(HSQUIRRELVM, const SQChar*, ...) = (void(*)(HSQUIRRELVM, const SQChar*, ...))(Util::GetModuleBaseAddressNoCache("launcher.org.dll") + 0x411B0);
 FuncStatic<SQChar* __fastcall, SQObjectType> IdType2Name("launcher.org.dll", 0x3C660);
 
 FuncStatic<SQRESULT, HSQUIRRELVM, SQInteger, const SQChar**> sq_getstring("launcher.org.dll", 0x16880);
@@ -55,6 +56,8 @@ HookedFuncStatic<char, __int64, __int64> RunUIInitCallbacks("client.dll", 0x2DAE
 FuncStatic<bool, R1SquirrelVM*, const char*> RunCallback("launcher.org.dll", 0x89A0);
 //static auto ThrowClientScriptError = (void(*)(const char*, ...))(Util::GetModuleBaseAddressNoCache("client.dll") + 0x2C4FE0); // I guess // TODO: rethink this when we run in dedi without client.dll...
 FuncStatic<__int64, R1SquirrelVM*, const char*, signed int> CSquirrelVM__RegisterGlobalConstantInt("launcher.org.dll", 0xA680); // example: (a1, "TRAINING_MOSH_PIT", 3i64)
+FuncStatic<void*, R1SquirrelVM*, SQObject*, char**> CSquirrelVM__GetEntityFromInstance("launcher.org.dll", 0x9930); // R1SquirrelVM* unused
+FuncStatic<char**> sq_GetEntityConstant_CBaseEntity("client.dll", 0x2EF850);
 
 FuncStatic<int64_t, R1SquirrelVM*, SQFuncRegistrationInternal*> AddSquirrelReg("launcher.org.dll", 0x8E50);
 
@@ -123,6 +126,13 @@ void sq_poptop(HSQUIRRELVM v)
     SQVM_Pop(v, 1);
 }
 
+void* sq_getentity(HSQUIRRELVM v, SQInteger iStackPos)
+{
+    SQObject obj;
+    sq_getstackobj(nullptr, v, iStackPos, &obj);
+    return CSquirrelVM__GetEntityFromInstance(nullptr, &obj, sq_GetEntityConstant_CBaseEntity());
+}
+
 __int64 __fastcall SQFuncBindingFn(__int64(__fastcall* a1)(_QWORD), __int64 a2, _QWORD* a3, __int64 a4, __int64 a5)
 {
     __int64 result; // rax
@@ -174,6 +184,9 @@ SquirrelManager::SquirrelManager()
     //AddFuncRegistrationAllContexts("IsDedi", WRAPPED_MEMBER(IsDedi_Script), ".", 0, "bool", "", "Is running a dedicated server.");
     //AddFuncRegistrationAllContexts("IsClient_Native", WRAPPED_MEMBER(IsClient_Script), ".", 0, "bool", "", "Is running in a client game rather than a dedicated server, regardless of script execution context.");
     AddFuncRegistration(SCRIPT_CONTEXT_CLIENT, "TranslateTokenToUTF8", WRAPPED_MEMBER(TranslateTokenToUTF8), ".s", 0, "string", "string text", "");
+    AddFuncRegistration(SCRIPT_CONTEXT_CLIENT, "GetPlayerPlatformUserId", WRAPPED_MEMBER(GetPlayerPlatformUserId), ".", 0, "string", "", "Get platform user ID (as string, since Squirrel ints are 32-bit)");
+
+    SquirrelJSONConverter::RegisterFunctions(*this);
 }
 
 SQInteger SquirrelManager::BasePrintHook(HSQUIRRELVM v)
@@ -487,5 +500,13 @@ SQInteger SquirrelManager::TranslateTokenToUTF8(HSQUIRRELVM v)
     sq_getstring(v, 2, &str);
     auto sub_1802DBEA0 = reinterpret_cast<const char* (*)(const char*)>(Util::GetModuleBaseAddress("client.dll") + 0x2DBEA0);
     sq_pushstring(v, sub_1802DBEA0(str), -1);
+    return 1;
+}
+
+SQInteger SquirrelManager::GetPlayerPlatformUserId(HSQUIRRELVM v)
+{
+    uintptr_t ent = (uintptr_t)sq_getentity(v, 2);
+    auto userid = *reinterpret_cast<uint64_t*>(ent + 11240);
+    sq_pushstring(v, std::to_string(userid).c_str(), -1);
     return 1;
 }

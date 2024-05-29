@@ -55,7 +55,9 @@ using namespace std::literals::string_view_literals;
 #include <spdlog/fmt/bundled/printf.h>
 
 #include <rapidjson/document.h>
-//#include <rapidjson/stringbuffer.h>
+#include <rapidjson/stringbuffer.h>
+#include <rapidjson/writer.h>
+#include <rapidjson/prettywriter.h>
 //#include <rapidjson/schema.h>
 //#include <rapidjson/filereadstream.h>
 

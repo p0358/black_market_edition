@@ -327,6 +327,8 @@ void TTFSDK::Init()
     CHostState_Shutdown.Hook(CHostState_Shutdown_Hook);
     extern void PlaylistCounts_Init();
     PlaylistCounts_Init();
+    extern void ScoreboardSave_Init(SquirrelManager& sqManager, ConCommandManager& ccManager);
+    ScoreboardSave_Init(*m_sqManager, *m_conCommandManager);
 }
 
 

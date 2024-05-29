@@ -348,6 +348,7 @@ public:
 	SQInteger IsDedi_Script(HSQUIRRELVM v);
 	SQInteger IsClient_Script(HSQUIRRELVM v);
 	SQInteger TranslateTokenToUTF8(HSQUIRRELVM v);
+	SQInteger GetPlayerPlatformUserId(HSQUIRRELVM v);
 };
 
 extern FuncStatic<SQRESULT, HSQUIRRELVM, SQLEXREADFUNC, SQUserPointer, const SQChar*, SQBool> sq_compile;
@@ -357,6 +358,7 @@ extern HookedFuncStatic<void, HSQUIRRELVM, const SQChar*, const SQChar*, SQInteg
 extern FuncStatic<SQRESULT, HSQUIRRELVM, SQInteger, SQBool> sq_newslot;
 extern FuncStatic<void, HSQUIRRELVM, SQInteger> SQVM_Pop;
 extern FuncStatic<void, HSQUIRRELVM, SQInteger> SQVM_Push;
+extern void(*SQVM_Raise_Error)(HSQUIRRELVM, const SQChar*, ...);
 extern FuncStatic<SQChar* __fastcall, SQObjectType> IdType2Name;
 
 extern FuncStatic<SQRESULT, HSQUIRRELVM, SQInteger, const SQChar**> sq_getstring;
@@ -382,3 +384,6 @@ extern FuncStatic<SQRESULT, HSQUIRRELVM, SQInteger, SQUserPointer*, SQUserPointe
 
 extern FuncStatic<void, HSQUIRRELVM, SQInteger> sq_newarray;
 extern FuncStatic<SQRESULT, HSQUIRRELVM, SQInteger> sq_arrayappend;
+
+void sq_poptop(HSQUIRRELVM v);
+void* sq_getentity(HSQUIRRELVM v, SQInteger iStackPos);
