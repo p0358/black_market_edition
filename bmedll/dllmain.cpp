@@ -13,37 +13,12 @@ std::chrono::system_clock::time_point g_startTime;
 
 extern FuncStaticWithType<void* (__cdecl*)()> get_cl;
 
-// old
-DWORD WINAPI OnAttach(LPVOID lpThreadParameter)
+extern "C"
 {
-    curl_global_init(CURL_GLOBAL_ALL);
-
-    // Setup the SDK or unload the DLL if we can't
-    if (!SetupSDK())
-    {
-        TerminateProcess(GetCurrentProcess(), 100);
-        return 0;
-    }
-
-    auto logger = spdlog::get(_("logger"));
-    logger->info(_("Titanfall Black Market Edition loaded"));
-
-    if (g_console)
-    {
-        // Process console input
-        std::string input;
-        while (std::getline(std::cin, input) && g_console && IsSDKReady())
-        {
-            //if (&SDK() != nullptr)
-            SDK().GetConCommandManager().ExecuteCommand(input);
-            //SDK().GetDiscord().core->RunCallbacks();
-        }
-    }
-
-    return 0;
+	uintptr_t g_CNetChan__ProcessSubChannelData_gadget_ret0 = 0;
+	uintptr_t g_CNetChan__ProcessSubChannelData_AsmConductBufferSizeCheck_continue = 0;
+	extern uintptr_t CNetChan__ProcessSubChannelData_AsmConductBufferSizeCheck;
 }
-
-////////
 
 //bool isConsoleEnabled = false;
 
@@ -570,6 +545,55 @@ void DoBinaryPatches()
         *(unsigned char*)((uint64_t)ptr + 1) = 0xC0;
         *(unsigned char*)((uint64_t)ptr + 2) = 0xC3;
     }
+    { // SecurityPatch: ret in mat_crosshair_edit_command_callback // https://hackerone.com/reports/544096
+        void* ptr = (void*)(Util::GetModuleBaseAddress("engine.dll") + 0x9D5B0);
+        TempReadWrite rw(ptr);
+        *((unsigned char*)ptr) = 0xC3;
+    }
+    { // SecurityPatch: do not use default XInput 1.3 due to no ASLR
+        void* ptr = (void*)(Util::GetModuleBaseAddress("inputsystem.dll") + 0x41F50);
+        TempReadWrite rw(ptr);
+        strcpy_s((char*)ptr, 16, "XInput9_1_0.dll");
+    }
+    { // SecurityPatch: have net_writeStatsFile always write to net_stats.txt instead of arbitrary file
+        void* ptr = (void*)(Util::GetModuleBaseAddress("engine.dll") + 0x130843);
+        TempReadWrite rw(ptr);
+        *((unsigned char*)ptr) = 0x90;
+        *(unsigned char*)((uint64_t)ptr + 1) = 0x90;
+    }
+    { // SecurityPatch: stack smash in CNetChan::ProcessSubChannelData (possible RCE)
+        // This fixes a stack smash in `CNetChan::ProcessSubChannelData` caused by the last fragment
+        // of a reliable subchannel transmission, which could exceed the stack allocated buffer size of 592 bytes.
+        // Reference: https://github.com/Mauler125/r5sdk/commit/94ae3e58ce980cc426f7e08a6da1cb366bcd79b6
+        // Reference: https://github.com/TFORevive/tforevive_cpp/commit/c91d7c336d2a0b2ffe72642c3c959adb9eb956c5
+        g_CNetChan__ProcessSubChannelData_gadget_ret0 = (uintptr_t)(Util::GetModuleBaseAddress("engine.dll") + 0x1E8F26); // responsible for returning 0 from func
+        g_CNetChan__ProcessSubChannelData_AsmConductBufferSizeCheck_continue = (uintptr_t)(Util::GetModuleBaseAddress("engine.dll") + 0x1E8DDA); // where normal execution continues if buffer size is ok
+        void* algn = (void*)(Util::GetModuleBaseAddress("engine.dll") + 0x1EA961); // Some align after CNetChan::ProcessSubChannelData, size 15
+        // Above call to `bf_read::ReadBytes` there's a call to nullsub_87, which we replace to a jump to code align after the function.
+        // In the code align we perform a long jump to our helper assembly function `CNetChan__ProcessSubChannelData_AsmConductBufferSizeCheck`,
+        // which conducts the buffer size check. If it passes, we jump back to the old place to continue execution from the call to `bf_read::ReadBytes`,
+        // otherwise we jump to the place which makes the function return 0 instead, indicating read failure.
+
+        // Turn `call nullsub_87` into a jmp to our algn (both original call and our jmp patch have the exact same byte length)
+        auto* jmp_pos = (void*)(Util::GetModuleBaseAddress("engine.dll") + 0x1E8DD5); // `call nullsub_87` offset
+        // 0xE9, 0x87, 0x1B, 0x00, 0x00 // jmp 0x1b8c (algn_1801EA961)  (0x1EA961 - 0x1E8DD5)
+        TempReadWrite rw(jmp_pos);
+        *((unsigned char*)jmp_pos) = 0xE9;
+        *(unsigned char*)((uint64_t)jmp_pos + 1) = 0x87;
+        *(unsigned char*)((uint64_t)jmp_pos + 2) = 0x1B;
+        *(unsigned char*)((uint64_t)jmp_pos + 3) = 0x00;
+        *(unsigned char*)((uint64_t)jmp_pos + 4) = 0x00;
+
+        //algn.Patch({ 0xFF, 0x25, 0x00, 0x00, 0x00, 0x00 }); // this instruction does far jump to rip+0, which means the 8 bytes placed exactly after this instruction
+        //algn.Offset(6).Patch<uintptr_t>((uintptr_t)&CNetChan__ProcessSubChannelData_AsmConductBufferSizeCheck); // address to be used by the above, disassemblers may be confused about these bytes, but it does not matter
+        *((unsigned char*)algn) = 0xFF;
+        *(unsigned char*)((uint64_t)algn + 1) = 0x25;
+        *(unsigned char*)((uint64_t)algn + 2) = 0x00;
+        *(unsigned char*)((uint64_t)algn + 3) = 0x00;
+        *(unsigned char*)((uint64_t)algn + 4) = 0x00;
+        *(unsigned char*)((uint64_t)algn + 5) = 0x00;
+        *(uintptr_t**)((uint64_t)algn + 6) = &CNetChan__ProcessSubChannelData_AsmConductBufferSizeCheck;
+    }
 }
 
 void CreateTier0MemAlloc()
@@ -643,17 +667,11 @@ BOOL APIENTRY DllMain( HMODULE hModule,
     case DLL_PROCESS_ATTACH:
 
         hDLLModule = hModule;
-
-        //threadHandle = CreateThread(NULL, 0, OnAttach, NULL, 0, NULL);
         break;
     case DLL_THREAD_ATTACH:
     case DLL_THREAD_DETACH:
         break;
     case DLL_PROCESS_DETACH:
-        //TerminateThread(threadHandle, 0);
-        /*FreeSDK();
-        if (g_console)
-            g_console.reset();*/
         break;
     }
     return TRUE;
@@ -661,6 +679,5 @@ BOOL APIENTRY DllMain( HMODULE hModule,
 
 extern "C" _declspec(dllexport) void Init()
 {
-    //printf("hello in init\n");
     main();
 }

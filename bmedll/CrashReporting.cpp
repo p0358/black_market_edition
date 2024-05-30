@@ -226,6 +226,7 @@ void log_exception_info(const EXCEPTION_POINTERS* exceptionInfo)
     spdlog::error("R13: 0x{0:x}", exceptionContext->R13);
     spdlog::error("R14: 0x{0:x}", exceptionContext->R14);
     spdlog::error("R15: 0x{0:x}", exceptionContext->R15);
+    spdlog::error("RIP: 0x{0:x}", exceptionContext->Rip);
 }
 
 void log_crash_diagnostic_info(const EXCEPTION_POINTERS* exceptionInfo)
