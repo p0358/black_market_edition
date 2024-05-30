@@ -53,6 +53,10 @@ Installers are built with Inno Setup using scripts from installer/ folder and th
 * for switch-sides-based gamemodes, show in HUD whether you're playing first or second half
 * allow replacing VPK files without making patched VPK files, by putting your modded files into `r1_mod` directory under your game installation dir
 	* use concommand `fs_replacements_cache_refresh` to refresh the file list without restarting the game
+* allow auto-saving of game scoreboards to JSON files after the match was concluded
+	* use cvar `bme_cl_save_scoreboards 1` to enable the feature
+	* the files will be saved into `<game dir>/bme/saved_scoreboards` directory, with name in format like `2024-05-28_11_40_04-private_match-ctf-mp_relic-5v5.json` (time is UTC)
+	* you can enable automatic remote uploading of said files by `bme_cl_save_scoreboards_upload_url <URL>` to upload them to your custom endpoint via HTTP POST
 
 ### Known bugs
 

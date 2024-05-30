@@ -114,6 +114,7 @@ libdirs {"%{wks.location}/bin/%{cfg.platform}-%{cfg.buildcfg}"}
 
 solutionitems {
 	"./README.md",
+	"./bme_version.txt",
 	"./.gitignore",
 	"./.github/workflows/build.yaml",
 	"./.github/dependabot.yaml",
