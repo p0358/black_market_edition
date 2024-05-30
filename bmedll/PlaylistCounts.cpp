@@ -36,7 +36,7 @@ DWORD WINAPI loadPlaylistCounts(PVOID pThreadParameter)
         curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response_string);
         curl_easy_setopt(curl, CURLOPT_HEADERDATA, &header_string);
 
-        curl_easy_perform(curl);
+        CURLcode res = curl_easy_perform(curl);
 
         long response_code;
         //double elapsed;
@@ -88,7 +88,10 @@ DWORD WINAPI loadPlaylistCounts(PVOID pThreadParameter)
         }
         else
         {
-            spdlog::error("Unexpected response code for playlists (expected 200 or 304): {}", response_code);
+            if (res != CURLE_OK)
+                spdlog::error("curl_easy_perform() failed for playlists: {}", curl_easy_strerror(res));
+            else
+                spdlog::error("Unexpected response code for playlists (expected 200 or 304): {}", response_code);
         }
     }
 

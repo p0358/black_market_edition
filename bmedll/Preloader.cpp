@@ -1,14 +1,16 @@
 #include "Util.h"
 #include "tier0.h"
 
-size_t writeFunction(void* ptr, size_t size, size_t nmemb, std::string* data) {
+size_t writeFunction(void* ptr, size_t size, size_t nmemb, std::string* data)
+{
     data->append((char*)ptr, size * nmemb);
     return size * nmemb;
 }
 
 //char __fastcall loadPlaylists_sub_180160B30(__int64 a1)
 typedef char(__fastcall* LOADPLAYLISTSFN) (const char* a1);
-DWORD WINAPI precachePlaylists(PVOID pThreadParameter) {
+DWORD WINAPI precachePlaylists(PVOID pThreadParameter)
+{
     auto enginedllBaseAddress = Util::GetModuleBaseAddress("engine.dll");
     auto logger = spdlog::get("logger");
     //MessageBoxA(0, "hey2", "hey", 0);
@@ -19,7 +21,8 @@ DWORD WINAPI precachePlaylists(PVOID pThreadParameter) {
 
     auto curl = curl_easy_init();
 
-    if (curl) {
+    if (curl)
+    {
         curl_easy_setopt(curl, CURLOPT_URL, "https://r1-pc.s3.amazonaws.com/playlists.txt");
         curl_easy_setopt(curl, CURLOPT_ACCEPT_ENCODING, ""); // automatically uses all built-in supported encodings
         curl_easy_setopt(curl, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_2_0);
@@ -33,7 +36,7 @@ DWORD WINAPI precachePlaylists(PVOID pThreadParameter) {
         curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response_string);
         curl_easy_setopt(curl, CURLOPT_HEADERDATA, &header_string);
 
-        curl_easy_perform(curl);
+        CURLcode res = curl_easy_perform(curl);
 
         long response_code;
         //double elapsed;
@@ -47,25 +50,30 @@ DWORD WINAPI precachePlaylists(PVOID pThreadParameter) {
 
         if (*something_related_to_playlists_ptr) return 0; // playlists are already loaded
 
-        if (response_code == 200) {
+        if (response_code == 200)
+        {
             //std::stringstream ss;
             //ss << "Resp code: " << response_code << "\nLen: " << response_string.length();
             //MessageBoxA(0, ss.str().c_str(), "Gonna load playlists", 0);
             LOADPLAYLISTSFN loadPlaylists = (LOADPLAYLISTSFN)(enginedllBaseAddress + 0x160B30);
-            if (response_string.length() < 300000) {
+            if (response_string.length() < 300000)
+            {
                 memcpy((void*)(enginedllBaseAddress + 0x221CF50), response_string.c_str(), response_string.length());
                 loadPlaylists((const char*)(enginedllBaseAddress + 0x221CF50));
             }
-            else {
+            else
+            {
                 loadPlaylists(response_string.c_str());
             }
             //MessageBoxA(0, ss.str().c_str(), "Loaded playlists", 0);
             SPDLOG_LOGGER_DEBUG(logger, _("[Preloader] Preloaded playlists"));
         }
-        else {
-            //std::stringstream ss;
-            //ss << response_code;
-            //MessageBoxA(0, ss.str().c_str(), "Not gonna load playlists", 0);
+        else
+        {
+            if (res != CURLE_OK)
+                spdlog::error("[Preloader] curl_easy_perform() failed for playlists: {}", curl_easy_strerror(res));
+            else
+                spdlog::error("[Preloader] Unexpected response code for playlists (expected 200): {}", response_code);
         }
     }
 
@@ -78,7 +86,8 @@ typedef __int64(__fastcall* SUBD30FN) (__int64 a1, unsigned int* a2, __int64 a3,
 //char __fastcall sub_180217C30(__int64 a1, __int64 a2, _QWORD *a3, __int64 a4)
 typedef char(__fastcall* SUBC30FN) (__int64 a1, __int64 a2, unsigned __int64* a3, __int64 a4);
 
-DWORD WINAPI precachePdef(PVOID pThreadParameter) {
+DWORD WINAPI precachePdef(PVOID pThreadParameter)
+{
     //MessageBoxA(0, "hey2", "hey", 0);
     auto enginedllBaseAddress = Util::GetModuleBaseAddress("engine.dll");
     auto logger = spdlog::get("logger");
@@ -89,7 +98,8 @@ DWORD WINAPI precachePdef(PVOID pThreadParameter) {
 
     auto curl = curl_easy_init();
 
-    if (curl) {
+    if (curl)
+    {
         curl_easy_setopt(curl, CURLOPT_URL, "https://titanfall.p0358.net/pdef.bz2");
         curl_easy_setopt(curl, CURLOPT_ACCEPT_ENCODING, ""); // automatically uses all built-in supported encodings
         curl_easy_setopt(curl, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_2_0);
@@ -102,7 +112,7 @@ DWORD WINAPI precachePdef(PVOID pThreadParameter) {
         curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response_string);
         curl_easy_setopt(curl, CURLOPT_HEADERDATA, &header_string);
 
-        curl_easy_perform(curl);
+        CURLcode res = curl_easy_perform(curl);
 
         long response_code;
         //double elapsed;
@@ -116,7 +126,8 @@ DWORD WINAPI precachePdef(PVOID pThreadParameter) {
 
         if (*persistencePdefVersion_ptr) return 0; // already loaded
 
-        if (response_code == 200) {
+        if (response_code == 200)
+        {
             //std::stringstream ss;
             //ss << "Resp code: " << response_code << "\nLen: " << response_string.length();
             //MessageBoxA(0, ss.str().c_str(), "Gonna load pdef", 0);
@@ -135,7 +146,8 @@ DWORD WINAPI precachePdef(PVOID pThreadParameter) {
             SUBD30FN sub_18042AD30 = (SUBD30FN)(enginedllBaseAddress + 0x42AD30);
             unsigned int bzresult = sub_18042AD30((__int64)&decompressedBuf, &decompressedLen, (__int64)(enginedllBaseAddress + 0x30F31E0), response_string.length(), 1, 0);
 
-            if ((bzresult & 0x80000000) != 0) {
+            if ((bzresult & 0x80000000) != 0)
+            {
 #if SHOW_PRECACHE_ERRORS
                 std::stringstream ss2; ss2 << "BZ2 error " << bzresult << " decompressing pdef source from server";
                 MessageBoxA(0, ss2.str().c_str(), "Error", 0);
@@ -146,7 +158,8 @@ DWORD WINAPI precachePdef(PVOID pThreadParameter) {
 
             SUBC30FN sub_180217C30 = (SUBC30FN)(enginedllBaseAddress + 0x217C30);
 
-            if (!sub_180217C30((__int64)&decompressedBuf, decompressedLen, (unsigned __int64*)(enginedllBaseAddress + 0x310D2B0), 299)) {
+            if (!sub_180217C30((__int64)&decompressedBuf, decompressedLen, (unsigned __int64*)(enginedllBaseAddress + 0x310D2B0), 299))
+            {
 #if SHOW_PRECACHE_ERRORS
                 MessageBoxA(0, "Error parsing persistent data definition file received from server.", "Error", 0);
 #endif
@@ -158,10 +171,12 @@ DWORD WINAPI precachePdef(PVOID pThreadParameter) {
             //ss << "\nDecompressed length: " << decompressedLen; MessageBoxA(0, ss.str().c_str(), "Loaded pdef", 0);
             SPDLOG_LOGGER_DEBUG(logger, "[Preloader] Preloaded pdef, decompressed length: {}", decompressedLen);
         }
-        else {
-            //std::stringstream ss;
-            //ss << response_code;
-            //MessageBoxA(0, ss.str().c_str(), "Not gonna load playlists", 0);
+        else
+        {
+            if (res != CURLE_OK)
+                spdlog::error("[Preloader] curl_easy_perform() failed for pdef: {}", curl_easy_strerror(res));
+            else
+                spdlog::error("[Preloader] Unexpected response code for pdef (expected 200): {}", response_code);
         }
     }
 

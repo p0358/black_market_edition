@@ -22,7 +22,8 @@ namespace Updater {
         std::string readBuffer;
 
         curl = curl_easy_init();
-        if (curl) {
+        if (curl)
+        {
             form = curl_mime_init(curl);
 
             field = curl_mime_addpart(form);
@@ -42,20 +43,34 @@ namespace Updater {
             res = curl_easy_perform(curl);
 
             if (res != CURLE_OK)
+            {
+                spdlog::error("Update check: curl_easy_perform() failed: {}", curl_easy_strerror(res));
                 return false;
-            //fprintf(stderr, "curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
+            }
 
             curl_easy_cleanup(curl);
             curl_mime_free(form);
         }
 
-        if (readBuffer.empty()) return false;
+        if (readBuffer.empty())
+        {
+            spdlog::error("Update check: readBuffer empty");
+            return false;
+        }
 
-        if (document->Parse(readBuffer.c_str()).HasParseError()) return false;
+        if (document->Parse(readBuffer.c_str()).HasParseError())
+        {
+            spdlog::error("Update check: failed parsing JSON");
+            return false;
+        }
 
-        if (!document->IsObject() && document->IsBool()) return false;
+        if (!document->IsObject() && document->IsBool())
+        {
+            // no updates!
+            return false;
+        }
+
         return true;
-
     }
 
     //////////////////
