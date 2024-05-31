@@ -79,7 +79,7 @@ Source: "source\bme\crashpad_wer.dll"; DestDir: "{app}\bme"; Flags: ignoreversio
 Source: "source\r1\media\fov_video_15ms_480x400.bik"; DestDir: "{app}\r1\media"; Flags: ignoreversion onlyifdoesntexist
 Source: "{app}\bin\x64_retail\launcher.dll"; DestDir: "{app}\bin\x64_retail"; DestName: "launcher.org.dll"; Flags: external skipifsourcedoesntexist onlyifdoesntexist uninsneveruninstall
 Source: "source\bin\x64_retail\launcher.dll"; DestDir: "{app}\bin\x64_retail"; Flags: ignoreversion uninsneveruninstall
-Source: "source\Titanfall_alt.exe"; DestDir: "{app}"; Flags: ignoreversion onlyifdoesntexist
+Source: "source\Titanfall_alt.exe"; DestDir: "{app}"; Flags: ignoreversion
 
 [InstallDelete]
 ; old loaders from beta

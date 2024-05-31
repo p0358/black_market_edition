@@ -3,10 +3,11 @@
 
 #include <wtypes.h>
 #include <stdio.h>
+#include <Shlwapi.h>
 
 #include <string>
 #include <system_error>
-#include <Shlwapi.h>
+#include <unordered_map>
 
 #define ERROR_MESSAGE_CAPTION "BME Launcher EXE error"
 
@@ -52,6 +53,23 @@ bool IsAnyIMEInstalled()
     return false;
 }
 
+bool DoesCpuSupportCetShadowStack()
+{
+    int cpuInfo[4] = { 0, 0, 0, 0 };
+    __cpuidex(cpuInfo, 7, 0);
+    return (cpuInfo[2] & (1 << 7)) != 0; // Check bit 7 in ECX (cpuInfo[2])
+}
+
+std::unordered_map<PROCESS_MITIGATION_POLICY, const char*> g_mitigationPolicyNames = {
+    { ProcessASLRPolicy, "ProcessASLRPolicy" },
+    { ProcessDynamicCodePolicy, "ProcessDynamicCodePolicy" },
+    { ProcessExtensionPointDisablePolicy, "ProcessExtensionPointDisablePolicy" },
+    { ProcessControlFlowGuardPolicy, "ProcessControlFlowGuardPolicy" },
+    { ProcessSignaturePolicy, "ProcessSignaturePolicy" },
+    { ProcessImageLoadPolicy, "ProcessImageLoadPolicy" },
+    { ProcessUserShadowStackPolicy, "ProcessUserShadowStackPolicy" },
+};
+
 void SetMitigationPolicies()
 {
     auto kernel32 = GetModuleHandleW(L"kernel32.dll");
@@ -66,8 +84,12 @@ void SetMitigationPolicies()
         bool result = SetProcessMitigationPolicy(MitigationPolicy, lpBuffer, dwLength);
         if (!result)
         {
+            if (MitigationPolicy == ProcessUserShadowStackPolicy && !DoesCpuSupportCetShadowStack())
+                return;
             auto lastError = GetLastError();
-            MessageBoxA(0, ("Failed mitigation: " + std::to_string(MitigationPolicy) + ", error: " + std::to_string(lastError)).c_str(),
+            MessageBoxA(0, ("Failed mitigation: "
+                + (g_mitigationPolicyNames.contains(MitigationPolicy) ? g_mitigationPolicyNames[MitigationPolicy] : std::to_string(MitigationPolicy))
+                + ", error: " + std::to_string(lastError) + "\n\nThis is a non-fatal error.").c_str(),
                 "BME: SetProcessMitigationPolicy failed", 0);
         }
     };
