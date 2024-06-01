@@ -32,7 +32,7 @@ DWORD WINAPI precachePlaylists(PVOID pThreadParameter)
         std::string response_string;
         std::string header_string;
         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writeFunction);
-        curl_easy_setopt(curl, CURLOPT_USERAGENT, _("Respawn HTTPS/1.0"));
+        curl_easy_setopt(curl, CURLOPT_USERAGENT, "Respawn HTTPS/1.0");
         curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response_string);
         curl_easy_setopt(curl, CURLOPT_HEADERDATA, &header_string);
 
@@ -66,7 +66,7 @@ DWORD WINAPI precachePlaylists(PVOID pThreadParameter)
                 loadPlaylists(response_string.c_str());
             }
             //MessageBoxA(0, ss.str().c_str(), "Loaded playlists", 0);
-            SPDLOG_LOGGER_DEBUG(logger, _("[Preloader] Preloaded playlists"));
+            SPDLOG_LOGGER_DEBUG(logger, "[Preloader] Preloaded playlists");
         }
         else
         {

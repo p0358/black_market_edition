@@ -165,9 +165,9 @@ void DiscordWrapper::handleDiscordJoinRequest(const DiscordUser* request)
 		const char* map = SDK().GetPresence().map;
 		if (map && *map && std::strcmp(map, "mp_lobby") == 0)
 		{
-			Chat::showChatLineEasy(_("\n[Discord] "), 0xFF7289DA);
+			Chat::showChatLineEasy("\n[Discord] ", 0xFF7289DA);
 			Chat::showChatLineEasy(request->username, 0xFFDDDDDD);
-			Chat::showChatLineEasy(_(" asked to join your game. You can accept this request in Discord."), 0xFFFFFFFF);
+			Chat::showChatLineEasy(" asked to join your game. You can accept this request in Discord.", 0xFFFFFFFF);
 		}
 	}
 	//Discord_Respond(request->userId, response); // response = DISCORD_REPLY_YES / _NO
@@ -189,9 +189,9 @@ void DiscordWrapper::handleDiscordInvited(/* DISCORD_ACTIVITY_ACTION_TYPE_ */ in
 		const char* map = SDK().GetPresence().map;
 		if (map && *map && std::strcmp(map, "mp_lobby") == 0)
 		{
-			Chat::showChatLineEasy(_("\n[Discord] "), 0x7289DAFF);
+			Chat::showChatLineEasy("\n[Discord] ", 0x7289DAFF);
 			Chat::showChatLineEasy(user->username, 0xDDDDDDFF);
-			Chat::showChatLineEasy(_(" invited you to join their game. You can accept this invite in Discord."), 0xFFFFFFFF);
+			Chat::showChatLineEasy(" invited you to join their game. You can accept this invite in Discord.", 0xFFFFFFFF);
 		}
 	}
 	//Discord_AcceptInvite(user->userId, type, sessionId, channelId, messageId);

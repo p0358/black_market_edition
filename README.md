@@ -1,10 +1,8 @@
 # Black Market Edition
 
-Black Market Edition is a multi-purpose community enhancement mod for Titanfall game, featuring various quality-of-life changes and improvements.
+Black Market Edition is a client-side multi-purpose community enhancement mod for Titanfall game, featuring various tons of quality-of-life changes and improvements.
 
-**NOTE:** It is NOT yet finished (but is getting very close there), there are a few chore tasks needed before so. However it works as-is for the most part.
-
-Open sourcing this for now regardless, because I slowly worked on it since 2019 and I am not sure if I will ever get a chance to finish it in the current situation.
+Note that this mod is meant for playing on vanilla game and does not include game servers.
 
 ## Installation
 
@@ -61,7 +59,6 @@ Installers are built with Inno Setup using scripts from installer/ folder and th
 ### Known bugs
 
 * pressing M to activate burn cards seems to activate the full screen map instead for some reason
-* registering custom new Squirrel functions in native code doesn't work, but we don't really need it currently
 * setting private match settings sliders to the edge unprecisely might apply a wrong setting (which will be shown within a second)
 
 ## Screenshots
@@ -132,7 +129,7 @@ Showing whether you're playing first or second half in switch-sides-based gamemo
 
 ## Compiling
 
-1. Clone the repo with `git clone --recursive --depth 1 -j8 https://github.com/p0358/black_market_edition.git`
+1. Clone the repo with `git clone --recursive --depth 1 https://github.com/p0358/black_market_edition.git`
 2. Run `generate.bat` to generate Visual Studio project files
 3. Run `copy_scripts_to_r1_modsrc.bat` to copy needed files from `bme_scripts` into `r1_modsrc`.
 4. Run `build_assets.bat` to package `r1_modsrc` dir contents into `installer/source/bme/bme.bsp` and generate file list header file
@@ -140,13 +137,17 @@ Showing whether you're playing first or second half in switch-sides-based gamemo
 6. Look at `installer/installer_simple2.iss` to figure out which files go where (copy `bme.dll` and `Titanfall_alt.exe` most importantly).
 7. Optionally build the installer (instructions below).
 
+Note: if you add/remove files in `r1_modsrc`, you need to re-compile the DLL too (as that includes the list of available files).
+
 ### Building an installer
 
-After doing the steps above, with Inno Setup compile out `installer/installer_simple2.iss` (or use `build_installer.bat` script if you have `iscc` in your path). The resulting installer will be in `installer/bme_installer.exe`.
+To build an installer for full mod, after doing the steps above, you need to look into the file `installer/installer_simple2.iss` and copy the required files into `installer/source` dir manually.
 
-To build an installer for full mod, you need to look into the file `installer/installer_simple2.iss` and copy the required files into `installer/source` dir manually.
-
-Under `source/bme`, copy the compiled `bme.dll` and create an empty file `bme.log`. Also create `bme_channel.txt` with the value `release`. Get `bme.bsp` from latest release in the Releases section (this file contains the filesystem replacement contents, that is scripts and some UI elements, into PakFile as lump 40 in bsp format, which can be easily mounted in the engine). Copy the built `launcher.dll` into `source/bin/x64_retail/`.
+1. Under `installer/source/bme/`, copy the compiled `bme.dll` (from `build/x64-<CHANNEL>/bin/bme.dll`).
+2. Also create `bme_channel.txt` with the value `staging` (or `release`).
+3. `bme.bsp` should already be there after step #4 of compiling above (this file contains the filesystem replacement contents, that is scripts and some UI elements, into PakFile as lump 40 in bsp format, which can be easily mounted in the engine).
+4. Copy the built `launcher.dll` into `installer/source/bin/x64_retail/` and `Titanfall_alt.exe` into `installer/source/`.
+5. With Inno Setup compile out `installer/installer_simple2.iss` (or use `build_installer.bat` script if you have `iscc` in your path). The resulting installer will be in `installer/bme_installer.exe`.
 
 ## Acknowledgements
 
@@ -154,15 +155,17 @@ Parts of code from [TTF2SDK by James Wilkinson and Will Donohoe](https://github.
 
 Black Market Edition makes use of the following third-party libraries:
 
-| Package Name  | URL                                                                  |
-|---------------|----------------------------------------------------------------------|
-| curl          | https://curl.se/docs/copyright.html                                  |
-| discord-rpc   | https://github.com/harmonytf/discord-rpc/blob/master/LICENSE         |
-| sentry-native | https://github.com/getsentry/sentry-native/blob/master/LICENSE       |
-| crashpad      | https://chromium.googlesource.com/crashpad/crashpad/+/master/LICENSE |
-| imgui         | https://github.com/ocornut/imgui/blob/master/LICENSE.txt             |
-| MinHook       | https://github.com/TFORevive/minhook/blob/master/LICENSE.txt         |
-| rapidjson     | https://github.com/Tencent/rapidjson/blob/master/license.txt         |
-| spdlog        | https://github.com/gabime/spdlog/blob/v1.x/LICENSE                   |
+| Package Name            | URL                                                                        |
+|-------------------------|----------------------------------------------------------------------------|
+| crashpad                | https://chromium.googlesource.com/crashpad/crashpad/+/master/LICENSE       |
+| curl                    | https://curl.se/docs/copyright.html                                        |
+| discord-rpc             | https://github.com/harmonytf/discord-rpc/blob/master/LICENSE               |
+| imgui                   | https://github.com/ocornut/imgui/blob/master/LICENSE.txt                   |
+| InnoDependencyInstaller | https://github.com/DomGries/InnoDependencyInstaller/blob/master/LICENSE.md |
+| MinHook                 | https://github.com/TFORevive/minhook/blob/master/LICENSE.txt               |
+| nghttp2                 | https://github.com/nghttp2/nghttp2/blob/master/COPYING                     |
+| sentry-native           | https://github.com/getsentry/sentry-native/blob/master/LICENSE             |
+| spdlog                  | https://github.com/gabime/spdlog/blob/v1.x/LICENSE                         |
+| rapidjson               | https://github.com/Tencent/rapidjson/blob/master/license.txt               |
 
 TITANFALL™ is a trademark of Respawn Entertainment, LLC.

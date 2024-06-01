@@ -15,7 +15,6 @@ ConCommandManager::ConCommandManager() noexcept
 
 void ConCommandManager::RegisterCommand(const char* name, void(*callback)(const CCommand&), const char* helpString, int flags)
 {
-    //m_logger->info(_("Adding console command: {}"), name);
     SPDLOG_LOGGER_DEBUG(m_logger, "Adding console command: {}", name);
     m_commands.emplace_back();
     ConCommand* newCommand = &m_commands.back();
@@ -24,7 +23,6 @@ void ConCommandManager::RegisterCommand(const char* name, void(*callback)(const 
 
 ConVar* ConCommandManager::RegisterConVar(const char* name, const char* defaultValue, int flags, const char* helpString)
 {
-    //m_logger->info(_("Adding cvar: {}"), name);
     SPDLOG_LOGGER_DEBUG(m_logger, "Adding cvar: {}", name);
     m_cvars.emplace_back();
     ConVar2* newCvar = &m_cvars.back();

@@ -84,9 +84,9 @@ void SetMitigationPolicies()
         bool result = SetProcessMitigationPolicy(MitigationPolicy, lpBuffer, dwLength);
         if (!result)
         {
+            auto lastError = GetLastError();
             if (MitigationPolicy == ProcessUserShadowStackPolicy && !DoesCpuSupportCetShadowStack())
                 return;
-            auto lastError = GetLastError();
             MessageBoxA(0, ("Failed mitigation: "
                 + (g_mitigationPolicyNames.contains(MitigationPolicy) ? g_mitigationPolicyNames[MitigationPolicy] : std::to_string(MitigationPolicy))
                 + ", error: " + std::to_string(lastError) + "\n\nThis is a non-fatal error.").c_str(),

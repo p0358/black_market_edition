@@ -22,7 +22,7 @@ BMEGUI::BMEGUI(ConCommandManager& conCommandManager, UIManager& uiManager/*, Squ
 
 BMEGUI::~BMEGUI()
 {
-    SPDLOG_LOGGER_DEBUG(spdlog::get(_("logger")), "BMEGUI destructor");
+    spdlog::debug("BMEGUI destructor");
     m_uiManager->RemoveDrawCallback("UpdaterDownloadProgress");
     m_uiManager->RemoveDrawCallback("DrawUpdaterLaunchingSplashScreen");
 }

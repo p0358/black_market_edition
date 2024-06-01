@@ -107,7 +107,7 @@ UIManager::UIManager(ConCommandManager& conCommandManager/*, SquirrelManager& sq
 
 UIManager::~UIManager()
 {
-    SPDLOG_LOGGER_DEBUG(spdlog::get(_("logger")), "UIManager destructor");
+    SPDLOG_LOGGER_DEBUG(m_logger, "UIManager destructor");
     IDXGISwapChain_Present.Unhook();
     GameWindowProc.Unhook();
     ISurface_SetCursor.Unhook();
@@ -286,7 +286,7 @@ int UIManager::WindowProcHook(void* game, HWND hWnd, UINT uMsg, WPARAM wParam, L
 
     if (uMsg == WM_ENDSESSION && lParam == ENDSESSION_CLOSEAPP)
     {
-        /*SPDLOG_LOGGER_DEBUG(spdlog::get(_("logger")), "WM_ENDSESSION");
+        /*SPDLOG_DEBUG("WM_ENDSESSION");
         isProcessTerminating = true;
         SDK().GetEngineClient()->ClientCmd_Unrestricted("quit");
         if (!SDK().runFrameHookCalled)
@@ -300,7 +300,7 @@ int UIManager::WindowProcHook(void* game, HWND hWnd, UINT uMsg, WPARAM wParam, L
 
     if (uMsg == WM_CLOSE)
     {
-        /*SPDLOG_LOGGER_DEBUG(spdlog::get(_("logger")), "WM_CLOSE");
+        /*SPDLOG_DEBUG("WM_CLOSE");
         isProcessTerminating = true;
         if (&SDK() != nullptr && SDK().GetEngineClient() != nullptr && SDK().GetEngineClient() != NULL)
             SDK().GetEngineClient()->ClientCmd_Unrestricted("quit");

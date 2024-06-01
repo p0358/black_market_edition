@@ -77,8 +77,6 @@ using namespace std::literals::string_view_literals;
 #include <imgui/backends/imgui_impl_win32.h>
 
 #include <MinHook.h>
-#include <xorstr.hpp>
-#define _(str) xorstr_(str)
 
 #include <curl/curl.h>
 #include <curl/easy.h>

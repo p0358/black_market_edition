@@ -672,10 +672,10 @@ HookedFuncStatic<int64_t __fastcall, int64_t, void*, uint64_t*, void*> _originEv
 
 Presence::Presence()
 {
-	m_logger = spdlog::get(_("logger"));
+	m_logger = spdlog::get("logger");
 	//auto enginedllBaseAddress = *engineClient->ba;
-	auto enginedllBaseAddress = Util::GetModuleBaseAddress(_("engine.dll"));
-	auto clientdllBaseAddress = Util::GetModuleBaseAddress(_("client.dll"));
+	auto enginedllBaseAddress = Util::GetModuleBaseAddress("engine.dll");
+	auto clientdllBaseAddress = Util::GetModuleBaseAddress("client.dll");
 	isConnectedAndInLobby = (int*)(enginedllBaseAddress + 0x79725C);
 	teamNum = (int*)(enginedllBaseAddress + 0x797260);
 	match_playlist = (const char*)(enginedllBaseAddress + 0x2EDABB0);
@@ -724,7 +724,7 @@ Presence::Presence()
 
 Presence::~Presence()
 {
-	SPDLOG_LOGGER_DEBUG(spdlog::get(_("logger")), "Presence destructor");
+	SPDLOG_LOGGER_DEBUG(m_logger, "Presence destructor");
 	_updatePresence2.Unhook();
 	_sub_180473500.Unhook();
 }

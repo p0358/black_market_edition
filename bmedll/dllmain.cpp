@@ -452,12 +452,12 @@ void DoBinaryPatches()
     }
     { // FOV range patch 2
         void* ptr = (void*)(Util::GetModuleBaseAddress("engine.dll") + 0x31A1BE0 + 108);
-        //void* ptr = (void*)(*((unsigned __int64*)(Util::GetModuleBaseAddress(_("engine.dll")) + 0x31A1BE0)) + 108);
+        //void* ptr = (void*)(*((unsigned __int64*)(Util::GetModuleBaseAddress("engine.dll") + 0x31A1BE0)) + 108);
         TempReadWrite rw(ptr);
         *((float*)ptr) = 3.85f;
     }
     { // FOV range patch
-        void* ptr = (void*)(Util::GetModuleBaseAddress(_("client.dll")) + 0x9CDB74);
+        void* ptr = (void*)(Util::GetModuleBaseAddress("client.dll") + 0x9CDB74);
         TempReadWrite rw(ptr);
         *((float*)ptr) = 3.85f; // will work only before cvar is registered
     }
@@ -527,7 +527,7 @@ void DoBinaryPatches()
     {
         // default is m_bRestrictServerCommands=true, don't let it be set to false
         // this is the easiest way that at the same time allows m_bRestrictClientCommands to be false
-        void* ptr = (void*)(Util::GetModuleBaseAddress(_("engine.dll")) + 0x19C516);
+        void* ptr = (void*)(Util::GetModuleBaseAddress("engine.dll") + 0x19C516);
         TempReadWrite rw(ptr);
         memset(ptr, 0x90, 0x19C523 - 0x19C516);
     }*/

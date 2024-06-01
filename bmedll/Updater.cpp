@@ -283,7 +283,7 @@ namespace Updater {
         if (&SDK() != nullptr && SDK().runFrameHookCalled)
         {
             //pendingUpdateLaunch = true;
-            //logger->info(_("Game is already launched, delaying update until it's quit."));
+            //logger->info("Game is already launched, delaying update until it's quit.");
         }
         else
         {

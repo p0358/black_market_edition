@@ -216,9 +216,9 @@ void SourceConsole::OnCommandSubmittedHook(CConsoleDialog* consoleDialog, const 
     if (!IsConsoleAvailable() || !m_gameConsole->IsConsoleVisible())
         return;
 
-    //Print(_("] "));
+    //Print("] ");
     //Print(pCommand);
-    //Print(_("\n"));
+    //Print("\n");
     m_logger->info("] {}", pCommand);
 
     CConsoleDialog_OnCommandSubmitted(consoleDialog, pCommand);

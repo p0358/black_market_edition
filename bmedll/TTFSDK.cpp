@@ -280,14 +280,14 @@ void TTFSDK::Init()
 
 #if 0
     /*{ // patch the restriction "Can't send client command; not connected to a server" of ClientCommand in script
-        void* ptr = (void*)(Util::GetModuleBaseAddress(_("client.dll")) + 0x2DB33B);
+        void* ptr = (void*)(Util::GetModuleBaseAddress("client.dll") + 0x2DB33B);
         TempReadWrite rw(ptr);
         *((unsigned char*)ptr) = 0xEB;
     }*/
 
     /*{ // FOV range patch
         {
-            void* ptr = (void*)(Util::GetModuleBaseAddress(_("engine.dll")) + 0x6C6D34);
+            void* ptr = (void*)(Util::GetModuleBaseAddress("engine.dll") + 0x6C6D34);
             TempReadWrite rw(ptr);
             *((float*)ptr) = 2.5f; // will work only before cvar is registered
         }
@@ -297,22 +297,22 @@ void TTFSDK::Init()
         //*(float*)((DWORD64)fov + 100) = 0.5f; // min
     }*/
     { // FOV range patch 2
-        void* ptr = (void*)(Util::GetModuleBaseAddress(_("engine.dll")) + 0x31A1BE0 + 108);
-        //void* ptr = (void*)(*((unsigned __int64*)(Util::GetModuleBaseAddress(_("engine.dll")) + 0x31A1BE0)) + 108);
+        void* ptr = (void*)(Util::GetModuleBaseAddress("engine.dll") + 0x31A1BE0 + 108);
+        //void* ptr = (void*)(*((unsigned __int64*)(Util::GetModuleBaseAddress("engine.dll") + 0x31A1BE0)) + 108);
         TempReadWrite rw(ptr);
         *((float*)ptr) = 2.5f;
     }
 #endif
 
-    this->origin = (TFOrigin*)(Util::GetModuleBaseAddress(_("engine.dll")) + 0x2ECB770);
+    this->origin = (TFOrigin*)(Util::GetModuleBaseAddress("engine.dll") + 0x2ECB770);
 
     /*{
-        std::string game_s3_url{ _("bme.titanfall.top/backend/game_s3.php/ver=") };
+        std::string game_s3_url{ "bme.titanfall.top/backend/game_s3.php/ver=" };
         game_s3_url += BME_VERSION;
-        game_s3_url += _("/chan=");
+        game_s3_url += "/chan=";
         game_s3_url += GetBMEChannel();
         game_s3_url += "/";
-        std::string cmd{ _("staticfile_hostname ") };
+        std::string cmd{ "staticfile_hostname " };
         cmd += game_s3_url;
         //ConVar* staticfile_hostname = m_vstdlibCvar->FindVar("staticfile_hostname");
         //staticfile_hostname->SetValueString(game_s3_url.c_str());
@@ -372,7 +372,7 @@ void __fastcall TTFSDK::RunFrameHook(__int64 a1, double frameTime)
     if (!called)
     {
         runFrameHookCalled = true;
-        m_logger->info(_("RunFrame called for the first time"));
+        m_logger->info("RunFrame called for the first time");
         called = true;
         Updater::drawModalWillUpdaterLaunchAfterGameClose = false;
         m_sourceConsole->InitializeSource();
@@ -386,8 +386,8 @@ void __fastcall TTFSDK::RunFrameHook(__int64 a1, double frameTime)
         }
 
         { // FOV range patch 2
-            void* ptr = (void*)(Util::GetModuleBaseAddress(_("engine.dll")) + 0x31A1BE0 + 108);
-            //void* ptr = (void*)(*((unsigned __int64*)(Util::GetModuleBaseAddress(_("engine.dll")) + 0x31A1BE0)) + 108);
+            void* ptr = (void*)(Util::GetModuleBaseAddress("engine.dll") + 0x31A1BE0 + 108);
+            //void* ptr = (void*)(*((unsigned __int64*)(Util::GetModuleBaseAddress("engine.dll") + 0x31A1BE0)) + 108);
             TempReadWrite rw(ptr);
             *((float*)ptr) = 2.5f;
         }
@@ -582,6 +582,8 @@ bool SetupLogger()
 
         spdlog::info("Logger has been initialized at {}.", strtok(std::ctime(&time), "\n"));
         spdlog::info("Raw command line: {}", GetCommandLineA());
+        spdlog::info("BME version: " BME_VERSION);
+        spdlog::info("BME channel: " BME_CHANNEL);
 
         spdlog::info("CPU: {}", Util::GetProcessorNameString());
         bool ishdd = Util::DoesStorageDeviceIncurSeekPenaltyAtPath((basePath / L"vpk" / L"client_mp_common.bsp.pak000_000.vpk").wstring().c_str());

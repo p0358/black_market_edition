@@ -124,7 +124,7 @@ FileSystemManager::FileSystemManager(const std::string& basePath)
 
 FileSystemManager::~FileSystemManager()
 {
-    SPDLOG_LOGGER_DEBUG(spdlog::get(_("logger")), "FileSystemManager destructor");
+    SPDLOG_LOGGER_DEBUG(m_logger, "FileSystemManager destructor");
     IFileSystem_AddSearchPath.Unhook();
     IFileSystem_ReadFromCache.Unhook();
     IFileSystem_MountVPK.Unhook();

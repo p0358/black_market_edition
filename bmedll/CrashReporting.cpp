@@ -10,7 +10,7 @@
 #include "tier0.h"
 
 // this sig may be wrong
-SigScanFunc<void*, _se_translator_function> engine_set_se_translator(_("engine.dll"), "\x48\x89\x5C\x24\x00\x57\x48\x83\xEC\x00\x48\x8B\xF9\xE8\x00\x00\x00\x00\x48\x8B\x98\x00\x00\x00\x00", "xxxx?xxxx?xxxx????xxx????");
+SigScanFunc<void*, _se_translator_function> engine_set_se_translator("engine.dll", "\x48\x89\x5C\x24\x00\x57\x48\x83\xEC\x00\x48\x8B\xF9\xE8\x00\x00\x00\x00\x48\x8B\x98\x00\x00\x00\x00", "xxxx?xxxx?xxxx????xxx????");
 FuncStatic<void*, _se_translator_function> engine_set_se_translator2("engine.dll", 0x56BC04);
 
 void TranslatorFunc(unsigned int, struct _EXCEPTION_POINTERS* exinfo)
