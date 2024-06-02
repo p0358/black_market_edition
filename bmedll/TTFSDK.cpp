@@ -336,6 +336,14 @@ void TTFSDK::Init()
     PlaylistCounts_Init();
     extern void ScoreboardSave_Init(SquirrelManager& sqManager, ConCommandManager& ccManager);
     ScoreboardSave_Init(*m_sqManager, *m_conCommandManager);
+
+    sentry_set_tag("has_igo64", GetModuleHandleA("igo64") != nullptr ? "yes" : "no");
+    if (GetModuleHandleA("igo64") != nullptr)
+    {
+        char igoModuleFullName[MAX_PATH];
+        GetModuleFileNameExA(GetCurrentProcess(), GetModuleHandleA("igo64"), igoModuleFullName, MAX_PATH);
+        sentry_set_tag("igo64_path", igoModuleFullName);
+    }
 }
 
 

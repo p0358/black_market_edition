@@ -440,6 +440,30 @@ bool SetupCrashHandler(std::wstring BasePath)
         }
     }
 
+    sentry_set_tag("alt_launcher", GetProcAddress(GetModuleHandleA(NULL), "AmdPowerXpressRequestHighPerformance") != nullptr ? "yes" : "no");
+
+    if (getenv("EAEntitlementSource"))
+        sentry_set_tag("EAEntitlementSource", getenv("EAEntitlementSource"));
+
+    auto parentProcessId = Util::GetParentProcessId();
+    if (parentProcessId && parentProcessId != -1)
+    {
+        HANDLE parentHandle = OpenProcess(PROCESS_QUERY_INFORMATION, false, parentProcessId);
+        if (parentHandle)
+        {
+            char parentModuleFullName[MAX_PATH];
+            GetModuleFileNameExA(parentHandle, 0, parentModuleFullName, MAX_PATH);
+            sentry_set_tag("parent_path", parentModuleFullName);
+
+            if (strstr(parentModuleFullName, "Origin.exe"))
+                sentry_set_tag("via_origin", "yes");
+            else if (strstr(parentModuleFullName, "EADesktop.exe"))
+                sentry_set_tag("via_eaapp", "yes");
+
+            CloseHandle(parentHandle);
+        }
+    }
+
     return true;
 }
 

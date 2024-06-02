@@ -312,4 +312,17 @@ namespace Util
         _SetThreadDescription(GetCurrentThread(), Util::Widen(newName).c_str());
     }
 
+    ULONG_PTR GetParentProcessId()
+    {
+        ULONG_PTR pbi[6];
+        ULONG ulSize = 0;
+        typedef LONG(WINAPI * NtQueryInformationProcess_t)(HANDLE ProcessHandle, ULONG ProcessInformationClass, PVOID ProcessInformation, ULONG ProcessInformationLength, PULONG ReturnLength);
+        auto NtQueryInformationProcess = reinterpret_cast<NtQueryInformationProcess_t>(GetProcAddress(LoadLibraryA("NTDLL.DLL"), "NtQueryInformationProcess"));
+        if (NtQueryInformationProcess)
+        {
+            if (NtQueryInformationProcess(GetCurrentProcess(), 0, &pbi, sizeof(pbi), &ulSize) >= 0 && ulSize == sizeof(pbi))
+                return pbi[5];
+        }
+        return (ULONG_PTR)-1;
+    }
 }

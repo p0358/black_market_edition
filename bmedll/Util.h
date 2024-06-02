@@ -107,4 +107,5 @@ namespace Util
     const char* GetProcessorNameString();
     bool DoesStorageDeviceIncurSeekPenaltyAtPath(const wchar_t* file_path);
     void ThreadSetDebugName(const char* name);
+    ULONG_PTR GetParentProcessId();
 }
