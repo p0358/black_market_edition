@@ -43,7 +43,7 @@ namespace Updater
 
             res = curl_easy_perform(curl);
 
-            if (!g_isShuttingDown)
+            if (g_isShuttingDown)
             {
                 spdlog::warn("[BME Updater] Update check: failure, game is already shutting down");
                 curl_easy_cleanup(curl);
