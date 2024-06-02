@@ -1,12 +1,10 @@
 ﻿// dllmain.cpp : Definiuje punkt wejścia dla aplikacji DLL.
 #include "pch.h"
-#include <iostream>
-#include <functional>
-#include <string>
 #include "tier0.h"
 #include "Memory.h"
 #include "TTFSDK.h"
 #include "CrashReporting.h"
+#include "Updater.h"
 
 HANDLE threadHandle;
 std::chrono::system_clock::time_point g_startTime;
@@ -267,16 +265,22 @@ typedef __int64(__fastcall* COM_ExplainDisconnection_TYPE)(bool a1, const char* 
 COM_ExplainDisconnection_TYPE COM_ExplainDisconnection_org;
 __int64 __fastcall COM_ExplainDisconnection(bool a1, const char* fmt, ...)
 {
-    std::stringstream ss;
     char buffer[1024];
     va_list args;
     va_start(args, fmt);
     vsprintf_s(buffer, fmt, args);
     va_end(args);
 
-    ss << "COM_ExplainDisconnection: " << (char*)buffer;
-    spdlog::info(ss.str().c_str());
+    spdlog::info("COM_ExplainDisconnection: {}", buffer);
     return COM_ExplainDisconnection_org(a1, buffer);
+}
+
+typedef __int64(__fastcall* Host_Disconnect_TYPE)(bool bShowMainMenu);
+Host_Disconnect_TYPE Host_Disconnect_org;
+__int64 __fastcall Host_Disconnect(bool bShowMainMenu)
+{
+    if (bShowMainMenu) Updater::CheckForUpdates();
+    return Host_Disconnect_org(bShowMainMenu);
 }
 
 typedef void(__fastcall* Tier0_ThreadSetDebugName_type)(HANDLE, const char*);
@@ -430,6 +434,7 @@ void DoMiscHooks()
     CreateMiscHook(clientdllBaseAddress, 0x17E140, &sub_18017E140, reinterpret_cast<LPVOID*>(&sub_18017E140_org));
     CreateMiscHook(enginedllBaseAddress, 0x59DE0, &CL_Move, reinterpret_cast<LPVOID*>(&CL_Move_org));
     CreateMiscHook(enginedllBaseAddress, 0x117240, &COM_ExplainDisconnection, reinterpret_cast<LPVOID*>(&COM_ExplainDisconnection_org));
+    CreateMiscHook(enginedllBaseAddress, 0x137160, &Host_Disconnect, reinterpret_cast<LPVOID*>(&Host_Disconnect_org));
     CreateMiscHookNamed("tier0", "ThreadSetDebugName", &Tier0_ThreadSetDebugName, reinterpret_cast<LPVOID*>(&Tier0_ThreadSetDebugName_org));
     CreateMiscHook(vguimatsurfacedllBaseAddress, 0xBAC0, &sub_18000BAC0, reinterpret_cast<LPVOID*>(&sub_18000BAC0_org));
     CreateMiscHook(launcherdllBaseAddress, 0x4D6D0, &SQInstance_Finalize, reinterpret_cast<LPVOID*>(&SQInstance_Finalize_org));

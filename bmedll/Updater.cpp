@@ -45,14 +45,14 @@ namespace Updater
 
             if (!IsSDKReady())
             {
-                spdlog::warn("Update check: failure, game is already shutting down or SDK not ready");
+                spdlog::warn("[BME Updater] Update check: failure, game is already shutting down or SDK not ready");
                 curl_easy_cleanup(curl);
                 return false;
             }
 
             if (res != CURLE_OK)
             {
-                spdlog::error("Update check: curl_easy_perform() failed: {}", curl_easy_strerror(res));
+                spdlog::error("[BME Updater] Update check: curl_easy_perform() failed: {}", curl_easy_strerror(res));
                 return false;
             }
 
@@ -62,13 +62,13 @@ namespace Updater
 
         if (readBuffer.empty())
         {
-            spdlog::error("Update check: readBuffer empty");
+            spdlog::error("[BME Updater] Update check: readBuffer empty");
             return false;
         }
 
         if (document->Parse(readBuffer.c_str()).HasParseError())
         {
-            spdlog::error("Update check: failed parsing JSON");
+            spdlog::error("[BME Updater] Update check: failed parsing JSON");
             return false;
         }
 
@@ -123,7 +123,7 @@ namespace Updater
         std::wstring outfilename{ temp };
         outfilename += L"bme_updater.exe";
 
-        spdlog::info("Gonna save update to: {}", Util::Narrow(outfilename));
+        spdlog::info("[BME Updater] Gonna save update to: {}", Util::Narrow(outfilename));
 
         curl = curl_easy_init();
         if (curl)
@@ -131,7 +131,7 @@ namespace Updater
             fp = _wfopen(outfilename.c_str(), L"wb");
             if (!fp)
             {
-                spdlog::error("Failed opening file for writing");
+                spdlog::error("[BME Updater] Failed opening file for writing");
                 curl_easy_cleanup(curl);
                 return L"";
             }
@@ -159,17 +159,17 @@ namespace Updater
 
             if (res != CURLE_OK)
             {
-                spdlog::error("Update download error, curl code is not CURLE_OK: {}", (int)res);
+                spdlog::error("[BME Updater] Update download error, curl code is not CURLE_OK: {}", (int)res);
                 return L"";
             }
             if (response_code != 200)
             {
-                spdlog::error("Update download error, response status code is not 200: {}", response_code);
+                spdlog::error("[BME Updater] Update download error, response status code is not 200: {}", response_code);
                 return L"";
             }
             if (size == 0)
             {
-                spdlog::error("Update download error, file size is 0");
+                spdlog::error("[BME Updater] Update download error, file size is 0");
                 return L"";
             }
         }
@@ -177,7 +177,7 @@ namespace Updater
         if (fs::exists(outfilename))
             return outfilename;
 
-        spdlog::error("Update download error, file doesn't exist at the location: {}", Util::Narrow(outfilename));
+        spdlog::error("[BME Updater] Update download error, file doesn't exist at the location: {}", Util::Narrow(outfilename));
         return L"";
     }
 
@@ -207,9 +207,9 @@ namespace Updater
         params2 += L"\" ";
         params2 += Util::Widen(params);
 
-        logger->info("Firing up BME updater...");
-        logger->info("Path: {}", Util::Narrow(updater_path));
-        logger->info("Params: {}", params);
+        logger->info("[BME Updater] Firing up BME updater...");
+        logger->info("[BME Updater] Path: {}", Util::Narrow(updater_path));
+        logger->info("[BME Updater] Params: {}", params);
 
         if (!CreateProcessW(updater_path.c_str(), (LPWSTR)params2.c_str(), NULL, NULL, false, 0, NULL, NULL, &si, &pi))
         {
@@ -243,42 +243,43 @@ namespace Updater
     {
         Sleep(1);
         auto logger = spdlog::get("logger");
-        logger->info("Checking for updates...");
+        logger->info("[BME Updater] Checking for updates...");
 
         rapidjson::Document d;
         bool result = QueryServerForUpdates(&d);
         if (result == false || !d.IsObject())
         {
-            logger->info("No updates found.");
+            logger->info("[BME Updater] No updates found.");
             return 0;
         }
 
         updateInProcess = true;
+        pendingUpdateLaunchMotdChange = true;
         updater_url = { d["updater_url"].GetString(), d["updater_url"].GetStringLength() };
-        logger->info("Found an update, downloading updater...");
-        logger->info("Downloading from: {}", updater_url);
+        logger->info("[BME Updater] Found an update, downloading updater...");
+        logger->info("[BME Updater] Downloading from: {}", updater_url);
 
         updater_path = SaveUpdaterFile(updater_url);
         if (Updater::isUpdaterDownloadCancelled)
         {
-            logger->error("Update cancelled by user.");
+            logger->error("[BME Updater] Update cancelled by user.");
             return 0;
         }
         // TODO: poni¿sze jako MsgBox?
         if (updater_path.empty())
         {
-            logger->error("Found BME update, but could not save the file to user's temp directory. Check in with your antivirus software and create a whitelist entry.");
+            logger->error("[BME Updater] Found BME update, but could not save the file to user's temp directory. Check in with your antivirus software and create a whitelist entry.");
             updaterDownloadFailed = true;
             pendingUpdateLaunchMotdChange = true;
             return 0;
         }
 
-        logger->info("Updater saved to: {}", Util::Narrow(updater_path));
+        logger->info("[BME Updater] Updater saved to: {}", Util::Narrow(updater_path));
 
         params = std::string(d["updater_params"].GetString());
         params = std::regex_replace(params, std::regex("\\$dir"), GetThisPath());
 
-        logger->info("Updater command line params: {}", params);
+        logger->info("[BME Updater] Updater command line params: {}", params);
 
         logger->info("====");
         logger->info("BME updater will be fired up after you close your game.");
@@ -307,13 +308,15 @@ namespace Updater
         const char* motdcmd;
         if (Updater::updaterDownloadFailed)
             motdcmd = "motd \"^FF000000Found BME update, but could not save the file to user's temp directory. Check in with your antivirus software and create a whitelist entry. See console or bme.log for more details. Alternatively, download the latest version from GitHub.\"";
-        else
+        else if (Updater::pendingUpdateLaunch)
             motdcmd = "motd \"^00FF0000Black Market Edition update is pending! It will be installed after you exit your game. More information available in console and bme.log. If the installer doesn't start automatically, download the latest version from GitHub.\"";
+        else
+            motdcmd = "motd \"^FFFF0000Black Market Edition update is being downloaded...\"";
         SDK().GetEngineClient()->ClientCmd_Unrestricted(motdcmd);
 
         auto logger = spdlog::get("logger");
 
-        if (!Updater::updaterDownloadFailed)
+        if (Updater::pendingUpdateLaunch)
         {
             logger->info("");
             logger->info("");
