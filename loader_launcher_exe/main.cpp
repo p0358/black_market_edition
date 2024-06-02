@@ -129,9 +129,12 @@ void SetMitigationPolicies()
 
     PROCESS_MITIGATION_USER_SHADOW_STACK_POLICY usspp;
     GetProcessMitigationPolicy(::GetCurrentProcess(), ProcessUserShadowStackPolicy, &usspp, sizeof(usspp));
-    usspp.EnableUserShadowStack = true;
-    usspp.EnableUserShadowStackStrictMode = true;
-    SetProcessMitigationPolicyEnsureOK(ProcessUserShadowStackPolicy, &usspp, sizeof(usspp));
+    if (usspp.EnableUserShadowStack)
+    {
+        //MessageBoxA(0, "Enabling shadow stack strict mode", "", 0);
+        usspp.EnableUserShadowStackStrictMode = true;
+        SetProcessMitigationPolicyEnsureOK(ProcessUserShadowStackPolicy, &usspp, sizeof(usspp));
+    } //else MessageBoxA(0, "Shadow stack is not enabled!!!", "", 0);
 }
 
 bool Load(LPSTR lpCmdLine)
