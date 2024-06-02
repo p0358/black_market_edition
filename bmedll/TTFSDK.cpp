@@ -482,7 +482,7 @@ TTFSDK::~TTFSDK()
     //_Host_RunFrame.Unhook();
     CHostState_State_Run.Unhook();
 
-    curl_global_cleanup();
+    //curl_global_cleanup(); // this would crash if some requests are in-progress which CAN happen
     SPDLOG_DEBUG("TTFSDK destructor finished");
 }
 

@@ -1,5 +1,6 @@
 #include "Util.h"
 #include "tier0.h"
+#include "TTFSDK.h"
 
 size_t writeFunction(void* ptr, size_t size, size_t nmemb, std::string* data)
 {
@@ -37,6 +38,13 @@ DWORD WINAPI precachePlaylists(PVOID pThreadParameter)
         curl_easy_setopt(curl, CURLOPT_HEADERDATA, &header_string);
 
         CURLcode res = curl_easy_perform(curl);
+
+        if (!IsSDKReady())
+        {
+            spdlog::warn("[Preloader] Failure, game is already shutting down or SDK not ready when trying to precache pdef");
+            curl_easy_cleanup(curl);
+            return 0;
+        }
 
         long response_code;
         //double elapsed;
@@ -114,6 +122,13 @@ DWORD WINAPI precachePdef(PVOID pThreadParameter)
 
         CURLcode res = curl_easy_perform(curl);
 
+        if (!IsSDKReady())
+        {
+            spdlog::warn("[Preloader] Failure, game is already shutting down or SDK not ready when trying to precache pdef");
+            curl_easy_cleanup(curl);
+            return 0;
+        }
+
         long response_code;
         //double elapsed;
         //char* url;
@@ -122,7 +137,6 @@ DWORD WINAPI precachePdef(PVOID pThreadParameter)
         //curl_easy_getinfo(curl, CURLINFO_EFFECTIVE_URL, &url);
 
         curl_easy_cleanup(curl);
-        curl = NULL;
 
         if (*persistencePdefVersion_ptr) return 0; // already loaded
 

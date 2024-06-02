@@ -3,7 +3,8 @@
 #include "TTFSDK.h"
 #include "Updater.h"
 
-namespace Updater {
+namespace Updater
+{
 
     static size_t WriteCallback(void* contents, size_t size, size_t nmemb, void* userp)
     {
@@ -41,6 +42,13 @@ namespace Updater {
             curl_easy_setopt(curl, CURLOPT_WRITEDATA, &readBuffer);
 
             res = curl_easy_perform(curl);
+
+            if (!IsSDKReady())
+            {
+                spdlog::warn("Update check: failure, game is already shutting down or SDK not ready");
+                curl_easy_cleanup(curl);
+                return false;
+            }
 
             if (res != CURLE_OK)
             {

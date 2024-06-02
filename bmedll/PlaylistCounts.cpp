@@ -38,6 +38,13 @@ DWORD WINAPI loadPlaylistCounts(PVOID pThreadParameter)
 
         CURLcode res = curl_easy_perform(curl);
 
+        if (!IsSDKReady())
+        {
+            spdlog::warn("Loading playlist counts failure, game is already shutting down or SDK not ready");
+            curl_easy_cleanup(curl);
+            return 0;
+        }
+
         long response_code;
         //double elapsed;
         //char* url;
