@@ -43,9 +43,9 @@ namespace Updater
 
             res = curl_easy_perform(curl);
 
-            if (!IsSDKReady())
+            if (!g_isShuttingDown)
             {
-                spdlog::warn("[BME Updater] Update check: failure, game is already shutting down or SDK not ready");
+                spdlog::warn("[BME Updater] Update check: failure, game is already shutting down");
                 curl_easy_cleanup(curl);
                 return false;
             }
@@ -241,7 +241,6 @@ namespace Updater
 
     DWORD WINAPI DownloadAndApplyUpdate(LPVOID lpThreadParameter)
     {
-        Sleep(1);
         auto logger = spdlog::get("logger");
         logger->info("[BME Updater] Checking for updates...");
 
