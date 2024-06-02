@@ -21,7 +21,6 @@ void TranslatorFunc(unsigned int, struct _EXCEPTION_POINTERS* exinfo)
 LONG WINAPI VectoredExceptionHandler(EXCEPTION_POINTERS* pExceptionInfo)
 {
     const auto exceptionCode = pExceptionInfo->ExceptionRecord->ExceptionCode;
-    spdlog::debug("[VectoredExceptionHandler] exceptionCode: {}", exceptionCode);
 
     if (exceptionCode != EXCEPTION_ACCESS_VIOLATION && exceptionCode != EXCEPTION_ARRAY_BOUNDS_EXCEEDED &&
         exceptionCode != EXCEPTION_DATATYPE_MISALIGNMENT && exceptionCode != EXCEPTION_FLT_DENORMAL_OPERAND &&
@@ -31,9 +30,16 @@ LONG WINAPI VectoredExceptionHandler(EXCEPTION_POINTERS* pExceptionInfo)
         exceptionCode != EXCEPTION_ILLEGAL_INSTRUCTION && exceptionCode != EXCEPTION_IN_PAGE_ERROR &&
         exceptionCode != EXCEPTION_INT_DIVIDE_BY_ZERO && exceptionCode != EXCEPTION_INT_OVERFLOW &&
         exceptionCode != EXCEPTION_INVALID_DISPOSITION && exceptionCode != EXCEPTION_NONCONTINUABLE_EXCEPTION &&
-        exceptionCode != EXCEPTION_PRIV_INSTRUCTION && exceptionCode != EXCEPTION_STACK_OVERFLOW)
-        return EXCEPTION_CONTINUE_SEARCH;
+        exceptionCode != EXCEPTION_PRIV_INSTRUCTION && exceptionCode != EXCEPTION_STACK_OVERFLOW &&
+        exceptionCode != EH_EXCEPTION_NUMBER && exceptionCode != 0xE000000C &&
+        (pExceptionInfo->ExceptionRecord->ExceptionFlags & EXCEPTION_NONCONTINUABLE) == 0)
+    {
 
+        spdlog::debug("[VectoredExceptionHandler] exceptionCode: 0x{0:x}, continue", exceptionCode);
+        return EXCEPTION_CONTINUE_SEARCH;
+    }
+
+    spdlog::debug("[VectoredExceptionHandler] exceptionCode: 0x{0:x}, handle", exceptionCode);
     //sentry_ucontext_t ctx{ .exception_ptrs = *pExceptionInfo };
     //sentry_handle_exception(&ctx);
     sentry_handle_exception(reinterpret_cast<const sentry_ucontext_t*>(pExceptionInfo));
@@ -52,7 +58,7 @@ void sentry_logger_spdlog(sentry_level_t level, const char* message, va_list arg
 {
     // process format
     char buf[1024]{};
-    vsprintf(buf, message, args);
+    vsprintf_s(buf, message, args);
 
     auto* logger = (spdlog::logger*)userdata;
 
@@ -210,23 +216,44 @@ void log_exception_info(const EXCEPTION_POINTERS* exceptionInfo)
             actualAddress == exceptionAddress ? " <==" : "");
     }
 
-    spdlog::error("RAX: 0x{0:x}", exceptionContext->Rax);
-    spdlog::error("RBX: 0x{0:x}", exceptionContext->Rbx);
-    spdlog::error("RCX: 0x{0:x}", exceptionContext->Rcx);
-    spdlog::error("RDX: 0x{0:x}", exceptionContext->Rdx);
-    spdlog::error("RSI: 0x{0:x}", exceptionContext->Rsi);
-    spdlog::error("RDI: 0x{0:x}", exceptionContext->Rdi);
-    spdlog::error("RBP: 0x{0:x}", exceptionContext->Rbp);
-    spdlog::error("RSP: 0x{0:x}", exceptionContext->Rsp);
-    spdlog::error("R8: 0x{0:x}", exceptionContext->R8);
-    spdlog::error("R9: 0x{0:x}", exceptionContext->R9);
-    spdlog::error("R10: 0x{0:x}", exceptionContext->R10);
-    spdlog::error("R11: 0x{0:x}", exceptionContext->R11);
-    spdlog::error("R12: 0x{0:x}", exceptionContext->R12);
-    spdlog::error("R13: 0x{0:x}", exceptionContext->R13);
-    spdlog::error("R14: 0x{0:x}", exceptionContext->R14);
-    spdlog::error("R15: 0x{0:x}", exceptionContext->R15);
-    spdlog::error("RIP: 0x{0:x}", exceptionContext->Rip);
+    auto printRegisterValue = [&](const char* regName, DWORD64 regValue) {
+        HMODULE regModuleHandle = 0;
+        GetModuleHandleExA(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS, reinterpret_cast<LPCSTR>(regValue), &regModuleHandle);
+
+        if (regModuleHandle)
+        {
+            char regModuleFullName[MAX_PATH];
+            GetModuleFileNameExA(GetCurrentProcess(), regModuleHandle, regModuleFullName, MAX_PATH);
+            char* regModuleName = strrchr(regModuleFullName, '\\') + 1;
+            void* relativeAddress = (void*)(uintptr_t(regValue) - uintptr_t(regModuleHandle));
+            spdlog::error("{}: {} ({} + {})", regName, (void*)regValue, regModuleName, relativeAddress);
+        }
+        else
+            spdlog::error("{}: {}", regName, (void*)regValue);
+    };
+
+    std::pair<const char*, DWORD64> regs[] = {
+        { "RAX", exceptionContext->Rax },
+        { "RBX", exceptionContext->Rbx },
+        { "RCX", exceptionContext->Rcx },
+        { "RDX", exceptionContext->Rdx },
+        { "RSI", exceptionContext->Rsi },
+        { "RDI", exceptionContext->Rdi },
+        { "RBP", exceptionContext->Rbp },
+        { "RSP", exceptionContext->Rsp },
+        { "R8", exceptionContext->R8 },
+        { "R9", exceptionContext->R9 },
+        { "R10", exceptionContext->R10 },
+        { "R11", exceptionContext->R11 },
+        { "R12", exceptionContext->R12 },
+        { "R13", exceptionContext->R13 },
+        { "R14", exceptionContext->R14 },
+        { "R15", exceptionContext->R15 },
+        { "RIP", exceptionContext->Rip },
+    };
+
+    for (auto&& [regName, regValue] : regs)
+        printRegisterValue(regName, regValue);
 }
 
 void log_crash_diagnostic_info(const EXCEPTION_POINTERS* exceptionInfo)

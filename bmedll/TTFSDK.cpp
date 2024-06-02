@@ -76,6 +76,12 @@ void test_crash4(const CCommand& args)
     }
 }
 
+void test_crash5(const CCommand& args)
+{
+    auto* sub_1805635D8 = reinterpret_cast<void(__fastcall*)(const char*)>(Util::GetModuleBaseAddress("engine.dll") + 0x5635D8);
+    sub_1805635D8("Test"); // CxxThrowException std::runtime_error
+}
+
 const std::string GetThisPath()
 {
     fs::path path;
@@ -271,6 +277,7 @@ void TTFSDK::Init()
     m_conCommandManager->RegisterCommand("test_crash2", test_crash2, "Crash the engine by throwing a runtime error", 0);
     m_conCommandManager->RegisterCommand("test_crash3", test_crash3, "Crash the engine by throwing an exception", 0);
     m_conCommandManager->RegisterCommand("test_crash4", test_crash4, "Crash the engine by throwing a SE exception", 0);
+    m_conCommandManager->RegisterCommand("test_crash5", test_crash5, "Crash the engine by throwing a C++ runtime error in engine", 0);
     m_conCommandManager->RegisterCommand("get_cvar", GetCvarCC, "Print cvar's value", 0);
     m_conCommandManager->RegisterCommand("set_cvar", SetCvarCC, "Set cvar to value", 0);
     m_conCommandManager->RegisterConVar("bme_version", BME_VERSION, FCVAR_UNLOGGED | FCVAR_DONTRECORD | FCVAR_SERVER_CANNOT_QUERY, "Current BME version");

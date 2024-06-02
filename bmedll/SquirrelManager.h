@@ -196,7 +196,7 @@ struct SQFuncRegistrationInternal {
 	// nparamscheck 0 = don't check params, number = check for exact number of params, -number = check for at least abs(number) params
 	// . = any; o = null (?); i = integer; f = float; n = integer or float; s = string; t = table; a = array; u = userdata; c = closure/nativeclosure; g = generator; p = userpointer; v = thread; x = class instance; y = class; b = bool
 	// at least those are supported for sure: nxbs. (number, instance, boolean, string, any)
-	// [untested] #define SQ_MATCHTYPEMASKSTRING (-99999) = If SQ_MATCHTYPEMASKSTRING is passed instead of the number of parameters, the function will automatically extrapolate the number of parameters to check from the typemask(eg. if the typemask is ”.sn” is like passing 3).
+	// [untested] #define SQ_MATCHTYPEMASKSTRING (-99999) = If SQ_MATCHTYPEMASKSTRING is passed instead of the number of parameters, the function will automatically extrapolate the number of parameters to check from the typemask(eg. if the typemask is ".sn" is like passing 3).
 	const char* szTypeMask; //0x0018 can be: .s, .ss., .., ..  
 	__int64 nparamscheck_probably; //0x0020 can be: 2, -3, 2, 0  
 
