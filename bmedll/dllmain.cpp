@@ -266,16 +266,6 @@ void __fastcall Tier0_ThreadSetDebugName(HANDLE threadHandle, const char* name)
     _SetThreadDescription(threadHandle == 0 ? currentThread : threadHandle, Util::Widen(newName).c_str());
 }
 
-typedef void(__fastcall* sub_18000BAC0_type)(float*, __int64, __int64);
-sub_18000BAC0_type sub_18000BAC0_org = nullptr;
-void __fastcall sub_18000BAC0(float* a1, __int64 a2, __int64 a3)
-{
-    static auto& hudwarp_disable = SDK().GetVstdlibCvar()->FindVar("hudwarp_disable")->GetIntRef();
-    if (hudwarp_disable)
-        return;
-    sub_18000BAC0_org(a1, a2, a3);
-}
-
 typedef void(__fastcall* SQInstance_Finalize_type)(uintptr_t);
 SQInstance_Finalize_type SQInstance_Finalize_org = nullptr;
 void SQInstance_Finalize(uintptr_t thisptr)
@@ -394,7 +384,6 @@ void DoMiscHooks()
     if (!launcherdllBaseAddress) launcherdllBaseAddress = Util::GetModuleBaseAddress("launcher.dll");
     DWORD64 clientdllBaseAddress = Util::GetModuleBaseAddress("client.dll");
     DWORD64 enginedllBaseAddress = Util::GetModuleBaseAddress("engine.dll");
-    DWORD64 vguimatsurfacedllBaseAddress = Util::GetModuleBaseAddress("vguimatsurface.dll");
     DWORD64 vphysicsdllBaseAddress = Util::GetModuleBaseAddress("vphysics.dll");
     CreateMiscHook(launcherdllBaseAddress, 0x6B8E0, &CSourceAppSystemGroup_PreInit, reinterpret_cast<LPVOID*>(&CSourceAppSystemGroup_PreInit_org));
     CreateMiscHook(clientdllBaseAddress, 0x2C4220, &sub_1802C4220, reinterpret_cast<LPVOID*>(&sub_1802C4220_org));
@@ -412,7 +401,6 @@ void DoMiscHooks()
     CreateMiscHook(enginedllBaseAddress, 0x117240, &COM_ExplainDisconnection, reinterpret_cast<LPVOID*>(&COM_ExplainDisconnection_org));
     CreateMiscHook(enginedllBaseAddress, 0x137160, &Host_Disconnect, reinterpret_cast<LPVOID*>(&Host_Disconnect_org));
     CreateMiscHookNamed("tier0", "ThreadSetDebugName", &Tier0_ThreadSetDebugName, reinterpret_cast<LPVOID*>(&Tier0_ThreadSetDebugName_org));
-    CreateMiscHook(vguimatsurfacedllBaseAddress, 0xBAC0, &sub_18000BAC0, reinterpret_cast<LPVOID*>(&sub_18000BAC0_org));
     CreateMiscHook(launcherdllBaseAddress, 0x4D6D0, &SQInstance_Finalize, reinterpret_cast<LPVOID*>(&SQInstance_Finalize_org));
     CreateMiscHook(vphysicsdllBaseAddress, 0x100880, &sub_180100880, reinterpret_cast<LPVOID*>(&sub_180100880_org));
     CreateMiscHook(enginedllBaseAddress, 0x1A0F70, &CEngineAPI__Run, reinterpret_cast<LPVOID*>(&CEngineAPI__Run_org));
@@ -618,6 +606,10 @@ void main()
 
         SPDLOG_DEBUG("DoMiscHooks");
         DoMiscHooks();
+
+        SPDLOG_DEBUG("DoMiscRenderHooks");
+        extern void DoMiscRenderHooks();
+        DoMiscRenderHooks();
 
         extern void Setup_MMNotificationClient();
         Setup_MMNotificationClient();
