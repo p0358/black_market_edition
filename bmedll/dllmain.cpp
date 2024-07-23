@@ -415,6 +415,25 @@ void __fastcall sub_180100880(uintptr_t a1) // we fix seldom crash in vphysics o
     spdlog::debug("[sub_180100880] After func");
 }
 
+typedef void*(__fastcall* CEngineAPI__Run_type)(void*);
+CEngineAPI__Run_type CEngineAPI__Run_org = nullptr;
+void* __fastcall CEngineAPI__Run(void* a1)
+{
+    // try-catch block is commented out, since while it would catch the exception with message
+    // successfully, it wouldn't preserve the stack trace; instead, we'll simply let
+    // the unhandled exception handler handle it instead
+    //try
+    //{
+        auto* CEngineAPI__RunListenServer = reinterpret_cast<void*(__fastcall*)(void*)>(Util::GetModuleBaseAddress("engine.dll") + 0x1A0DE0);
+        return CEngineAPI__RunListenServer(a1);
+    //}
+    //catch (...)
+    //{
+    //    spdlog::info("oy vey");
+    //    throw;
+    //}
+}
+
 void DoMiscHooks()
 {
     DWORD64 launcherdllBaseAddress = Util::GetModuleBaseAddress("launcher.org.dll");
@@ -442,6 +461,7 @@ void DoMiscHooks()
     CreateMiscHook(vguimatsurfacedllBaseAddress, 0xBAC0, &sub_18000BAC0, reinterpret_cast<LPVOID*>(&sub_18000BAC0_org));
     CreateMiscHook(launcherdllBaseAddress, 0x4D6D0, &SQInstance_Finalize, reinterpret_cast<LPVOID*>(&SQInstance_Finalize_org));
     CreateMiscHook(vphysicsdllBaseAddress, 0x100880, &sub_180100880, reinterpret_cast<LPVOID*>(&sub_180100880_org));
+    CreateMiscHook(enginedllBaseAddress, 0x1A0F70, &CEngineAPI__Run, reinterpret_cast<LPVOID*>(&CEngineAPI__Run_org));
 }
 
 void DoBinaryPatches()

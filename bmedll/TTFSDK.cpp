@@ -79,7 +79,27 @@ void test_crash4(const CCommand& args)
 void test_crash5(const CCommand& args)
 {
     auto* sub_1805635D8 = reinterpret_cast<void(__fastcall*)(const char*)>(Util::GetModuleBaseAddress("engine.dll") + 0x5635D8);
-    sub_1805635D8("Test"); // CxxThrowException std::runtime_error
+    sub_1805635D8("test_crash5"); // CxxThrowException std::runtime_error
+}
+
+void test_crash6(const CCommand& args)
+{
+    auto* Sys_Error___throwEngineError_valist = reinterpret_cast<void(__fastcall*)(const char*, ...)>(Util::GetModuleBaseAddress("engine.dll") + 0x198A10);
+    Sys_Error___throwEngineError_valist("%s", "test_crash6");
+    // doesn't log!!!
+}
+
+void test_crash7(const CCommand& args)
+{
+    auto* Error = reinterpret_cast<void(__fastcall*)(const char*, ...)>(GetProcAddress(GetModuleHandleA("tier0.dll"), "Error"));
+    Error("%s", "test_crash7");
+    // doesn't log!!!
+}
+
+void test_crash8(const CCommand& args)
+{
+    std::thread([] { throw std::runtime_error("Test"); }).detach();
+    // logs improperly??
 }
 
 const std::string GetThisPath()
@@ -278,6 +298,9 @@ void TTFSDK::Init()
     m_conCommandManager->RegisterCommand("test_crash3", test_crash3, "Crash the engine by throwing an exception", 0);
     m_conCommandManager->RegisterCommand("test_crash4", test_crash4, "Crash the engine by throwing a SE exception", 0);
     m_conCommandManager->RegisterCommand("test_crash5", test_crash5, "Crash the engine by throwing a C++ runtime error in engine", 0);
+    m_conCommandManager->RegisterCommand("test_crash6", test_crash6, "Crash the engine by calling Sys_Error function in engine", 0);
+    m_conCommandManager->RegisterCommand("test_crash7", test_crash7, "Crash the engine by calling Error function in tier0", 0);
+    m_conCommandManager->RegisterCommand("test_crash8", test_crash8, "Crash the engine by throwing a runtime error in a thread", 0);
     m_conCommandManager->RegisterCommand("get_cvar", GetCvarCC, "Print cvar's value", 0);
     m_conCommandManager->RegisterCommand("set_cvar", SetCvarCC, "Set cvar to value", 0);
     m_conCommandManager->RegisterConVar("bme_version", BME_VERSION, FCVAR_UNLOGGED | FCVAR_DONTRECORD | FCVAR_SERVER_CANNOT_QUERY, "Current BME version");

@@ -409,7 +409,7 @@ bool SetupCrashHandler(std::wstring BasePath)
 
     sentry_init(options);
 
-    AddVectoredExceptionHandler(1, &::VectoredExceptionHandler);
+    //AddVectoredExceptionHandler(1, &::VectoredExceptionHandler);
 
     {
         // Add WINE version metadata if running under WINE
@@ -472,6 +472,7 @@ void UpdateSETranslator()
     SetUnhandledExceptionFilter(&UnhandledExceptionHandler);
     engine_set_se_translator(TranslatorFunc);
     engine_set_se_translator2(TranslatorFunc);
+    //_set_se_translator(TranslatorFunc);
 }
 
 #else
