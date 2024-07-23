@@ -305,7 +305,8 @@ void TTFSDK::Init()
     m_conCommandManager->RegisterCommand("set_cvar", SetCvarCC, "Set cvar to value", 0);
     m_conCommandManager->RegisterConVar("bme_version", BME_VERSION, FCVAR_UNLOGGED | FCVAR_DONTRECORD | FCVAR_SERVER_CANNOT_QUERY, "Current BME version");
     m_conCommandManager->RegisterConVar("cl_nocmdrate", "0", FCVAR_DONTRECORD, "Do not limit command packet rate by cl_cmdrate, instead allow dispatching one packet after every move command (so after every client frame)");
-    m_conCommandManager->RegisterConVar("hudwarp_disable", "0", FCVAR_DONTRECORD, "Disable HUD warping entirely for hugely improved performance. Affects how the HUD is displayed visually and breaks its \"warp-in\" effect at the beginning of the match in turn.");
+    m_conCommandManager->RegisterConVar("hudwarp_disable", "0", FCVAR_DONTRECORD, "Disable HUD warping entirely for hugely improved performance when not using GPU HUD warping. Affects how the HUD is displayed visually.");
+    m_conCommandManager->RegisterConVar("hudwarp_use_gpu", "0", FCVAR_DONTRECORD, "Run HUD warping on GPU for hugely improved performance. Slightly affects how the HUD is displayed visually.");
     m_conCommandManager->RegisterConVar("bme_skip_update", "0", FCVAR_DONTRECORD, "Set to 1 if you wish to skip auto-launching downloaded BME update");
 
 #if 0
