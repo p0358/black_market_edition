@@ -18,14 +18,18 @@ DWORD WINAPI ScoreboardUploadThread(PVOID pThreadParameter)
     ScoreboardUploadInfo info = *infoPtr;
     delete infoPtr;
 
-    auto* url = bme_cl_save_scoreboards_upload_url->GetString();
+    auto* url_in = bme_cl_save_scoreboards_upload_url->GetString();
     spdlog::info("[ScoreboardUploadThread] Will try to upload scoreboard");
 
     auto curl = curl_easy_init();
     if (!curl)
         return 1;
 
-    curl_easy_setopt(curl, CURLOPT_URL, url);
+    std::string url = url_in;
+    if (!url.starts_with("https://") && !url.starts_with("http://"))
+        url = "https://" + url;
+
+    curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
     curl_easy_setopt(curl, CURLOPT_ACCEPT_ENCODING, ""); // automatically uses all built-in supported encodings
     curl_easy_setopt(curl, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_2_0);
     curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 1L);
