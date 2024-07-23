@@ -5,6 +5,7 @@
 #include "TTFSDK.h"
 #include "CrashReporting.h"
 #include "Updater.h"
+#include "Chat.h"
 
 HANDLE threadHandle;
 std::chrono::system_clock::time_point g_startTime;
@@ -389,6 +390,8 @@ void __fastcall sub_180100880(uintptr_t a1) // we fix seldom crash in vphysics o
                     if (!IsMemoryReadable(**v2, 8, PAGE_EXECUTE | PAGE_EXECUTE_READ | PAGE_EXECUTE_READWRITE | PAGE_EXECUTE_WRITECOPY))
                     {
                         spdlog::warn("[sub_180100880] Trying to prevent vphysics crash by breaking out of the loop now, possible side effects unknown!");
+                        Chat::showChatLineEasy("\n[BME] ", 0xFFFF00FF);
+                        Chat::showChatLineEasy("Trying to prevent vphysics crash. Go poke p0358 if the game still crashes on next map load and send the log file!", 0xFFFFFFFF);
                         break;
                     }
                     else spdlog::debug("[sub_180100880] All good");
