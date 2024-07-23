@@ -137,7 +137,7 @@ platforms "x64"
 
 systemversion "latest"
 symbols "On"
-staticruntime "Off"
+staticruntime "On"
 editandcontinue "Off"
 --warnings "Extra"
 characterset "ASCII"
