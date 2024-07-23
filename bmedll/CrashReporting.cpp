@@ -13,6 +13,8 @@
 SigScanFunc<void*, _se_translator_function> engine_set_se_translator("engine.dll", "\x48\x89\x5C\x24\x00\x57\x48\x83\xEC\x00\x48\x8B\xF9\xE8\x00\x00\x00\x00\x48\x8B\x98\x00\x00\x00\x00", "xxxx?xxxx?xxxx????xxx????");
 FuncStatic<void*, _se_translator_function> engine_set_se_translator2("engine.dll", 0x56BC04);
 
+void log_exception_info(const EXCEPTION_POINTERS* exceptionInfo);
+
 void TranslatorFunc(unsigned int, struct _EXCEPTION_POINTERS* exinfo)
 {
     sentry_handle_exception(reinterpret_cast<const sentry_ucontext_t*>(exinfo));
@@ -20,6 +22,7 @@ void TranslatorFunc(unsigned int, struct _EXCEPTION_POINTERS* exinfo)
 
 LONG WINAPI VectoredExceptionHandler(EXCEPTION_POINTERS* pExceptionInfo)
 {
+#if 0
     const auto exceptionCode = pExceptionInfo->ExceptionRecord->ExceptionCode;
 
     if (exceptionCode != EXCEPTION_ACCESS_VIOLATION && exceptionCode != EXCEPTION_ARRAY_BOUNDS_EXCEEDED &&
@@ -46,6 +49,41 @@ LONG WINAPI VectoredExceptionHandler(EXCEPTION_POINTERS* pExceptionInfo)
     return EXCEPTION_EXECUTE_HANDLER;
 
     //return EXCEPTION_CONTINUE_SEARCH;
+#endif
+
+    spdlog::error("===================================================");
+    spdlog::error("First-chance exception (vectored exception handler{})",
+        (pExceptionInfo->ExceptionRecord->ExceptionFlags & EXCEPTION_NONCONTINUABLE) == 0 ? ", might be non-fatal" : "");
+    spdlog::error("===================================================");
+
+    HMODULE KernelBase = GetModuleHandleA("KernelBase.dll");
+    typedef HRESULT(WINAPI* GetThreadDescription_t)(HANDLE, PWSTR*);
+    GetThreadDescription_t GetThreadDescription;
+    wchar_t* threadDesc = nullptr;
+    if (KernelBase)
+    {
+        bool gotThreadDesc = false;
+        GetThreadDescription = (GetThreadDescription_t)GetProcAddress(KernelBase, "GetThreadDescription");
+        if (GetThreadDescription)
+        {
+            GetThreadDescription(GetCurrentThread(), &threadDesc);
+            if (threadDesc && wcslen(threadDesc) > 0)
+            {
+                gotThreadDesc = true;
+                spdlog::error("Thread: {} ({})", GetCurrentThreadId(), Util::Narrow(threadDesc));
+            }
+        }
+        if (!gotThreadDesc)
+            spdlog::error("Thread: {}", GetCurrentThreadId());
+    }
+
+    if (pExceptionInfo)
+    {
+        log_exception_info(pExceptionInfo);
+        spdlog::error("=====================================================");
+    }
+
+    return EXCEPTION_CONTINUE_SEARCH;
 }
 
 LONG WINAPI UnhandledExceptionHandler(EXCEPTION_POINTERS* exception_pointers)
@@ -409,7 +447,7 @@ bool SetupCrashHandler(std::wstring BasePath)
 
     sentry_init(options);
 
-    //AddVectoredExceptionHandler(1, &::VectoredExceptionHandler);
+    AddVectoredExceptionHandler(1, &::VectoredExceptionHandler);
 
     {
         // Add WINE version metadata if running under WINE
