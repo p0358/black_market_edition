@@ -45,8 +45,8 @@ DirExistsWarning=no
 EnableDirDoesntExistWarning=yes
 CloseApplications=force
 CloseApplicationsFilter=*.exe,*.dll,*.chm,*.bik,*.asi,*.log,*.json
-;ArchitecturesAllowed=x64
-ArchitecturesInstallIn64BitMode=x64 arm64 ia64
+ArchitecturesAllowed=x64compatible
+ArchitecturesInstallIn64BitMode=x64compatible
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
