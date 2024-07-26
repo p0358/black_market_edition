@@ -84,9 +84,9 @@ void __fastcall CMatSystemSurface__ApplyHudwarpSettings(void* thisptr, HudwarpSe
     if (hudwarp_use_gpu->GetInt() || hudwarp_disable->GetInt())
     {
         if (screenX > screenY) [[likely]]
-            {
-                hudwarp_chopsize->SetValueInt(screenX);
-            }
+        {
+            hudwarp_chopsize->SetValueInt(screenX);
+        }
         else
         {
             hudwarp_chopsize->SetValueInt(screenY);
@@ -170,7 +170,8 @@ __int64 __fastcall sub_5ADC0_Hook(__int64 queuedRenderContext, unsigned long col
     case 111111:
         pPerf->BeginEvent(Util::Widen(pszName).c_str());
 
-        if (!strcmp(pszName, "HUD")) {
+        if (!strcmp(pszName, "HUD"))
+        {
             isRenderingHud = true;
             HudRenderStart();
         }
