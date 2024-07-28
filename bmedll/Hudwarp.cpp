@@ -25,7 +25,7 @@ ID3D11VertexShader* pVertexShader;
 ID3D11PixelShader* pPixelShader;
 
 #define MAINVP 0
-D3D11_VIEWPORT pViewports[D3D11_VIEWPORT_AND_SCISSORRECT_OBJECT_COUNT_PER_PIPELINE]{ 0 };
+D3D11_VIEWPORT viewport{ 0 };
 
 HudwarpProcess::HudwarpProcess(ID3D11Device* pDevice, ID3D11DeviceContext** ppID3D11DeviceContext) : m_pDevice(pDevice), m_pContext(*ppID3D11DeviceContext)
 {
@@ -69,11 +69,15 @@ HudwarpProcess::HudwarpProcess(ID3D11Device* pDevice, ID3D11DeviceContext** ppID
 	m_width = *reinterpret_cast<unsigned int*>(vguimatsurfacedllBaseAddress + 0x290DD8);
 	m_height = *reinterpret_cast<unsigned int*>(vguimatsurfacedllBaseAddress + 0x290DD8 + 4);
 
+	// We add a border to the texture so that the HUD can't get cut off by the texture boundaries
+	unsigned int widthWithBorder = m_width * (1.0f + HUD_TEX_BORDER_SIZE * 2.0f);
+	unsigned int heightWithBorder = m_height * (1.0f + HUD_TEX_BORDER_SIZE * 2.0f);
+
 	// Setup the texture descriptor
 	D3D11_TEXTURE2D_DESC textureDesc;
 	ZeroMemory(&textureDesc, sizeof(textureDesc));
-	textureDesc.Width = m_width;
-	textureDesc.Height = m_height;
+	textureDesc.Width = widthWithBorder;
+	textureDesc.Height = heightWithBorder;
 	textureDesc.MipLevels = 1;
 	textureDesc.ArraySize = 1;
 	textureDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
@@ -94,6 +98,12 @@ HudwarpProcess::HudwarpProcess(ID3D11Device* pDevice, ID3D11DeviceContext** ppID
 
 	// Create the render target view.
 	m_pDevice->CreateRenderTargetView(m_pRenderTexture, &renderTargetViewDesc, &m_pRenderTargetView);
+
+	// Create our viewport
+	viewport.Width = (float)widthWithBorder;
+	viewport.Height = (float)heightWithBorder;
+	viewport.MinDepth = 0.0f;
+	viewport.MaxDepth = 1.0f;
 
 	// Setup the shader resource view descriptor
 	D3D11_SHADER_RESOURCE_VIEW_DESC shaderResourceViewDesc;
@@ -167,11 +177,12 @@ HudwarpProcess::HudwarpProcess(ID3D11Device* pDevice, ID3D11DeviceContext** ppID
 	// Describe the Sample State
 	D3D11_SAMPLER_DESC sampDesc;
 	ZeroMemory(&sampDesc, sizeof(sampDesc));
-	sampDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+	sampDesc.Filter = D3D11_FILTER_ANISOTROPIC;
 	sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
 	sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
 	sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
 	sampDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
+	sampDesc.MaxAnisotropy = 4;
 	sampDesc.MinLOD = 0;
 	sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
 
@@ -204,6 +215,7 @@ HudwarpProcess::HudwarpProcess(ID3D11Device* pDevice, ID3D11DeviceContext** ppID
 	cmdesc.FillMode = D3D11_FILL_SOLID;
 	cmdesc.CullMode = D3D11_CULL_BACK;
 	cmdesc.FrontCounterClockwise = false;
+	cmdesc.MultisampleEnable = true;
 	pDevice->CreateRasterizerState(&cmdesc, &m_pCWcullMode);
 }
 
@@ -226,17 +238,22 @@ void HudwarpProcess::Resize(unsigned int w, unsigned int h)
 	// Release render target
 	m_pRenderTexture->Release();
 	m_pRenderTargetView->Release();
+	m_pShaderResourceView->Release();
 
 	// Create new render target
 	static DWORD64 vguimatsurfacedllBaseAddress = Util::GetModuleBaseAddress("materialsystem_dx11.dll");
 	m_width = *reinterpret_cast<unsigned int*>(vguimatsurfacedllBaseAddress + 0x290DD8);
 	m_height = *reinterpret_cast<unsigned int*>(vguimatsurfacedllBaseAddress + 0x290DD8 + 4);
 
+	// We add a border to the texture so that the HUD can't get cut off by the texture boundaries
+	unsigned int widthWithBorder = m_width * (1.0f + HUD_TEX_BORDER_SIZE * 2.0f);
+	unsigned int heightWithBorder = m_height * (1.0f + HUD_TEX_BORDER_SIZE * 2.0f);
+
 	// Setup the texture descriptor
 	D3D11_TEXTURE2D_DESC textureDesc;
 	ZeroMemory(&textureDesc, sizeof(textureDesc));
-	textureDesc.Width = m_width;
-	textureDesc.Height = m_height;
+	textureDesc.Width = widthWithBorder;
+	textureDesc.Height = heightWithBorder;
 	textureDesc.MipLevels = 1;
 	textureDesc.ArraySize = 1;
 	textureDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
@@ -279,6 +296,13 @@ void HudwarpProcess::Begin()
 	// Get the current render target
 	m_pContext->OMGetRenderTargets(1, &m_pOriginalRenderTargetView, &m_pOriginalDepthStencilView);
 
+	// Get the current viewports
+	m_originalNumViewports = D3D11_VIEWPORT_AND_SCISSORRECT_OBJECT_COUNT_PER_PIPELINE;
+	m_pContext->RSGetViewports(&m_originalNumViewports, m_pOriginalViewports);
+
+	// Set our viewport
+	m_pContext->RSSetViewports(1, &viewport);
+
 	// Set our render target
 	m_pContext->OMSetRenderTargets(1, &m_pRenderTargetView, NULL);
 
@@ -313,10 +337,6 @@ void HudwarpProcess::Finish()
 	m_pContext->IAGetInputLayout(&pOriginalVertexLayout);
 	m_pContext->IAGetIndexBuffer(&pOriginalIndexBuffer, &originalIndexFormat, &originalIndexOffset);
 	m_pContext->IAGetPrimitiveTopology(&originalPrimitiveTopology);
-
-	unsigned int originalNumViewports = D3D11_VIEWPORT_AND_SCISSORRECT_OBJECT_COUNT_PER_PIPELINE;
-	D3D11_VIEWPORT* pOriginalViewports = nullptr;
-	m_pContext->RSGetViewports(&originalNumViewports, pOriginalViewports);
 
 	// Set the blend state	
 	m_pContext->OMSetBlendState(m_pBlendState, NULL, 0xffffffff);
@@ -355,6 +375,9 @@ void HudwarpProcess::Finish()
 	m_pContext->PSSetConstantBuffers(0, 1, &m_pConstantBuffer);
 
 	m_pContext->RSSetState(m_pCWcullMode);
+
+	// Restore the original viewports
+	m_pContext->RSSetViewports(m_originalNumViewports, m_pOriginalViewports);
 
 	// Draw the texture to the screen
 	m_pContext->DrawIndexed(6, 0, 0);
