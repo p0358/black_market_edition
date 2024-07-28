@@ -39,10 +39,10 @@ void __fastcall sub_18000BAC0(float* a1, float* a2, float* a3)
         return sub_18000BAC0_org(a1, a2, a3);
     }
 
-    // Somewhat hacky but prevents hud from reaching bounds of render texture
-    // The value of hudScale MUST be the same as hudScale in the Hudwarp shader so it can undo this correctly
-    const float hudScale = HUD_SAFE_AREA_SCALE;
-    const float hudOffset = 0.5f - hudScale / 2.0f;
+    // We prevent the hud from reaching bounds of render texture by adding a border of 0.025 * width/height to the texture
+    // We need to offset the verts to account for that here
+    const float hudOffset = HUD_TEX_BORDER_SIZE;
+    const float hudScale = 1.0f - 2.0f * hudOffset;
 
     float viewWidth = a1[2];
     float viewHeight = a1[3];

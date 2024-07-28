@@ -49,6 +49,9 @@ private:
 	ID3D11RenderTargetView* m_pOriginalRenderTargetView = NULL;
 	ID3D11DepthStencilView* m_pOriginalDepthStencilView = NULL;
 
+	UINT m_originalNumViewports = 0;
+	D3D11_VIEWPORT m_pOriginalViewports[D3D11_VIEWPORT_AND_SCISSORRECT_OBJECT_COUNT_PER_PIPELINE]{ 0 };
+
 	XMMATRIX mOrtho{};
 	HudwarpSettings m_hudwarpSettings{};
 
@@ -75,7 +78,7 @@ struct Vertex
 };
 
 // Must match hudScale in shader
-#define HUD_SAFE_AREA_SCALE 0.95f
+#define HUD_TEX_BORDER_SIZE 0.025f
 
 constexpr const char* hudwarpShader = R"(
 cbuffer ConstantBuffer : register(b0)
@@ -109,14 +112,16 @@ PSI VS( float4 pos : POSITION, float2 texCoord : TEXCOORD )
 Texture2D<float4> Texture : register(t0);
 sampler Sampler : register(s0);
 
-// Scaling correction from sub_1800084F0_Hook
-float2 UndoHudScale(float2 texCoord)
+// Border correction from sub_1800084F0_Hook
+float2 UndoHudTexBorder(float2 texCoord)
 {
-	// IMPORTANT: must match value of HUD_SAFE_AREA_SCALE 
-	float hudScale = 0.95f;
-	float hudOffset = 0.5f - hudScale / 2.0f;
+	// IMPORTANT: must match value of HUD_TEX_BORDER_SIZE
+	float hudTexBorderSize = 0.025f;
 
-	return texCoord * hudScale + hudOffset;
+	float hudScale = 1.0f + 2.0f * hudTexBorderSize;
+	float hudOffset = 0.5f - (0.5f / hudScale);
+
+	return texCoord / hudScale + hudOffset;
 }
 
 float2 NormalizeUV(float2 uv)
@@ -165,7 +170,7 @@ float4 PS(PSI psi) : SV_TARGET
 		return float4(0.0f, 0.0f, 0.0f, 0.0f);
 	}
 
-	float2 uv = UndoHudScale(psi.texCoord);
+	float2 uv = UndoHudTexBorder(psi.texCoord);
 	uv -= 0.5f;
 	uv *= 2.0f;
 	uv /= float2(xScale, yScale);
