@@ -105,5 +105,6 @@ public:
     ConVar* RegisterConVar(const char* name, const char* defaultValue, int flags, const char* helpString);
     void ExecuteCommand(const std::string& commandStr);
     void UnregisterCommand(ConCommand& command);
+    void UnregisterConVar(ConVar2& command);
     void UnregisterAllCommands();
 };

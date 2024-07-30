@@ -44,6 +44,13 @@ void ConCommandManager::UnregisterCommand(ConCommand& command)
     m_cvar->m_vtable->UnregisterConCommand(m_cvar, &command);
 }
 
+void ConCommandManager::UnregisterConVar(ConVar2& cvar)
+{
+    if (!m_cvar || !m_cvar->m_vtable) return;
+    m_logger->info("Removing cvar: {}", ((ConCommand&)cvar).GetName()); // this is ugly, but it works cause GetName is part of ConCommandBase, too lazy to refactor this in BME...
+    m_cvar->m_vtable->UnregisterConCommand(m_cvar, &cvar);
+}
+
 void ConCommandManager::UnregisterAllCommands()
 {
     // NOTE: It's tricky to do this in the destructor of ConCommand because
@@ -56,12 +63,19 @@ void ConCommandManager::UnregisterAllCommands()
     }
 
     m_commands.clear();
+    
+    for (auto& command : m_cvars)
+    {
+        UnregisterConVar(command);
+    }
+
+    m_cvars.clear();
 }
 
 ConCommandManager::~ConCommandManager()
 {
     SPDLOG_LOGGER_DEBUG(m_logger, "ConCommandManager destructor");
-    if (!g_isShuttingDown)
+    //if (!g_isShuttingDown)
         UnregisterAllCommands();
 }
 
