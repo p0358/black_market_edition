@@ -2,6 +2,7 @@
 #include "TTFSDK.h"
 #include "SquirrelManager.h"
 #include "ConCommandManager.h"
+#include "tier0.h"
 #include "_version.h"
 
 std::string g_playlistCounts_etag;
@@ -40,12 +41,12 @@ DWORD WINAPI loadPlaylistCounts(PVOID pThreadParameter)
 
         if (!IsSDKReady())
         {
-            spdlog::warn("Loading playlist counts failure, game is already shutting down or SDK not ready");
+            spdlog::warn("[PlaylistCounts] Loading playlist counts failure, game is already shutting down or SDK not ready");
             curl_easy_cleanup(curl);
             return 0;
         }
 
-        long response_code;
+        long response_code = 0;
         //double elapsed;
         //char* url;
         curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response_code);
@@ -53,12 +54,14 @@ DWORD WINAPI loadPlaylistCounts(PVOID pThreadParameter)
         //curl_easy_getinfo(curl, CURLINFO_EFFECTIVE_URL, &url);
 
         std::string content_type, etag;
-        struct curl_header* header;
-        curl_easy_header(curl, "Content-Type", 0, CURLH_HEADER, -1, &header);
-        if (header && header->value && header->value[0])
+        struct curl_header* header = nullptr;
+        CURLHcode hres;
+        hres = curl_easy_header(curl, "Content-Type", 0, CURLH_HEADER, -1, &header);
+        if (hres == CURLHE_OK && header && header->value && header->value[0])
             content_type.assign(header->value);
-        curl_easy_header(curl, "Etag", 0, CURLH_HEADER, -1, &header);
-        if (header && header->value && header->value[0])
+        header = nullptr;
+        hres = curl_easy_header(curl, "Etag", 0, CURLH_HEADER, -1, &header);
+        if (hres == CURLHE_OK && header && header->value && header->value[0])
             etag.assign(header->value);
 
         curl_easy_cleanup(curl);
@@ -67,12 +70,12 @@ DWORD WINAPI loadPlaylistCounts(PVOID pThreadParameter)
         {
             if (content_type != "application/json")
             {
-                spdlog::error("Wrong content-type for playlists ({}) despite response code 200", content_type);
+                spdlog::error("[PlaylistCounts] Wrong content-type for playlists ({}) despite response code 200", content_type);
                 return 0;
             }
             if (etag.size())
             {
-                spdlog::info("Received new playlists with etag: `{}` (response length: {})", etag, response_string.size());
+                spdlog::info("[PlaylistCounts] Received new playlists with etag: `{}` (response length: {})", etag, response_string.size());
                 g_playlistCounts_etag.assign(etag);
             }
             std::shared_ptr<rapidjson::Document> newJson = std::make_shared<rapidjson::Document>();
@@ -86,19 +89,19 @@ DWORD WINAPI loadPlaylistCounts(PVOID pThreadParameter)
             }
             else
             {
-                spdlog::error("Parse error for playlists JSON despite response code 200 and correct content-type. Contents: {}", response_string);
+                spdlog::error("[PlaylistCounts] Parse error for playlists JSON despite response code 200 and correct content-type. Contents: {}", response_string);
             }
         }
         else if (response_code == 304)
         {
-            spdlog::info("Playlists did not change since last refresh (304 Not Modified)");
+            spdlog::info("[PlaylistCounts] Playlists did not change since last refresh (304 Not Modified)");
         }
         else
         {
             if (res != CURLE_OK)
-                spdlog::error("curl_easy_perform() failed for playlists: {}", curl_easy_strerror(res));
+                spdlog::error("[PlaylistCounts] curl_easy_perform() failed for playlists: {}", curl_easy_strerror(res));
             else
-                spdlog::error("Unexpected response code for playlists (expected 200 or 304): {}", response_code);
+                spdlog::error("[PlaylistCounts] Unexpected response code for playlists (expected 200 or 304): {}", response_code);
         }
     }
 
@@ -107,7 +110,7 @@ DWORD WINAPI loadPlaylistCounts(PVOID pThreadParameter)
 
 SQInteger Script_BME_RefreshPlaylistCounts(HSQUIRRELVM v)
 {
-    spdlog::info("Refreshing BME playlist counts...");
+    spdlog::info("[PlaylistCounts] Refreshing BME playlist counts...");
     CreateThread(0, 0, loadPlaylistCounts, 0, 0, NULL);
     return 0;
 }
