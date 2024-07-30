@@ -14,7 +14,11 @@
 #endif
 
 #ifdef READ_FROM_BSP
+#if __has_include("FilesystemContents.h")
 #include "FilesystemContents.h"
+#else
+#error FilesystemContents.h is missing, did you forget to run generate.bat?!
+#endif
 std::unordered_set<std::string> fileSystemContentsSet{ FILES_COMMA_SEPARATED };
 //std::set<std::string> fileSystemContentsBlockedFromCacheSet{};
 #endif
