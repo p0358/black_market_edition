@@ -91,9 +91,9 @@ FileSystemManager::FileSystemManager(const std::string& basePath)
     m_blockingRemoveAllMapSearchPaths = false;
 
     // Hook functions
-    IFileSystem_AddSearchPath.Hook(m_engineFileSystem->m_vtable, WRAPPED_MEMBER(AddSearchPathHook));
+    IFileSystem_AddSearchPath.HookSafe(m_engineFileSystem->m_vtable, WRAPPED_MEMBER(AddSearchPathHook));
 #ifndef READ_FROM_VPK
-    IFileSystem_ReadFromCache.Hook(m_engineFileSystem->m_vtable, WRAPPED_MEMBER(ReadFromCacheHook));
+    IFileSystem_ReadFromCache.HookSafe(m_engineFileSystem->m_vtable, WRAPPED_MEMBER(ReadFromCacheHook));
 #endif
     //IFileSystem_MountVPK.Hook(m_engineFileSystem->m_vtable, WRAPPED_MEMBER(MountVPKHook));
     IFileSystem_MountVPK.Hook(m_engineFileSystem->m_vtable, IFileSystem_MountVPK_Hook);
@@ -107,9 +107,9 @@ FileSystemManager::FileSystemManager(const std::string& basePath)
     };
     IFileSystem_MountVPK.Hook(m_engineFileSystem->m_vtable, a);*/
 
-    IFileSystem_AddVPKFile.Hook(m_engineFileSystem->m_vtable, WRAPPED_MEMBER(AddVPKFileHook));
-    ReadFileFromVPK.Hook(WRAPPED_MEMBER(ReadFileFromVPKHook));
-    RemoveAllMapSearchPaths.Hook(WRAPPED_MEMBER(RemoveAllMapSearchPathsHook));
+    IFileSystem_AddVPKFile.HookSafe(m_engineFileSystem->m_vtable, WRAPPED_MEMBER(AddVPKFileHook));
+    ReadFileFromVPK.HookSafe(WRAPPED_MEMBER(ReadFileFromVPKHook));
+    RemoveAllMapSearchPaths.HookSafe(WRAPPED_MEMBER(RemoveAllMapSearchPathsHook));
     ConCommandManager& conCommandManager = SDK().GetConCommandManager();
     conCommandManager.RegisterCommand("fs_replacements_cache_refresh", WRAPPED_MEMBER(RefreshReplacementsCacheCC), "", 0);
 

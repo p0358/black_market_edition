@@ -164,12 +164,12 @@ SquirrelManager::SquirrelManager()
     m_ppClientVM = (R1SquirrelVM**)(Util::GetModuleBaseAddress("client.dll") + 0x16BBE78);
     m_ppUIVM = (R1SquirrelVM**)(Util::GetModuleBaseAddress("client.dll") + 0x16C1FA8);
 
-    base_print.Hook(WRAPPED_MEMBER(BasePrintHook));
-    sqstd_compiler_error.Hook(WRAPPED_MEMBER(CompilerErrorHook));
-    CreateNewVM.Hook(WRAPPED_MEMBER(CreateNewVMHook));
+    base_print.HookSafe(WRAPPED_MEMBER(BasePrintHook));
+    sqstd_compiler_error.HookSafe(WRAPPED_MEMBER(CompilerErrorHook));
+    CreateNewVM.HookSafe(WRAPPED_MEMBER(CreateNewVMHook));
     //RunServerInitCallbacks.Hook(WRAPPED_MEMBER(RunServerInitCallbacksHook));
-    if (IsClient()) RunClientInitCallbacks.Hook(WRAPPED_MEMBER(RunClientInitCallbacksHook));
-    if (IsClient()) RunUIInitCallbacks.Hook(WRAPPED_MEMBER(RunUIInitCallbacksHook));
+    if (IsClient()) RunClientInitCallbacks.HookSafe(WRAPPED_MEMBER(RunClientInitCallbacksHook));
+    if (IsClient()) RunUIInitCallbacks.HookSafe(WRAPPED_MEMBER(RunUIInitCallbacksHook));
     FatalScriptError.Hook(FatalScriptError_Hook);
 
     // Add concommands to run server, client and UI code

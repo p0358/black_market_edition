@@ -693,10 +693,10 @@ Presence::Presence()
 	// TODO: check if engine.dll+7C0B0C is numPlayers by any chance
 
 	updatePresence2LastInput = 0;
-	_updatePresence2.Hook(WRAPPED_MEMBER(Hook_updatePresence2));
-	_sub_180473500.Hook(WRAPPED_MEMBER(Hook_sub_180473500));
+	_updatePresence2.HookSafe(WRAPPED_MEMBER(Hook_updatePresence2));
+	_sub_180473500.HookSafe(WRAPPED_MEMBER(Hook_sub_180473500));
 	//_sub_180022CA0.Hook(WRAPPED_MEMBER(Hook_sub_180022CA0));
-	_originEventCallback.Hook(WRAPPED_MEMBER(Hook_originEventCallback));
+	_originEventCallback.HookSafe(WRAPPED_MEMBER(Hook_originEventCallback));
 	didOriginOfflineKickAlready = false;
 
 	trainingStage = -1;

@@ -48,6 +48,32 @@ public:
 
         m_hooked = true;
     }
+    
+    void HookSafe(TVTable* vtablePtr, R(*hookFunc)(Args...))
+    {
+        if (m_hooked)
+        {
+            return;
+        }
+
+        m_vtable = vtablePtr;
+        m_origFunc = *(m_vtable->*mf);
+
+        TempReadWrite rw(m_vtable);
+        (m_vtable->*mf) = lambda_to_ptr([hookFunc, origFunc=m_origFunc](Args... args) -> R {
+            extern bool IsSDKReady();
+            if (IsSDKReady()) [[likely]]
+            {
+                return hookFunc(args...);
+            }
+            else [[unlikely]]
+            {
+                return origFunc(args...);
+            }
+        });
+
+        m_hooked = true;
+    }
 
     void Unhook()
     {

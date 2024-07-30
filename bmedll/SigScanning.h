@@ -81,9 +81,9 @@ public:
 
     }
 
-    //void Hook(T(*detourFunc)(Args...))
+    void Hook(T(*detourFunc)(Args...))
     //void Hook(std::function<T(Args...)> detourFunc)
-    void Hook(LPVOID detourFunc)
+    //void Hook(LPVOID detourFunc)
     {
         if (m_hooked)
         {
@@ -111,6 +111,21 @@ public:
 
         m_hooked = true;
         SPDLOG_LOGGER_DEBUG(logger, "Hooked function at {} - trampoline location: {}", (void*)m_hookedFunc, (void*)m_func);
+    }
+
+    void HookSafe(T(*detourFunc)(Args...))
+    {
+        Hook(lambda_to_ptr([detourFunc, t = this](Args... args) -> T {
+            extern bool IsSDKReady();
+            if (IsSDKReady()) [[likely]]
+            {
+                return detourFunc(args...);
+            }
+            else [[unlikely]]
+            {
+                return t->m_func(args...);
+            }
+        }));
     }
 
     void Unhook()
@@ -277,6 +292,21 @@ class HookedFuncStatic : public HookedFuncStaticWithType<ReturnType(*)(Args...)>
 public:
     HookedFuncStatic(const char* moduleName, DWORD64 offset) : HookedFuncStaticWithType<ReturnType(*)(Args...)>(moduleName, offset)
     {}
+
+    void HookSafe(ReturnType(*detourFunc)(Args...))
+    {
+        this->Hook(lambda_to_ptr([detourFunc, t = this](Args... args) -> ReturnType {
+            extern bool IsSDKReady();
+            if (IsSDKReady()) [[likely]]
+            {
+                return detourFunc(args...);
+            }
+            else [[unlikely]]
+            {
+                return t->m_origFunc(args...);
+            }
+        }));
+    }
 
     __forceinline ReturnType operator()(Args... args)
     {

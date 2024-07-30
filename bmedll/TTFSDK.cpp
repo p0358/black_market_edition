@@ -286,8 +286,8 @@ void TTFSDK::Init()
         Updater::updaterDownloadProgress = (5.0 * 1024.0 * 1023.0) / (10.0 * 1024.0 * 1022.0);
      }*/
 
-    //_Host_RunFrame.Hook(WRAPPED_MEMBER(RunFrameHook));
-    CHostState_State_Run.Hook(WRAPPED_MEMBER(RunFrameHook));
+    //_Host_RunFrame.HookSafe(WRAPPED_MEMBER(RunFrameHook));
+    CHostState_State_Run.HookSafe(WRAPPED_MEMBER(RunFrameHook));
 
     extern void ConCommand_sound_reboot_xaudio(const CCommand & args);
 

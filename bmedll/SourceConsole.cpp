@@ -167,7 +167,7 @@ std::shared_ptr<SourceConsoleSink> SourceConsole::PreinitSink(spdlog::level::lev
 void SourceConsole::InitializeSource()
 {
     m_gameConsole->Initialize();
-    CConsoleDialog_OnCommandSubmitted.Hook(m_gameConsole->m_pConsole->m_vtable, WRAPPED_MEMBER(OnCommandSubmittedHook));
+    CConsoleDialog_OnCommandSubmitted.HookSafe(m_gameConsole->m_pConsole->m_vtable, WRAPPED_MEMBER(OnCommandSubmittedHook));
     m_logger->info("===== SOURCE CONSOLE INITIALIZED =====");
 }
 
