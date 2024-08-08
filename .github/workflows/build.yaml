@@ -1,7 +1,7 @@
 name: Build
 on:
   push:
-    branches: [master, dependabot/*]
+    branches: [master, dependabot/*, '*']
   workflow_dispatch:
     inputs:
       version:
@@ -67,6 +67,7 @@ jobs:
           token: ${{ secrets.SENTRY_AUTH_TOKEN }}
           organization: ${{ secrets.SENTRY_ORG }}
           project: ${{ secrets.SENTRY_PROJECT }}
+          version: 2.33.1
 
       - name: Create Sentry release
         if: github.ref == 'refs/heads/master'
@@ -80,7 +81,7 @@ jobs:
         run: |
           $files_to_upload = Get-ChildItem -Path build\bin -Recurse -Include ("*.pdb", "*.dll", "*.exe")
           echo "Files to upload:" $files_to_upload
-          sentry-cli upload-dif --include-sources $files_to_upload
+          sentry-cli upload-dif --log-level=debug --include-sources $files_to_upload
 
       - name: Copy built files to installer dirs
         run: |
