@@ -77,7 +77,7 @@ jobs:
           sentry-cli releases deploys "bme-v${{ env.BME_VERSION }}" new -e ${{ env.BME_CHANNEL }}
 
       - name: "Upload pdb and executables to Sentry"
-        if: github.ref == 'refs/heads/master'
+        #if: github.ref == 'refs/heads/master'
         run: |
           $files_to_upload = Get-ChildItem -Path build\bin -Recurse -Include ("*.pdb", "*.dll", "*.exe")
           echo "Files to upload:" $files_to_upload
