@@ -61,7 +61,7 @@ jobs:
             build/bin/${{ env.BUILD_DIR }}/*.zip
 
       - name: Setup Sentry CLI
-        if: github.ref == 'refs/heads/master'
+        #if: github.ref == 'refs/heads/master'
         uses: mathieu-bour/setup-sentry-cli@v2
         with:
           token: ${{ secrets.SENTRY_AUTH_TOKEN }}
