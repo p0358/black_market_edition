@@ -41,8 +41,9 @@ Installers are built with Inno Setup using scripts from installer/ folder and th
 	* `fps_max 0` uncaps the frame rate to unlimited (not recommended, will have adverse effects on network upload and will cause your client to lag and experience various glitches)
 	* `fps_max <value>` caps the framerate to specified value
 * mitigate performance issue that caused the game to drop FPS by wasting too much time in CPU (and leaving GPU idle) by warping HUD by overriding `hudwarp_chopsize` from `60` to `120`
+	* **performance penalty can be entirely avoided with minimal loss of visual quality to the HUD by setting `hudwarp_use_gpu 1` which will make the warp effect run on the GPU instead of CPU**
 	* further performance improvement can be achieved by increasing that cvar value even higher
-	* **the best performance can be achieved by setting `hudwarp_disable 1`**, but this has adverse effect of not warping the HUD visually at all anymore, and broken fade-in effect of HUD on the game start
+	* **the best performance can be achieved by setting `hudwarp_disable 1`**, but this has adverse effect of not warping the HUD visually at all anymore
 * allow to go on DLC playlists despite not having DLCs (by adding Ignore button to the playlist dialog)
 	* this allows you to play the game (more-less) even if you couldn't obtain Deluxe Edition or Season Pass keys
 	* as soon as a DLC map comes up in the rotation, you will be kicked out of the lobby upon its launch: still, that's better than not getting to play on the playlist at all
