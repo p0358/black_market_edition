@@ -75,7 +75,9 @@ void ConCommandManager::UnregisterAllCommands()
 ConCommandManager::~ConCommandManager()
 {
     SPDLOG_LOGGER_DEBUG(m_logger, "ConCommandManager destructor");
-    //if (!g_isShuttingDown)
+    // Note: ConVar/ConCommand unregistration doesn't work properly, they still appear in FactoryInternalIterator
+    // and can cause crashes on shutdown
+    if (!g_isShuttingDown)
         UnregisterAllCommands();
 }
 
