@@ -44,11 +44,13 @@ HRESULT STDMETHODCALLTYPE MMNotificationClient::QueryInterface(REFIID riid, VOID
 
 HRESULT STDMETHODCALLTYPE MMNotificationClient::OnDefaultDeviceChanged(EDataFlow flow, ERole role, LPCWSTR pwstrDeviceId)
 {
+	if (!IsSDKReady())
+		return;
 	if (role == eMultimedia)
 	{
 		spdlog::info("[MMNotificationClient::OnDefaultDeviceChanged] Default multimedia audio device changed, requesting game's XAudio to restart.");
 		int refresh_rate = *reinterpret_cast<int*>(Util::GetModuleBaseAddress("engine.dll") + 0x7CAEA4);
-		SDK().AddDelayedFunc([] { SDK().GetConCommandManager().ExecuteCommand("sound_reboot_xaudio"); }, refresh_rate);
+		SDK().AddDelayedFunc([] { if (IsSDKReady()) SDK().GetConCommandManager().ExecuteCommand("sound_reboot_xaudio"); }, refresh_rate);
 	}
 	return S_OK;
 }
