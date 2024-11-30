@@ -120,27 +120,88 @@ void __fastcall RenderHud_Hook(__int64 a1, __int64 a2, __int64 a3)
     QueueEndEvent();
 }
 
+const __m128 vConstHalf = _mm_set_ps1(0.5f);
+
+static const float hudOffset = HUD_TEX_BORDER_SIZE;
+static const float hudScale = 1.0f - 2.0f * hudOffset;
+const __m128 vHudwarpHudOffset = _mm_set_ps1(hudOffset); // Const since hudOffset is never gonna change
+const __m128 vHudwarpHudScale = _mm_set_ps1(hudScale); // Const since hudScale is never gonna change
+
+__m128 vHudwarpScreenSize = _mm_set_ps(0.0f, 0.0f, 1080.0f, 1920.0f);
+__m128 vHudwarpHalfScreenSize = _mm_mul_ps(vHudwarpScreenSize, vConstHalf);
+__m128 vHudwarpOffset = _mm_mul_ps(vHudwarpScreenSize, vHudwarpHudOffset);
+
+__m128 vHudwarpScale = _mm_set_ps1(0.0f);
+
+void UpdateHudwarpScreenSizeVectors(float screenWidth, float screenHeight)
+{
+    static float prevScreenWidth = 1920.0f;
+    static float prevScreenHeight = 1080.0f;
+
+    if (prevScreenWidth != screenWidth || prevScreenHeight != screenHeight)
+    {
+        prevScreenWidth = screenWidth;
+        prevScreenHeight = screenHeight;
+
+        vHudwarpScreenSize = _mm_set_ps(0.0f, 0.0f, screenHeight, screenWidth);
+        vHudwarpHalfScreenSize = _mm_mul_ps(vHudwarpScreenSize, vConstHalf);
+        vHudwarpOffset = _mm_mul_ps(vHudwarpScreenSize, vHudwarpHudOffset);
+    }
+}
+
+void UpdateHudwarpScaleVector(float scaleX, float scaleY)
+{
+    static float prevScaleX = 0.0f;
+    static float prevScaleY = 0.0f;
+
+    if (prevScaleX != scaleX || prevScaleY != scaleY)
+    {
+        prevScaleX = scaleX;
+        prevScaleY = scaleY;
+
+        vHudwarpScale = _mm_set_ps(0.0f, 0.0f, scaleY, scaleX);
+    }
+}
+
 typedef void(__fastcall* sub_18000BAC0_type)(float*, float*, float*);
 sub_18000BAC0_type sub_18000BAC0_org = nullptr;
 void __fastcall sub_18000BAC0(float* a1, float* a2, float* a3)
 {
     // Ported from TFORevive by Barnaby
 
+	// Some wacky SIMD stuff is done in here now, if we wanted we could possibly look into
+	// double pumping this since we only use 2 of the 4 f32 slots in each __m128.
+	// That would need us to hook the 2 calling functions and rewrite a lot more tbh
+
     if (!shouldUseGPUHudwarp)
     {
         // If hudwarp is disabled and running on CPU do just the scaling
         if (isHudwarpDisabled)
         {
-            // Still perform scaling for HUD when warping is disabled
-            float viewWidth = a1[2];
-            float viewHeight = a1[3];
-
+            // Short-circuit when not scaling, only works cause a2 == a3
             float xScale = a1[7];
             float yScale = a1[9];
+            if (xScale == 1.0f && yScale == 1.0f)
+            {
+                return;
+            }
 
-            a3[0] = (a2[0] - 0.5f * viewWidth) * xScale + 0.5f * viewWidth;
-            a3[1] = (a2[1] - 0.5f * viewHeight) * yScale + 0.5f * viewHeight;
-            a3[2] = a2[2];
+            // The following code is equivalent to:
+            // a3[0] = (a2[0] - 0.5f * viewWidth) * xScale + 0.5f * viewWidth;
+            // a3[1] = (a2[1] - 0.5f * viewHeight) * yScale + 0.5f * viewHeight;
+            // a3[2] = a2[2];
+
+            __m128 vPos = _mm_set_ps(0.0f, 0.0f, a2[1], a2[0]);
+            __m128 vOutPos = _mm_add_ps(_mm_mul_ps(_mm_sub_ps(vPos, vHudwarpHalfScreenSize), vHudwarpScale), vHudwarpHalfScreenSize);
+
+            // Unpack the vectorised data
+            // Using silly optim since x and y are adjacent
+            *(__int64*)a3 = vOutPos.m128_i64[0];
+            // Equiv to these two
+            // a3[0] = vOutPos.m128_f32[0];
+            // a3[1] = vOutPos.m128_f32[1];
+            // a3[2] = a2[2]; // This isn't needed because in all cases a2 == a3
+
             return;
         }
 
@@ -149,15 +210,19 @@ void __fastcall sub_18000BAC0(float* a1, float* a2, float* a3)
 
     // We prevent the hud from reaching bounds of render texture by adding a border of 0.025 * width/height to the texture
     // We need to offset the verts to account for that here
-    const float hudOffset = HUD_TEX_BORDER_SIZE;
-    const float hudScale = 1.0f - 2.0f * hudOffset;
 
-    float viewWidth = a1[2];
-    float viewHeight = a1[3];
+	// The following code is equivalent to:
+	// a3[0] = a2[0] * hudScale + hudOffset * viewWidth;
+	// a3[1] = a2[1] * hudScale + hudOffset * viewHeight;
+	// a3[2] = a2[2];
 
-    a3[0] = a2[0] * hudScale + hudOffset * viewWidth;
-    a3[1] = a2[1] * hudScale + hudOffset * viewHeight;
-    a3[2] = a2[2];
+	// Perform SIMD math :3
+    __m128 vPos = _mm_set_ps(0.0f, 0.0f, a2[1], a2[0]);
+    __m128 vOutPos = _mm_add_ps(_mm_mul_ps(vHudwarpHudScale, vPos), vHudwarpOffset);
+
+    // Unpack the vectorised data
+    *(__int64*)a3 = vOutPos.m128_i64[0];
+    // a3[2] = a2[2]; // This isn't needed because in all cases a2 == a3
 }
 
 typedef void(__fastcall* OnWindowSizeChanged_type)(unsigned int, unsigned int, bool);
@@ -165,6 +230,8 @@ OnWindowSizeChanged_type OnWindowSizeChanged_org = nullptr;
 void __fastcall OnWindowSizeChanged(unsigned int w, unsigned int h, bool isInGame)
 {
     OnWindowSizeChanged_org(w, h, isInGame);
+
+    UpdateHudwarpScreenSizeVectors((float)w, (float)h);
 
     if (hudwarpProcess)
         hudwarpProcess->Resize(w, h);
@@ -193,6 +260,8 @@ void __fastcall CMatSystemSurface__ApplyHudwarpSettings(void* thisptr, HudwarpSe
         newSettings.yWarp = 0.0f;
         if (newSettings.yScale > 1.0f) newSettings.yScale = 1.0f;
     }
+
+    UpdateHudwarpScaleVector(hudwarpSettings->xScale, hudwarpSettings->yScale);
 
     if (hudwarpProcess)
         hudwarpProcess->UpdateSettings(&newSettings);
