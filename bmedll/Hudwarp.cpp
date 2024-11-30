@@ -128,6 +128,7 @@ HudwarpProcess::HudwarpProcess(ID3D11Device* pDevice, ID3D11DeviceContext** ppID
 	mOrtho = XMMatrixOrthographicLH(1.0f, 1.0f, 0.0f, 1.0f);
 	ConstantBuffer cb;
 	cb.mProjection = mOrtho;
+	cb.aspectRatio = (float)m_width / (float)m_height;
 	cb.xWarp = 0.0f;
 	cb.xScale = 1.0f;
 	cb.yWarp = 0.0f;
@@ -266,6 +267,20 @@ void HudwarpProcess::Resize(unsigned int w, unsigned int h)
 	textureDesc.CPUAccessFlags = 0;
 	textureDesc.MiscFlags = 0;
 
+	// Update the constant buffer
+	ConstantBuffer cb;
+	cb.mProjection = mOrtho;
+	cb.aspectRatio = (float)m_width / (float)m_height;
+	cb.xWarp = m_hudwarpSettings.xWarp;
+	cb.xScale = m_hudwarpSettings.xScale;
+	cb.yWarp = m_hudwarpSettings.yWarp;
+	cb.yScale = m_hudwarpSettings.yScale;
+	cb.viewDist = m_hudwarpSettings.viewDist;
+
+	m_pContext->UpdateSubresource(m_pConstantBuffer, 0, 0, &cb, 0, 0);
+
+	m_shouldUpdateConstantBuffer = false;
+
 	// Create the render texture
 	m_pDevice->CreateTexture2D(&textureDesc, NULL, &m_pRenderTexture);
 
@@ -292,6 +307,7 @@ void HudwarpProcess::Resize(unsigned int w, unsigned int h)
 void HudwarpProcess::UpdateSettings(HudwarpSettings* hudwarpSettings)
 {
 	m_hudwarpSettings = *hudwarpSettings;
+	m_shouldUpdateConstantBuffer = true;
 }
 
 void HudwarpProcess::Begin()
@@ -360,16 +376,21 @@ void HudwarpProcess::Finish()
 	m_pContext->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 	// Update the constant buffer
-	ConstantBuffer cb;
-	cb.mProjection = mOrtho;
-	cb.aspectRatio = (float)m_width / (float)m_height;
-	cb.xWarp = m_hudwarpSettings.xWarp;
-	cb.xScale = m_hudwarpSettings.xScale;
-	cb.yWarp = m_hudwarpSettings.yWarp;
-	cb.yScale = m_hudwarpSettings.yScale;
-	cb.viewDist = m_hudwarpSettings.viewDist;
+	if (m_shouldUpdateConstantBuffer)
+	{
+		ConstantBuffer cb;
+		cb.mProjection = mOrtho;
+		cb.aspectRatio = (float)m_width / (float)m_height;
+		cb.xWarp = m_hudwarpSettings.xWarp;
+		cb.xScale = m_hudwarpSettings.xScale;
+		cb.yWarp = m_hudwarpSettings.yWarp;
+		cb.yScale = m_hudwarpSettings.yScale;
+		cb.viewDist = m_hudwarpSettings.viewDist;
 
-	m_pContext->UpdateSubresource(m_pConstantBuffer, 0, 0, &cb, 0, 0);
+		m_pContext->UpdateSubresource(m_pConstantBuffer, 0, 0, &cb, 0, 0);
+
+		m_shouldUpdateConstantBuffer = false;
+	}
 
 	// Set shader resources
 	m_pContext->VSSetConstantBuffers(0, 1, &m_pConstantBuffer);

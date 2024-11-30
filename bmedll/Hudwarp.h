@@ -43,6 +43,7 @@ private:
 	ID3D11InputLayout* m_pVertexLayout = nullptr;
 	ID3D11Buffer* m_pIndexBuffer = nullptr;
 	ID3D11Buffer* m_pConstantBuffer = nullptr;
+	bool m_shouldUpdateConstantBuffer = false;
 
 	ID3D11RasterizerState* m_pCWcullMode = NULL;
 
