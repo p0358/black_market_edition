@@ -27,6 +27,9 @@ ID3D11PixelShader* pPixelShader;
 #define MAINVP 0
 D3D11_VIEWPORT viewport{ 0 };
 
+// render hud at 1440p on 1080p and similar scale
+#define HUD_RENDER_RES 1.333f
+
 HudwarpProcess::HudwarpProcess(ID3D11Device* pDevice, ID3D11DeviceContext** ppID3D11DeviceContext) : m_pDevice(pDevice), m_pContext(*ppID3D11DeviceContext)
 {
 	// Initialize shaders
@@ -70,8 +73,8 @@ HudwarpProcess::HudwarpProcess(ID3D11Device* pDevice, ID3D11DeviceContext** ppID
 	m_height = *reinterpret_cast<unsigned int*>(vguimatsurfacedllBaseAddress + 0x290DD8 + 4);
 
 	// We add a border to the texture so that the HUD can't get cut off by the texture boundaries
-	unsigned int widthWithBorder = m_width * (1.0f + HUD_TEX_BORDER_SIZE * 2.0f);
-	unsigned int heightWithBorder = m_height * (1.0f + HUD_TEX_BORDER_SIZE * 2.0f);
+	unsigned int widthWithBorder = m_width * (1.0f + HUD_TEX_BORDER_SIZE * 2.0f) * HUD_RENDER_RES;
+	unsigned int heightWithBorder = m_height * (1.0f + HUD_TEX_BORDER_SIZE * 2.0f) * HUD_RENDER_RES;
 
 	// Setup the texture descriptor
 	D3D11_TEXTURE2D_DESC textureDesc;
@@ -246,8 +249,8 @@ void HudwarpProcess::Resize(unsigned int w, unsigned int h)
 	m_height = *reinterpret_cast<unsigned int*>(vguimatsurfacedllBaseAddress + 0x290DD8 + 4);
 
 	// We add a border to the texture so that the HUD can't get cut off by the texture boundaries
-	unsigned int widthWithBorder = m_width * (1.0f + HUD_TEX_BORDER_SIZE * 2.0f);
-	unsigned int heightWithBorder = m_height * (1.0f + HUD_TEX_BORDER_SIZE * 2.0f);
+	unsigned int widthWithBorder = m_width * (1.0f + HUD_TEX_BORDER_SIZE * 2.0f) * HUD_RENDER_RES;
+	unsigned int heightWithBorder = m_height * (1.0f + HUD_TEX_BORDER_SIZE * 2.0f) * HUD_RENDER_RES;
 
 	// Setup the texture descriptor
 	D3D11_TEXTURE2D_DESC textureDesc;
