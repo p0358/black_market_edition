@@ -133,6 +133,10 @@ __m128 vHudwarpOffset = _mm_mul_ps(vHudwarpScreenSize, vHudwarpHudOffset);
 
 __m128 vHudwarpScale = _mm_set_ps1(0.0f);
 
+// Seems confusing but trust me
+// This lets us simplify hudwarp_disable simd stuff to 1 instruction
+__m128 vHudwarpHalfScreenSizeScaleSub1 = _mm_set_ps1(0.0f);
+
 void UpdateHudwarpScreenSizeVectors(float screenWidth, float screenHeight)
 {
     static float prevScreenWidth = 1920.0f;
@@ -146,6 +150,8 @@ void UpdateHudwarpScreenSizeVectors(float screenWidth, float screenHeight)
         vHudwarpScreenSize = _mm_set_ps(0.0f, 0.0f, screenHeight, screenWidth);
         vHudwarpHalfScreenSize = _mm_mul_ps(vHudwarpScreenSize, vConstHalf);
         vHudwarpOffset = _mm_mul_ps(vHudwarpScreenSize, vHudwarpHudOffset);
+
+        vHudwarpHalfScreenSizeScaleSub1 = _mm_fmsub_ps(vHudwarpScreenSize, vHudwarpScale, vHudwarpScreenSize);
     }
 }
 
@@ -160,6 +166,8 @@ void UpdateHudwarpScaleVector(float scaleX, float scaleY)
         prevScaleY = scaleY;
 
         vHudwarpScale = _mm_set_ps(0.0f, 0.0f, scaleY, scaleX);
+
+        vHudwarpHalfScreenSizeScaleSub1 = _mm_fmsub_ps(vHudwarpScreenSize, vHudwarpScale, vHudwarpScreenSize);
     }
 }
 
@@ -192,7 +200,11 @@ void __fastcall sub_18000BAC0(float* a1, float* a2, float* a3)
             // a3[2] = a2[2];
 
             __m128 vPos = _mm_set_ps(0.0f, 0.0f, a2[1], a2[0]);
-            __m128 vOutPos = _mm_add_ps(_mm_mul_ps(_mm_sub_ps(vPos, vHudwarpHalfScreenSize), vHudwarpScale), vHudwarpHalfScreenSize);
+
+            // Rearranged from: (pos - hss) * scale + hss
+            // To: pos * scale - hss*(scale - 1)
+            // Allows use of _mm_fmsub_ps
+            __m128 vOutPos = _mm_fmsub_ps(vPos, vHudwarpHudScale, vHudwarpHalfScreenSizeScaleSub1);
 
             // Unpack the vectorised data
             // Using silly optim since x and y are adjacent
@@ -217,8 +229,8 @@ void __fastcall sub_18000BAC0(float* a1, float* a2, float* a3)
 	// a3[2] = a2[2];
 
 	// Perform SIMD math :3
-    __m128 vPos = _mm_set_ps(0.0f, 0.0f, a2[1], a2[0]);
-    __m128 vOutPos = _mm_add_ps(_mm_mul_ps(vHudwarpHudScale, vPos), vHudwarpOffset);
+	__m128 vPos = _mm_set_ps(0.0f, 0.0f, a2[1], a2[0]);
+	__m128 vOutPos = _mm_fmadd_ps(vHudwarpHudScale, vPos, vHudwarpOffset);
 
     // Unpack the vectorised data
     *(__int64*)a3 = vOutPos.m128_i64[0];
