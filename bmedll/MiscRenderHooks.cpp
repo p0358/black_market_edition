@@ -127,7 +127,7 @@ static const float hudScale = 1.0f - 2.0f * hudOffset;
 const __m128 vHudwarpHudOffset = _mm_set_ps1(hudOffset); // Const since hudOffset is never gonna change
 const __m128 vHudwarpHudScale = _mm_set_ps1(hudScale); // Const since hudScale is never gonna change
 
-__m128 vHudwarpScreenSize = _mm_set_ps(0.0f, 0.0f, 1080.0f, 1920.0f);
+__m128 vHudwarpScreenSize = _mm_set_ps(1080.0f, 1920.0f, 1080.0f, 1920.0f);
 __m128 vHudwarpHalfScreenSize = _mm_mul_ps(vHudwarpScreenSize, vConstHalf);
 __m128 vHudwarpOffset = _mm_mul_ps(vHudwarpScreenSize, vHudwarpHudOffset);
 
@@ -147,7 +147,7 @@ void UpdateHudwarpScreenSizeVectors(float screenWidth, float screenHeight)
         prevScreenWidth = screenWidth;
         prevScreenHeight = screenHeight;
 
-        vHudwarpScreenSize = _mm_set_ps(0.0f, 0.0f, screenHeight, screenWidth);
+        vHudwarpScreenSize = _mm_set_ps(screenHeight, screenWidth, screenHeight, screenWidth);
         vHudwarpHalfScreenSize = _mm_mul_ps(vHudwarpScreenSize, vConstHalf);
         vHudwarpOffset = _mm_mul_ps(vHudwarpScreenSize, vHudwarpHudOffset);
 
@@ -165,9 +165,51 @@ void UpdateHudwarpScaleVector(float scaleX, float scaleY)
         prevScaleX = scaleX;
         prevScaleY = scaleY;
 
-        vHudwarpScale = _mm_set_ps(0.0f, 0.0f, scaleY, scaleX);
+        vHudwarpScale = _mm_set_ps(scaleY, scaleX, scaleY, scaleX);
 
         vHudwarpHalfScreenSizeScaleSub1 = _mm_fmsub_ps(vHudwarpScreenSize, vHudwarpScale, vHudwarpScreenSize);
+    }
+}
+
+bool shouldDoublePumpHudwarpVerts = false;
+int hudwarpVertsProcessed = 0;
+
+// Hudwarp vertex manipulation
+// When hudwarp is disabled or we're using GPU we can run 2 at once
+void HudwarpVertexMath_DoublePump(float* warpSettings, float* vertA, float* vertB)
+{
+    // Ported from TFORevive by Barnaby
+
+    if (shouldUseGPUHudwarp)
+    {
+        // Perform SIMD math :3
+        __m128 vPos = _mm_set_ps(vertB[1], vertB[0], vertA[1], vertA[0]);
+        __m128 vOutPos = _mm_fmadd_ps(vHudwarpHudScale, vPos, vHudwarpOffset);
+
+        // Unpack the vectorised data
+        *(__int64*)vertA = vOutPos.m128_i64[0];
+        *(__int64*)vertB = vOutPos.m128_i64[1];
+    }
+    else
+    {
+        // Short-circuit when not scaling
+        float xScale = warpSettings[7];
+        float yScale = warpSettings[9];
+        if (xScale == 1.0f && yScale == 1.0f)
+        {
+            return;
+        }
+
+        __m128 vPos = _mm_set_ps(vertB[1], vertB[0], vertA[1], vertA[0]);
+
+        // Rearranged from: (pos - hss) * scale + hss
+        // To: pos * scale - hss*(scale - 1)
+        // Allows use of _mm_fmsub_ps
+        __m128 vOutPos = _mm_fmsub_ps(vPos, vHudwarpHudScale, vHudwarpHalfScreenSizeScaleSub1);
+
+        // Unpack the vectorised data
+        *(__int64*)vertA = vOutPos.m128_i64[0];
+        *(__int64*)vertB = vOutPos.m128_i64[1];
     }
 }
 
@@ -176,6 +218,18 @@ sub_18000BAC0_type sub_18000BAC0_org = nullptr;
 void __fastcall sub_18000BAC0(float* a1, float* a2, float* a3)
 {
     // Ported from TFORevive by Barnaby
+
+    if (shouldDoublePumpHudwarpVerts)
+    {
+        hudwarpVertsProcessed++;
+
+        if (hudwarpVertsProcessed % 2 == 0)
+        {
+            HudwarpVertexMath_DoublePump(a1, a2 - 6, a2);
+        }
+
+        return;
+    }
 
 	// Some wacky SIMD stuff is done in here now, if we wanted we could possibly look into
 	// double pumping this since we only use 2 of the 4 f32 slots in each __m128.
@@ -235,6 +289,36 @@ void __fastcall sub_18000BAC0(float* a1, float* a2, float* a3)
     // Unpack the vectorised data
     *(__int64*)a3 = vOutPos.m128_i64[0];
     // a3[2] = a2[2]; // This isn't needed because in all cases a2 == a3
+}
+
+typedef float* (*__fastcall sub_18000BE60_type)(float* a1, float* a2, float* a3, float* a4, float a5, float* a6, float* a7, _DWORD* a8);
+HookedFuncStaticWithType<sub_18000BE60_type> sub_18000BE60_org("vguimatsurface.dll", 0xBE60);
+
+float* __fastcall sub_18000BE60(float* a1, float* a2, float* a3, float* a4, float a5, float* a6, float* a7, _DWORD* a8)
+{
+    shouldDoublePumpHudwarpVerts = shouldUseGPUHudwarp || isHudwarpDisabled;
+    hudwarpVertsProcessed = 0;
+
+    float* ret = sub_18000BE60_org(a1, a2, a3, a4, a5, a6, a7, a8);
+
+    shouldDoublePumpHudwarpVerts = false;
+
+    return ret;
+}
+
+typedef void** (*__fastcall sub_1800154A0_type)(__int64 a1, int a2, int a3, int a4, int a5);
+HookedFuncStaticWithType<sub_1800154A0_type> sub_1800154A0_org("vguimatsurface.dll", 0x154A0);
+
+void** __fastcall sub_1800154A0(__int64 a1, int a2, int a3, int a4, int a5)
+{
+    shouldDoublePumpHudwarpVerts = shouldUseGPUHudwarp || isHudwarpDisabled;
+    hudwarpVertsProcessed = 0;
+
+    void** ret = sub_1800154A0_org(a1, a2, a3, a4, a5);
+
+    shouldDoublePumpHudwarpVerts = false;
+
+    return ret;
 }
 
 typedef void(__fastcall* OnWindowSizeChanged_type)(unsigned int, unsigned int, bool);
@@ -335,4 +419,8 @@ void DoMiscRenderHooks()
 
     sub_5ADC0.Hook(sub_5ADC0_Hook);
     CreateMiscHook(materialsystem_dx11dllBaseAddress, 0x63D0, &sub_63D0, reinterpret_cast<LPVOID*>(&sub_63D0_org));
+
+    sub_18000BE60_org.Hook(sub_18000BE60);
+    // Don't hook sub_180011420, causes visual bugs
+    sub_1800154A0_org.Hook(sub_1800154A0);
 }
