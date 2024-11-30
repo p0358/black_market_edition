@@ -77,8 +77,10 @@ struct Vertex
 	XMFLOAT2 texCoord;
 };
 
-// Must match hudScale in shader
+// Used for hudScale in shader, prevents cut off HUD
+// These values must match or the HUD will end up scaled wrong
 #define HUD_TEX_BORDER_SIZE 0.025f
+#define HUD_TEX_BORDER_SIZE_STR "0.025f"
 
 constexpr const char* hudwarpShader = R"(
 cbuffer ConstantBuffer : register(b0)
@@ -116,7 +118,7 @@ sampler Sampler : register(s0);
 float2 UndoHudTexBorder(float2 texCoord)
 {
 	// IMPORTANT: must match value of HUD_TEX_BORDER_SIZE
-	float hudTexBorderSize = 0.025f;
+	float hudTexBorderSize = )" HUD_TEX_BORDER_SIZE_STR R"(;
 
 	float hudScale = 1.0f + 2.0f * hudTexBorderSize;
 	float hudOffset = 0.5f - (0.5f / hudScale);
