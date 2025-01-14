@@ -1,6 +1,8 @@
 os.chdir(_MAIN_SCRIPT_DIR)
 
+if _ACTION == nil then _ACTION = "" end -- workaround Premake bug, TODO: remove
 require("vstudio")
+if _ACTION == "" then _ACTION = nil end -- workaround Premake bug, TODO: remove
 premake.api.register {
 	name = "solutionitems",
 	scope = "workspace",

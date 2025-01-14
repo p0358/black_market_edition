@@ -382,7 +382,7 @@ installer/source/bin/x64_retail/launcher.dll
 
 r1_modsrc/scripts/
 bmedll/FilesystemContents.h
+premake/premake5.exe
 premake/deps/include
 
-!/premake/premake5.exe
 !/thirdparty/sentry/lib/*.lib

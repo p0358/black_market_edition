@@ -10,7 +10,7 @@ on:
         type: number
 jobs:
   build:
-    runs-on: windows-2022
+    runs-on: windows-2025
     name: "Build"
     env:
       BME_CHANNEL: ${{ github.event_name == 'workflow_dispatch' && 'release' || 'staging' }}
@@ -34,6 +34,9 @@ jobs:
         with:
           msbuild-architecture: x64
           vs-prerelease: true
+
+      - name: Install premake
+        run: ./scripts/get-premake.ps1 5.0.0-beta4
 
       - name: Generate project files (premake)
         run: premake/premake5 vs2022 --ci-build=${{ env.BME_CHANNEL }}
@@ -101,7 +104,7 @@ jobs:
       - name: Create release
         if: github.event_name == 'workflow_dispatch'
         id: create_release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ inputs.version }}
           name: Release v${{ inputs.version }}
