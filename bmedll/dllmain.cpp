@@ -378,6 +378,39 @@ void* __fastcall CEngineAPI__Run(void* a1)
     //}
 }
 
+typedef bool(__fastcall* curlPrepare_type)(curlWrapper*, int, char*, int, bool, char*, char*, char*, __int64, int);
+curlPrepare_type curlPrepare_org = nullptr;
+bool __fastcall curlPrepare(
+    curlWrapper* cwrap,
+    int a1,
+    char* domain,
+    int port,
+    bool bHttps,
+    char* method,
+    char* httpVersion,
+    char* path,
+    __int64 a10,
+    int maxRetries)
+{
+    static auto* noRedact = CommandLine()->CheckParm("-noRedactLog");
+    std::string path_str = path;
+    if (!noRedact)
+    {
+        path_str = std::regex_replace(path_str, std::regex(R"(([&?]code=.{0,3})[^&?]+(&?))"), "$1***$2");
+    }
+
+    spdlog::debug("[curlPrepare] method:{} domain:{} path:{}", method, domain, path_str);
+    auto ret = curlPrepare_org(cwrap, a1, domain, port, bHttps, method, httpVersion, path, a10, maxRetries);
+    static ConVarRef http_proxy{ "http_proxy" };
+    if (http_proxy->GetString() && http_proxy->GetString()[0])
+    {
+        spdlog::debug("Overriding CURL http proxy to: {}", http_proxy->GetString());
+        auto* r1_curl_easy_setopt = reinterpret_cast<decltype(&curl_easy_setopt)>(Util::GetModuleBaseAddress("engine.dll") + 0x229B40);
+        r1_curl_easy_setopt(cwrap->curl_handle, CURLOPT_PROXY, http_proxy->GetString());
+    }
+    return ret;
+}
+
 void DoMiscHooks()
 {
     DWORD64 launcherdllBaseAddress = Util::GetModuleBaseAddress("launcher.org.dll");
@@ -404,6 +437,7 @@ void DoMiscHooks()
     CreateMiscHook(launcherdllBaseAddress, 0x4D6D0, &SQInstance_Finalize, reinterpret_cast<LPVOID*>(&SQInstance_Finalize_org));
     CreateMiscHook(vphysicsdllBaseAddress, 0x100880, &sub_180100880, reinterpret_cast<LPVOID*>(&sub_180100880_org));
     CreateMiscHook(enginedllBaseAddress, 0x1A0F70, &CEngineAPI__Run, reinterpret_cast<LPVOID*>(&CEngineAPI__Run_org));
+    CreateMiscHook(enginedllBaseAddress, 0x14D220, &curlPrepare, reinterpret_cast<LPVOID*>(&curlPrepare_org));
 }
 
 void DoBinaryPatches()

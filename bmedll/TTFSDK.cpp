@@ -308,6 +308,7 @@ void TTFSDK::Init()
     m_conCommandManager->RegisterConVar("hudwarp_disable", "0", FCVAR_DONTRECORD, "Disable HUD warping entirely for hugely improved performance when not using GPU HUD warping. Affects how the HUD is displayed visually.");
     m_conCommandManager->RegisterConVar("hudwarp_use_gpu", "0", FCVAR_DONTRECORD, "Run HUD warping on GPU for hugely improved performance. Slightly affects how the HUD is displayed visually.");
     m_conCommandManager->RegisterConVar("bme_skip_update", "0", FCVAR_DONTRECORD, "Set to 1 if you wish to skip auto-launching downloaded BME update");
+    m_conCommandManager->RegisterConVar("http_proxy", "", FCVAR_DONTRECORD, "curl http proxy for game's requests (not for BME requests)");
 
 #if 0
     /*{ // patch the restriction "Can't send client command; not connected to a server" of ClientCommand in script

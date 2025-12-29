@@ -17,11 +17,14 @@ public:
 	__int32 responseCode; //0x001C 
 	__int32 N000007CD; //0x0020 
 	float time; //0x0024 
-	char pad_0x0028[0x48]; //0x0028
+	char pad_0x0028[0x40]; //0x0028
+	CURL* curl_handle; // warning: CURL type won't be compatible between what we have in game and in BME!!!
 	char url[1025]; //0x69E5E9C0 
 	char pad_0x0471[0x1F]; //0x0471
 
 }; //Size=0x0490
+static_assert(offsetof(curlWrapper, curl_handle) == 0x68);
+static_assert(offsetof(curlWrapper, url) == 0x70);
 
 class curlWrapper2_0x1000
 {
