@@ -416,6 +416,30 @@ bool __fastcall curlPrepare(
     return ret;
 }
 
+typedef bool(*checkIfOriginIsInstalled_type)();
+checkIfOriginIsInstalled_type checkIfOriginIsInstalled_org = nullptr;
+bool checkIfOriginIsInstalled()
+{
+    bool isInstalled = checkIfOriginIsInstalled_org();
+    if (!isInstalled)
+    {
+        spdlog::warn("Origin is NOT installed according to OriginSDK's check (HKLM\\SOFTWARE\\Wow6432Node\\Origin\\ClientPath is missing/empty).");
+        spdlog::warn("We are bypassing this check in case LSX server is remotely ran (such as in Linux in another WINE prefix), but note that things will fail if Origin is actually not running.");
+    }
+    return true;
+}
+
+typedef uint64_t(__fastcall* tryToStartOrigin_type)(void*);
+tryToStartOrigin_type tryToStartOrigin_org = nullptr;
+uint64_t __fastcall tryToStartOrigin(void* a1)
+{
+    // Calling the original still has it try to start up Origin/EA App if it's down
+    // We just want to ignore a failure in case we're on Linux and LSX is started in a different prefix...
+    uint64_t ret = tryToStartOrigin_org(a1);
+    if (ret != 0) spdlog::warn("Origin process has failed to start. We are ignoring this and let it fail on LSX connection attempt, because LSX might still be up regardless, even if this failed.");
+    return 0;
+}
+
 void DoMiscHooks()
 {
     DWORD64 launcherdllBaseAddress = Util::GetModuleBaseAddress("launcher.org.dll");
@@ -444,6 +468,8 @@ void DoMiscHooks()
     CreateMiscHook(vphysicsdllBaseAddress, 0x100880, &sub_180100880, reinterpret_cast<LPVOID*>(&sub_180100880_org));
     CreateMiscHook(enginedllBaseAddress, 0x1A0F70, &CEngineAPI__Run, reinterpret_cast<LPVOID*>(&CEngineAPI__Run_org));
     CreateMiscHook(enginedllBaseAddress, 0x14D220, &curlPrepare, reinterpret_cast<LPVOID*>(&curlPrepare_org));
+    CreateMiscHook(enginedllBaseAddress, 0x3C93E0, &checkIfOriginIsInstalled, reinterpret_cast<LPVOID*>(&checkIfOriginIsInstalled_org));
+    CreateMiscHook(enginedllBaseAddress, 0x3C90F0, &tryToStartOrigin, reinterpret_cast<LPVOID*>(&tryToStartOrigin_org));
 }
 
 void DoBinaryPatches()
