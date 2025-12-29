@@ -45,7 +45,7 @@ HRESULT STDMETHODCALLTYPE MMNotificationClient::QueryInterface(REFIID riid, VOID
 HRESULT STDMETHODCALLTYPE MMNotificationClient::OnDefaultDeviceChanged(EDataFlow flow, ERole role, LPCWSTR pwstrDeviceId)
 {
 	if (!IsSDKReady())
-		return;
+		return E_NOT_VALID_STATE;
 	if (role == eMultimedia)
 	{
 		spdlog::info("[MMNotificationClient::OnDefaultDeviceChanged] Default multimedia audio device changed, requesting game's XAudio to restart.");

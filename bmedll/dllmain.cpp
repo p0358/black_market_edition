@@ -645,6 +645,8 @@ void main()
 {
     g_startTime = std::chrono::system_clock::now();
     CreateTier0MemAlloc();
+    if (CommandLine()->GetParms() == nullptr)
+        CommandLine()->CreateCmdLine(GetCommandLineA());
     //if (IsClient()) ShowConsole(); // TODO: disable in production?
     Util::ThreadSetDebugName("MainThread");
     SetupLogger();

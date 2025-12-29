@@ -2,6 +2,9 @@
 #include "pch.h"
 #include "SourceInterface.h"
 
+class ConVar;
+typedef void (*FnChangeCallback_t)(ConVar* var, const char* pOldValue, float flOldValue, void* data); // var should be IConVar*, but I cba to fix up the ConVar classes in BME
+
 class ConVar
 {
 public:
@@ -41,6 +44,20 @@ public:
 	unsigned int& GetIntRef()
 	{
 		return *(unsigned int*)((size_t)this + 92);
+	}
+
+	void InstallChangeCallback(FnChangeCallback_t callback, void* data = nullptr, bool bInvoke = false)
+	{
+		auto _InstallChangeCallback = reinterpret_cast<void(*)(ConVar*, FnChangeCallback_t, void*, bool)>
+			(Util::GetModuleBaseAddress("engine.dll") + 0x4816A0);
+		_InstallChangeCallback(this, callback, data, bInvoke);
+	}
+
+	void RemoveChangeCallback(FnChangeCallback_t callback, void* data = nullptr)
+	{
+		auto _RemoveChangeCallback = reinterpret_cast<void(*)(ConVar*, FnChangeCallback_t, void*)>
+			(Util::GetModuleBaseAddress("engine.dll") + 0x481780);
+		_RemoveChangeCallback(this, callback, data);
 	}
 };
 

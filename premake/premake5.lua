@@ -165,7 +165,8 @@ filter "configurations:Release or configurations:Staging"
 		--"/guard:ehcont", -- Enable EH Continuation Metadata
 	}
 	defines {"NDEBUG"}
-	flags {--[["FatalCompileWarnings",]] "LinkTimeOptimization"}
+	--flags {--[["FatalCompileWarnings",]]}
+	linktimeoptimization "On"
 filter {}
 
 filter "configurations:Staging"

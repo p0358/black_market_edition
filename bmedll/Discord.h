@@ -84,6 +84,12 @@ public:
 	}
 };
 
+/*struct CDiscordButton
+{
+	std::string label;
+	std::string url;
+};*/
+
 class CDiscordRichPresence
 {
 public:
@@ -103,6 +109,7 @@ public:
 	std::string joinSecret{};
 	std::string spectateSecret{};
 	int8_t instance{ 0 };
+	//std::vector<CDiscordButton> buttons{};
 
 	static CDiscordRichPresence FromDiscordRichPresence(const DiscordRichPresence* p)
 	{
@@ -131,6 +138,17 @@ public:
 		if (p->joinSecret) this->joinSecret = p->joinSecret;
 		if (p->spectateSecret) this->spectateSecret = p->spectateSecret;
 		this->instance = p->instance;
+		/*this->buttons.clear();
+		if (p->buttons)
+		{
+			for (uint8_t i = 0; true; i++)
+			{
+				const DiscordButton& btn = p->buttons[i];
+				if (!btn.label || !btn.label[0])
+					break;
+				this->buttons.push_back({ .label = btn.label, .url = btn.url });
+			}
+		}*/
 	}
 
 	void CopyFrom(const CDiscordRichPresence& p)
