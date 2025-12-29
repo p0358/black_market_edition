@@ -133,6 +133,11 @@ void Con_NXPrintf(__int64 a1, const char* fmt, ...)
     // no original call as it's nullsub
 }
 
+typedef void(__fastcall* TraceInit_TYPE)(const char* initfuncname, const char* shutdownfuncname, unsigned int a3);
+TraceInit_TYPE TraceInit_engine_org;
+void TraceInit(const char* initfuncname, const char* shutdownfuncname, unsigned int a3) { spdlog::debug("[TraceInit] {}", initfuncname); }
+void TraceInit_engine(const char* initfuncname, const char* shutdownfuncname, unsigned int a3) { TraceInit(initfuncname, shutdownfuncname, a3); TraceInit_engine_org(initfuncname, shutdownfuncname, a3); }
+
 /*typedef char(__fastcall* CNetChan_ProcessMessages_type)(__int64* a1, __int64 a2);
 CNetChan_ProcessMessages_type CNetChan_ProcessMessages_org;
 char __fastcall CNetChan_ProcessMessages(__int64* a1, __int64 a2)
@@ -428,6 +433,7 @@ void DoMiscHooks()
     ////CreateMiscHook(enginedllBaseAddress, 0x1F6C20, &ReadUBitLong_probably_for_netmsg_type_6bits__sub_1801F6C20, reinterpret_cast<LPVOID*>(&ReadUBitLong_probably_for_netmsg_type_6bits__sub_1801F6C20_org));
     CreateMiscHook(enginedllBaseAddress, 0x22C70, &CBaseClientState_ConnectionCrashed, reinterpret_cast<LPVOID*>(&CBaseClientState_ConnectionCrashed_org));
     CreateMiscHook(enginedllBaseAddress, 0x34390, &Con_NXPrintf, reinterpret_cast<LPVOID*>(&Con_NXPrintf_org));
+    CreateMiscHook(enginedllBaseAddress, 0x1AB510, &TraceInit_engine, reinterpret_cast<LPVOID*>(&TraceInit_engine_org));
     CreateMiscHook(enginedllBaseAddress, 0x1E73C0, &CNetChan_ProcessPacketHeader, reinterpret_cast<LPVOID*>(&CNetChan_ProcessPacketHeader_org));
     CreateMiscHook(clientdllBaseAddress, 0x17E140, &sub_18017E140, reinterpret_cast<LPVOID*>(&sub_18017E140_org));
     CreateMiscHook(enginedllBaseAddress, 0x59DE0, &CL_Move, reinterpret_cast<LPVOID*>(&CL_Move_org));

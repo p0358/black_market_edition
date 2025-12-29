@@ -169,8 +169,11 @@ void FileSystemManager::AddSearchPathHook(IFileSystem* fileSystem, const char* p
     //IFileSystem_AddSearchPath(fileSystem, "maps/mp_bme.bsp", "GAME", PATH_ADD_TO_HEAD);
     //IFileSystem_AddSearchPath(fileSystem, "maps/mp_bme.bsp", "MAIN", PATH_ADD_TO_HEAD);
     m_blockingRemoveAllMapSearchPaths = true;
-    IFileSystem_AddSearchPath(fileSystem, m_bspPath.string().c_str(), "GAME", PATH_ADD_TO_HEAD);
-    IFileSystem_AddSearchPath(fileSystem, m_bspPath.string().c_str(), "MAIN", PATH_ADD_TO_HEAD);
+    static std::string bspPath = m_bspPath.string();
+    //m_logger->debug("IFileSystem::AddSearchPath: adding bspPath");
+    IFileSystem_AddSearchPath(fileSystem, bspPath.c_str(), "GAME", PATH_ADD_TO_HEAD);
+    IFileSystem_AddSearchPath(fileSystem, bspPath.c_str(), "MAIN", PATH_ADD_TO_HEAD);
+    //m_logger->debug("IFileSystem::AddSearchPath: added bspPath");
     m_blockingRemoveAllMapSearchPaths = false;
 #else
 #ifdef READ_FROM_VPK
@@ -181,8 +184,14 @@ void FileSystemManager::AddSearchPathHook(IFileSystem* fileSystem, const char* p
 #endif
 #endif
 #endif
-    IFileSystem_AddSearchPath(fileSystem, m_customFilesPath.string().c_str(), "GAME", PATH_ADD_TO_HEAD);
-    IFileSystem_AddSearchPath(fileSystem, m_customFilesPath.string().c_str(), "MAIN", PATH_ADD_TO_HEAD);
+    if (fs::exists(m_customFilesPath))
+    {
+        static std::string customFilesPath = m_customFilesPath.string();
+        m_logger->debug("IFileSystem::AddSearchPath: adding m_customFilesPath ({})", customFilesPath);
+        IFileSystem_AddSearchPath(fileSystem, customFilesPath.c_str(), "GAME", PATH_ADD_TO_HEAD);
+        IFileSystem_AddSearchPath(fileSystem, customFilesPath.c_str(), "MAIN", PATH_ADD_TO_HEAD);
+        //m_logger->debug("IFileSystem::AddSearchPath: added m_customFilesPath");
+    }
 }
 
 void FileSystemManager::AddVPKFileHook(IFileSystem* fileSystem, char const* pBasename, void* a3, bool a4, SearchPathAdd_t addType, bool a6)

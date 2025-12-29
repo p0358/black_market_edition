@@ -1,4 +1,5 @@
 #include "pch.h"
+#include "tier0.h"
 #include "Presence.h"
 #include "TTFSDK.h"
 #include "ICvar.h"
@@ -669,6 +670,7 @@ HookedFuncStatic<void __fastcall, __int64> _updatePresence2("engine.dll", 0x15C4
 HookedFuncStatic<char, char*, signed __int64, const char*, char*, char*> _sub_180473500("engine.dll", 0x473500);
 HookedFuncStatic<__int64 __fastcall, __int64> _sub_180022CA0("engine.dll", 0x22CA0);
 HookedFuncStatic<int64_t __fastcall, int64_t, void*, uint64_t*, void*> _originEventCallback("engine.dll", 0x15BAE0);
+HookedFuncStatic<int64_t __fastcall, int, const char*> _originLog("engine.dll", 0x376CF0);
 
 Presence::Presence()
 {
@@ -697,6 +699,7 @@ Presence::Presence()
 	_sub_180473500.HookSafe(WRAPPED_MEMBER(Hook_sub_180473500));
 	//_sub_180022CA0.Hook(WRAPPED_MEMBER(Hook_sub_180022CA0));
 	_originEventCallback.HookSafe(WRAPPED_MEMBER(Hook_originEventCallback));
+	_originLog.HookSafe(WRAPPED_MEMBER(Hook_originLog));
 	didOriginOfflineKickAlready = false;
 
 	trainingStage = -1;
@@ -777,4 +780,24 @@ int64_t __fastcall Presence::Hook_originEventCallback(int64_t eventID, void* a2,
 		return 0;
 	}
 	return _originEventCallback(eventID, a2, a3, a4);
+}
+
+int64_t __fastcall Presence::Hook_originLog(int a1, const char* text)
+{
+	// very spammy
+	if (!strcmp(text, "OriginUpdate entered") || !strcmp(text, "OriginGetDefaultUser entered"))
+		return _originLog(a1, text);
+
+	static auto* noRedact = CommandLine()->CheckParm("-noRedactLog");
+	std::string str = text;
+	if (!noRedact)
+	{
+		str = std::regex_replace(str, std::regex(R"((<AuthCode value=".{0,3})[^"]+("))"), "$1***$2");
+		str = std::regex_replace(str, std::regex(R"((key=".{0,3})[^"]+("))"), "$1***$2");
+		str = std::regex_replace(str, std::regex(R"((response=".{0,3})[^"]+("))"), "$1***$2");
+	}
+	str.erase(str.find_last_not_of("\n") + 1);
+
+	SPDLOG_LOGGER_DEBUG(m_logger, "[OriginSDK] {}", str);
+	return _originLog(a1, text);
 }
