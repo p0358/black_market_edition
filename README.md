@@ -6,9 +6,30 @@ Note that this mod is meant for playing on vanilla game and does not include gam
 
 ## Installation
 
+### Windows
+
 Just grab the latest version's installer from the [Releases](https://github.com/p0358/bme_solution/releases) page and run it in order to install BME.
 
 Installers are built with Inno Setup using scripts from installer/ folder and they automatically detect game installation folder to which they can unpack the files.
+
+### Linux
+
+You may also just run `bme_installer.exe` in any WINE prefix and specify the correct game folder manually (since the installer does not modify anything outside of game's installation files and does not need any changes in the WINE prefix configuration).
+
+Alternatively, you may run the following in your terminal to install it manually (requires `curl jq libarchive`), adjusting first line with `GAME_DIR` to point at your actual game installation folder:
+
+```bash
+## Adjust the line below!
+GAME_DIR="$HOME/.local/share/Steam/steamapps/common/Titanfall"
+
+[[ -d "$GAME_DIR" && -f "$GAME_DIR"/Titanfall.exe ]] || echo "ERROR: Invalid game dir specified! ($GAME_DIR)"
+
+[ ! -f "$GAME_DIR"/bin/x64_retail/launcher.org.dll ] && mv -v "$GAME_DIR"/bin/x64_retail/launcher.{dll,org.dll}
+
+BME_ZIP=$(curl -sS https://api.github.com/repos/p0358/black_market_edition/releases | jq --raw-output '[.[0].assets[] | select(.name=="bme.zip")][0].browser_download_url')
+
+curl -sSL "$BME_ZIP" | bsdtar -xvf- -C "$GAME_DIR"
+```
 
 ## Features
 
