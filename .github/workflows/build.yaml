@@ -101,6 +101,18 @@ jobs:
           name: installer
           path: installer/bme_installer.exe
 
+      - name: Build bme.zip
+        run: |
+          cd installer/source
+          7z a ../bme.zip .
+          cd ../..
+
+      - name: Upload bme.zip artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: zip
+          path: installer/bme.zip
+
       - name: Create release
         if: github.event_name == 'workflow_dispatch'
         id: create_release
