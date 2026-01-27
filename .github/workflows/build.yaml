@@ -127,3 +127,4 @@ jobs:
           fail_on_unmatched_files: true
           files: |
             installer/bme_installer.exe
+            installer/bme.zip
