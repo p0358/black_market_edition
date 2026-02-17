@@ -303,6 +303,7 @@ void TTFSDK::Init()
     m_conCommandManager->RegisterCommand("test_crash8", test_crash8, "Crash the engine by throwing a runtime error in a thread", 0);
     m_conCommandManager->RegisterCommand("get_cvar", GetCvarCC, "Print cvar's value", 0);
     m_conCommandManager->RegisterCommand("set_cvar", SetCvarCC, "Set cvar to value", 0);
+    m_conCommandManager->RegisterCommand("+toggleFullscreenMap", NullCC, nullptr, 0); // for Squirrel
     m_conCommandManager->RegisterConVar("bme_version", BME_VERSION, FCVAR_UNLOGGED | FCVAR_DONTRECORD | FCVAR_SERVER_CANNOT_QUERY, "Current BME version");
     m_conCommandManager->RegisterConVar("cl_nocmdrate", "0", FCVAR_DONTRECORD, "Do not limit command packet rate by cl_cmdrate, instead allow dispatching one packet after every move command (so after every client frame)");
     m_conCommandManager->RegisterConVar("hudwarp_disable", "0", FCVAR_DONTRECORD, "Disable HUD warping entirely for hugely improved performance when not using GPU HUD warping. Affects how the HUD is displayed visually.");
