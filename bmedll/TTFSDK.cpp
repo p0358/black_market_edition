@@ -37,6 +37,8 @@ HookedFuncStatic<void __fastcall, __int64, double> CHostState_State_Run("engine.
 HookedFuncStatic<void> CHostState_Shutdown("engine.dll", 0x58BD0); // was: 0x14B810
 HookedFuncStatic<void __fastcall, double> getMotd("engine.dll", 0x1B340);
 
+void NullCC(const CCommand& args) {}
+
 void test(const CCommand& args)
 {
     //SDK().GetEngineClient()->ClientCmd_Unrestricted("disconnect \"test\"");
