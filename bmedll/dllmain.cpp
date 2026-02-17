@@ -7,6 +7,7 @@
 #include "Updater.h"
 #include "Chat.h"
 #include "MiscHooks.h"
+#include "MemoryAddress.h"
 
 HANDLE threadHandle;
 std::chrono::system_clock::time_point g_startTime;
@@ -440,6 +441,29 @@ uint64_t __fastcall tryToStartOrigin(void* a1)
     return 0;
 }
 
+typedef bool(* startOriginInviteThread_type)();
+startOriginInviteThread_type startOriginInviteThread_org = nullptr;
+bool startOriginInviteThread()
+{
+    // We bytepatch the original to have it stop starting game's thread using CreateSimpleThread, since that calls AllocateThreadID, and just so
+    // happens to exhaust game's thread IDs when running on high-core CPU. Just Source Engine things.
+    // We still use the return value to determine whether we should start the thread ourselves.
+    bool ret = startOriginInviteThread_org();
+    if (ret)
+    {
+        spdlog::info("[startOriginInviteThread] Will start the thread to show Origin invite UI (origin uid = {})", SDK().origin->uid);
+        std::thread([] {
+            // This will call ThreadSetDebugName(0, "OriginInviteThread");
+            auto* originInviteThreadProc = reinterpret_cast<__int64(__fastcall *)(unsigned __int64)>(Util::GetModuleBaseAddress("engine.dll") + 0x15C480);
+            originInviteThreadProc(SDK().origin->uid);
+        }).detach();
+    }
+    else
+    {
+        spdlog::warn("[startOriginInviteThread] Some preconditions failed, not showing Origin invite UI!");
+    }
+}
+
 void DoMiscHooks()
 {
     DWORD64 launcherdllBaseAddress = Util::GetModuleBaseAddress("launcher.org.dll");
@@ -470,6 +494,7 @@ void DoMiscHooks()
     CreateMiscHook(enginedllBaseAddress, 0x14D220, &curlPrepare, reinterpret_cast<LPVOID*>(&curlPrepare_org));
     CreateMiscHook(enginedllBaseAddress, 0x3C93E0, &checkIfOriginIsInstalled, reinterpret_cast<LPVOID*>(&checkIfOriginIsInstalled_org));
     CreateMiscHook(enginedllBaseAddress, 0x3C90F0, &tryToStartOrigin, reinterpret_cast<LPVOID*>(&tryToStartOrigin_org));
+    CreateMiscHook(enginedllBaseAddress, 0x15CD10, &startOriginInviteThread, reinterpret_cast<LPVOID*>(&startOriginInviteThread_org));
 }
 
 void DoBinaryPatches()
@@ -629,6 +654,10 @@ void DoBinaryPatches()
         *(unsigned char*)((uint64_t)algn + 4) = 0x00;
         *(unsigned char*)((uint64_t)algn + 5) = 0x00;
         *(uintptr_t**)((uint64_t)algn + 6) = &CNetChan__ProcessSubChannelData_AsmConductBufferSizeCheck;
+    }
+    {
+        // Skip starting originInviteThread here, we'll start it in a hook, while still using the return value of that function to know whether we should start it
+        MemoryAddress(Util::GetModuleBaseAddress("engine.dll")).Offset(0x15CD5F).Memset(0x90, 7+6+7+7+6+11+6+7);
     }
 }
 
