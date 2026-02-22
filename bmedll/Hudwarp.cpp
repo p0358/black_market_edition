@@ -27,6 +27,9 @@ ID3D11PixelShader* pPixelShader;
 #define MAINVP 0
 D3D11_VIEWPORT viewport{ 0 };
 
+// render hud at 1440p on 1080p and similar scale
+#define HUD_RENDER_RES 1.333f
+
 HudwarpProcess::HudwarpProcess(ID3D11Device* pDevice, ID3D11DeviceContext** ppID3D11DeviceContext) : m_pDevice(pDevice), m_pContext(*ppID3D11DeviceContext)
 {
 	// Initialize shaders
@@ -70,8 +73,8 @@ HudwarpProcess::HudwarpProcess(ID3D11Device* pDevice, ID3D11DeviceContext** ppID
 	m_height = *reinterpret_cast<unsigned int*>(vguimatsurfacedllBaseAddress + 0x290DD8 + 4);
 
 	// We add a border to the texture so that the HUD can't get cut off by the texture boundaries
-	unsigned int widthWithBorder = m_width * (1.0f + HUD_TEX_BORDER_SIZE * 2.0f);
-	unsigned int heightWithBorder = m_height * (1.0f + HUD_TEX_BORDER_SIZE * 2.0f);
+	unsigned int widthWithBorder = m_width * (1.0f + HUD_TEX_BORDER_SIZE * 2.0f) * HUD_RENDER_RES;
+	unsigned int heightWithBorder = m_height * (1.0f + HUD_TEX_BORDER_SIZE * 2.0f) * HUD_RENDER_RES;
 
 	// Setup the texture descriptor
 	D3D11_TEXTURE2D_DESC textureDesc;
@@ -125,6 +128,7 @@ HudwarpProcess::HudwarpProcess(ID3D11Device* pDevice, ID3D11DeviceContext** ppID
 	mOrtho = XMMatrixOrthographicLH(1.0f, 1.0f, 0.0f, 1.0f);
 	ConstantBuffer cb;
 	cb.mProjection = mOrtho;
+	cb.aspectRatio = (float)m_width / (float)m_height;
 	cb.xWarp = 0.0f;
 	cb.xScale = 1.0f;
 	cb.yWarp = 0.0f;
@@ -246,8 +250,8 @@ void HudwarpProcess::Resize(unsigned int w, unsigned int h)
 	m_height = *reinterpret_cast<unsigned int*>(vguimatsurfacedllBaseAddress + 0x290DD8 + 4);
 
 	// We add a border to the texture so that the HUD can't get cut off by the texture boundaries
-	unsigned int widthWithBorder = m_width * (1.0f + HUD_TEX_BORDER_SIZE * 2.0f);
-	unsigned int heightWithBorder = m_height * (1.0f + HUD_TEX_BORDER_SIZE * 2.0f);
+	unsigned int widthWithBorder = m_width * (1.0f + HUD_TEX_BORDER_SIZE * 2.0f) * HUD_RENDER_RES;
+	unsigned int heightWithBorder = m_height * (1.0f + HUD_TEX_BORDER_SIZE * 2.0f) * HUD_RENDER_RES;
 
 	// Setup the texture descriptor
 	D3D11_TEXTURE2D_DESC textureDesc;
@@ -262,6 +266,20 @@ void HudwarpProcess::Resize(unsigned int w, unsigned int h)
 	textureDesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
 	textureDesc.CPUAccessFlags = 0;
 	textureDesc.MiscFlags = 0;
+
+	// Update the constant buffer
+	ConstantBuffer cb;
+	cb.mProjection = mOrtho;
+	cb.aspectRatio = (float)m_width / (float)m_height;
+	cb.xWarp = m_hudwarpSettings.xWarp;
+	cb.xScale = m_hudwarpSettings.xScale;
+	cb.yWarp = m_hudwarpSettings.yWarp;
+	cb.yScale = m_hudwarpSettings.yScale;
+	cb.viewDist = m_hudwarpSettings.viewDist;
+
+	m_pContext->UpdateSubresource(m_pConstantBuffer, 0, 0, &cb, 0, 0);
+
+	m_shouldUpdateConstantBuffer = false;
 
 	// Create the render texture
 	m_pDevice->CreateTexture2D(&textureDesc, NULL, &m_pRenderTexture);
@@ -289,6 +307,7 @@ void HudwarpProcess::Resize(unsigned int w, unsigned int h)
 void HudwarpProcess::UpdateSettings(HudwarpSettings* hudwarpSettings)
 {
 	m_hudwarpSettings = *hudwarpSettings;
+	m_shouldUpdateConstantBuffer = true;
 }
 
 void HudwarpProcess::Begin()
@@ -357,16 +376,21 @@ void HudwarpProcess::Finish()
 	m_pContext->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 	// Update the constant buffer
-	ConstantBuffer cb;
-	cb.mProjection = mOrtho;
-	cb.aspectRatio = (float)m_width / (float)m_height;
-	cb.xWarp = m_hudwarpSettings.xWarp;
-	cb.xScale = m_hudwarpSettings.xScale;
-	cb.yWarp = m_hudwarpSettings.yWarp;
-	cb.yScale = m_hudwarpSettings.yScale;
-	cb.viewDist = m_hudwarpSettings.viewDist;
+	if (m_shouldUpdateConstantBuffer)
+	{
+		ConstantBuffer cb;
+		cb.mProjection = mOrtho;
+		cb.aspectRatio = (float)m_width / (float)m_height;
+		cb.xWarp = m_hudwarpSettings.xWarp;
+		cb.xScale = m_hudwarpSettings.xScale;
+		cb.yWarp = m_hudwarpSettings.yWarp;
+		cb.yScale = m_hudwarpSettings.yScale;
+		cb.viewDist = m_hudwarpSettings.viewDist;
 
-	m_pContext->UpdateSubresource(m_pConstantBuffer, 0, 0, &cb, 0, 0);
+		m_pContext->UpdateSubresource(m_pConstantBuffer, 0, 0, &cb, 0, 0);
+
+		m_shouldUpdateConstantBuffer = false;
+	}
 
 	// Set shader resources
 	m_pContext->VSSetConstantBuffers(0, 1, &m_pConstantBuffer);
